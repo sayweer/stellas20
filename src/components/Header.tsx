@@ -1,0 +1,28 @@
+/** Top app bar: brand + Testnet indicator, with the wallet control on the right. */
+import type { ReactElement } from 'react'
+import { WalletButton } from './WalletButton'
+import { SendIcon } from './icons'
+
+export function Header(): ReactElement {
+  return (
+    <header className="sticky top-0 z-30 border-b border-neutral-800/80 bg-neutral-950/80 backdrop-blur">
+      <div className="mx-auto flex h-16 w-full max-w-2xl items-center justify-between gap-4 px-4">
+        <div className="flex items-center gap-2.5">
+          <span
+            aria-hidden="true"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20"
+          >
+            <SendIcon className="h-4 w-4" />
+          </span>
+          <div className="flex flex-col leading-none">
+            <span className="text-sm font-semibold text-neutral-100">Stellar Pay</span>
+            <span className="mt-1 text-[11px] font-medium uppercase tracking-wider text-neutral-500">
+              Testnet
+            </span>
+          </div>
+        </div>
+        <WalletButton />
+      </div>
+    </header>
+  )
+}
