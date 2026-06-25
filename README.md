@@ -1,4 +1,4 @@
-# Stellar Pay — White Belt Payment dApp
+# stellas20 — White Belt Payment dApp
 
 A small, production-quality frontend dApp for sending **XLM on the Stellar Testnet**. It connects the [Freighter](https://www.freighter.app/) browser wallet, shows your account's native XLM balance, and lets you send a payment with clear success/failure feedback and a link to the transaction on a block explorer. This is the **White Belt (Level 1)** submission for the Stellar *Journey to Mastery* program — the scope is intentionally small, with clean architecture, correctness, and error handling as the focus.
 
@@ -38,7 +38,7 @@ No secrets or API keys are required — the app is Testnet-only and reads non-se
 ```bash
 # 1. Clone the repository
 git clone <repository-url>
-cd stellar-white-belt-dapp
+cd stellas20
 
 # 2. Install dependencies
 npm install

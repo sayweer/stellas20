@@ -15,7 +15,7 @@ export function Header(): ReactElement {
             <SendIcon className="h-4 w-4" />
           </span>
           <div className="flex flex-col leading-none">
-            <span className="text-sm font-semibold text-neutral-100">Stellar Pay</span>
+            <span className="text-sm font-semibold text-neutral-100">stellas20</span>
             <span className="mt-1 text-[11px] font-medium uppercase tracking-wider text-neutral-500">
               Testnet
             </span>
