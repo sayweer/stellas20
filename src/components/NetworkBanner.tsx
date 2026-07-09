@@ -15,7 +15,7 @@ export function NetworkBanner(): ReactElement | null {
           <span className="font-semibold">
             Wrong network{network ? ` (${network})` : ''}.
           </span>{' '}
-          Switch Freighter to Testnet to continue.
+          Switch your wallet to Testnet to continue.
         </p>
       </div>
     </div>

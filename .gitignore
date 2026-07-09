@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Rust / Soroban contract build artifacts
+/target
+test_snapshots/
+
 # Env files (secrets never committed; only VITE_-prefixed non-secret config, via .env.example)
 .env
 .env.*
@@ -33,3 +37,5 @@ dist-ssr
 .codex/
 .stellar/
 
+CLAUDE.md
+ROADMAP.md

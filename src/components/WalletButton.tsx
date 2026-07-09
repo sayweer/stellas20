@@ -5,8 +5,6 @@ import { useWallet } from '../context/WalletContext'
 import { useToast } from '../hooks/useToast'
 import { CheckIcon, CopyIcon, Spinner } from './icons'
 
-const FREIGHTER_URL = 'https://www.freighter.app/'
-
 function truncate(address: string): string {
   return `${address.slice(0, 4)}…${address.slice(-4)}`
 }
@@ -14,17 +12,17 @@ function truncate(address: string): string {
 export function WalletButton(): ReactElement {
   const { status, address, isConnected, connect, disconnect } = useWallet()
   const { notify } = useToast()
-  const [notInstalled, setNotInstalled] = useState(false)
+  const [notFound, setNotFound] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const connecting = status === 'connecting'
 
   async function handleConnect(): Promise<void> {
-    setNotInstalled(false)
+    setNotFound(false)
     const error = await connect()
     if (!error) return
-    if (error.code === 'freighter_not_installed') {
-      setNotInstalled(true)
+    if (error.code === 'wallet_not_found') {
+      setNotFound(true)
       return
     }
     // A declined connection is a state change, not an error — stay quiet.
@@ -95,20 +93,21 @@ export function WalletButton(): ReactElement {
             Connecting…
           </>
         ) : (
-          'Connect Freighter'
+          'Connect Wallet'
         )}
       </button>
-      {notInstalled && (
+      {notFound && (
         <p className="text-right text-xs text-neutral-400">
-          Freighter not detected.{' '}
+          No compatible wallet found. Install{' '}
           <a
-            href={FREIGHTER_URL}
+            href="https://www.freighter.app/"
             target="_blank"
             rel="noreferrer"
             className="rounded font-medium text-emerald-400 underline underline-offset-2 hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
           >
-            Install it
-          </a>
+            Freighter
+          </a>{' '}
+          and try again.
         </p>
       )}
     </div>

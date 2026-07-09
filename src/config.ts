@@ -10,6 +10,12 @@ export interface AppConfig {
   readonly stellarExpertUrl: string
   /** Network passphrase identifying Stellar Testnet, sourced from the SDK. */
   readonly networkPassphrase: string
+  /** Soroban RPC endpoint (Testnet) for contract simulate/send/getEvents. */
+  readonly sorobanRpcUrl: string
+  /** Deployed stellas-vault contract ID on Testnet. */
+  readonly vaultContractId: string
+  /** Native XLM Stellar Asset Contract ID on Testnet (the vault's token). */
+  readonly nativeSacId: string
 }
 
 /**
@@ -22,4 +28,18 @@ export const config: AppConfig = {
   stellarExpertUrl:
     import.meta.env.VITE_STELLAR_EXPERT_URL ?? 'https://stellar.expert/explorer/testnet',
   networkPassphrase: Networks.TESTNET,
+  sorobanRpcUrl: import.meta.env.VITE_SOROBAN_RPC_URL ?? 'https://soroban-testnet.stellar.org',
+  vaultContractId: import.meta.env.VITE_VAULT_CONTRACT_ID ?? '',
+  nativeSacId:
+    import.meta.env.VITE_NATIVE_SAC_ID ?? 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC',
+}
+
+/** Link to a transaction on stellar.expert (Testnet). */
+export function explorerTxUrl(hash: string): string {
+  return `${config.stellarExpertUrl}/tx/${hash}`
+}
+
+/** Link to a contract on stellar.expert (Testnet). */
+export function explorerContractUrl(contractId: string): string {
+  return `${config.stellarExpertUrl}/contract/${contractId}`
 }

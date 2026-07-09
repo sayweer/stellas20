@@ -3,17 +3,9 @@
    the Fast Refresh boundary tradeoff is acceptable for a stable context. */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
-import {
-  connect as freighterConnect,
-  getActiveAddress,
-  getNetwork as freighterGetNetwork,
-  isAllowed,
-  isFreighterInstalled,
-} from '../lib/freighter'
+import { config } from '../config'
+import { disconnectWallet, getWalletNetwork, onWalletAddressChange, openWalletPicker } from '../lib/wallet'
 import { isAppError, type AppError, type WalletState } from '../types'
-
-/** Freighter's network name for Stellar Testnet. */
-const TESTNET_NETWORK = 'TESTNET'
 
 const INITIAL_STATE: WalletState = {
   status: 'disconnected',
@@ -28,9 +20,9 @@ export interface WalletContextValue extends WalletState {
   isConnected: boolean
   /** True when connected but not on Stellar Testnet (should block sending). */
   isWrongNetwork: boolean
-  /** Run the Freighter connection flow. Resolves to an AppError on failure, or null on success. */
+  /** Open the multi-wallet picker. Resolves to an AppError on failure, or null on success. */
   connect: () => Promise<AppError | null>
-  /** Clear local connection state (Freighter exposes no disconnect API). */
+  /** Clear the wallet connection (kit exposes no server-side disconnect). */
   disconnect: () => void
 }
 
@@ -40,46 +32,42 @@ const WalletContext = createContext<WalletContextValue | null>(null)
 export function WalletProvider({ children }: { children: ReactNode }): ReactElement {
   const [state, setState] = useState<WalletState>(INITIAL_STATE)
 
-  // Restore an existing session on mount so a page refresh stays connected.
+  // The kit fires this immediately with its persisted address (restoring a
+  // session across reloads with no popup), then again on every
+  // connect/disconnect/account switch — this is the single source of truth
+  // for `address`.
   useEffect(() => {
-    let cancelled = false
-    async function restore(): Promise<void> {
-      if (!(await isFreighterInstalled())) return
-      if (!(await isAllowed())) return
-      const address = await getActiveAddress()
-      if (!address || cancelled) return
-      const net = await freighterGetNetwork()
-      if (cancelled) return
-      setState({
-        status: 'connected',
-        address,
-        network: isAppError(net) ? null : net.network,
-        networkPassphrase: isAppError(net) ? null : net.networkPassphrase,
+    const unsubscribe = onWalletAddressChange((address) => {
+      if (!address) {
+        setState(INITIAL_STATE)
+        return
+      }
+      setState((prev) => ({ ...prev, status: 'connected', address, network: null, networkPassphrase: null }))
+      void getWalletNetwork().then((net) => {
+        setState((prev) =>
+          prev.address === address
+            ? { ...prev, network: net?.network ?? null, networkPassphrase: net?.networkPassphrase ?? null }
+            : prev,
+        )
       })
-    }
-    void restore()
-    return () => {
-      cancelled = true
-    }
+    })
+    return unsubscribe
   }, [])
 
   const connect = useCallback(async (): Promise<AppError | null> => {
     setState((prev) => ({ ...prev, status: 'connecting' }))
-    const result = await freighterConnect()
+    const result = await openWalletPicker()
     if (isAppError(result)) {
-      setState(INITIAL_STATE)
+      // Success is applied by the onWalletAddressChange subscription above;
+      // on failure, only reset if we're still mid-connect (no address landed).
+      setState((prev) => (prev.status === 'connecting' ? INITIAL_STATE : prev))
       return result
     }
-    setState({
-      status: 'connected',
-      address: result.address,
-      network: result.network,
-      networkPassphrase: result.networkPassphrase,
-    })
     return null
   }, [])
 
   const disconnect = useCallback((): void => {
+    disconnectWallet()
     setState(INITIAL_STATE)
   }, [])
 
@@ -88,7 +76,8 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
     return {
       ...state,
       isConnected,
-      isWrongNetwork: isConnected && state.network !== TESTNET_NETWORK,
+      isWrongNetwork:
+        isConnected && state.networkPassphrase !== null && state.networkPassphrase !== config.networkPassphrase,
       connect,
       disconnect,
     }
