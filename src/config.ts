@@ -12,10 +12,12 @@ export interface AppConfig {
   readonly networkPassphrase: string
   /** Soroban RPC endpoint (Testnet) for contract simulate/send/getEvents. */
   readonly sorobanRpcUrl: string
-  /** Deployed stellas-vault contract ID on Testnet. */
-  readonly vaultContractId: string
-  /** Native XLM Stellar Asset Contract ID on Testnet (the vault's token). */
-  readonly nativeSacId: string
+  /** Deployed MockYieldToken (mUSDY) contract ID on Testnet. */
+  readonly mytContractId: string
+  /** Deployed SYVault contract ID on Testnet. */
+  readonly syVaultContractId: string
+  /** Deployed Splitter contract ID on Testnet. */
+  readonly splitterContractId: string
 }
 
 /**
@@ -29,9 +31,26 @@ export const config: AppConfig = {
     import.meta.env.VITE_STELLAR_EXPERT_URL ?? 'https://stellar.expert/explorer/testnet',
   networkPassphrase: Networks.TESTNET,
   sorobanRpcUrl: import.meta.env.VITE_SOROBAN_RPC_URL ?? 'https://soroban-testnet.stellar.org',
-  vaultContractId: import.meta.env.VITE_VAULT_CONTRACT_ID ?? '',
-  nativeSacId:
-    import.meta.env.VITE_NATIVE_SAC_ID ?? 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC',
+  // Default to the current Testnet deployment (public, non-secret) so the app
+  // works with zero config; override via env for a fresh deployment.
+  mytContractId:
+    import.meta.env.VITE_MYT_CONTRACT_ID ??
+    'CCJ53CNTNHS3AQJR54QFU6N3CVN7WA54JOVKHE7O2PBSVDEZD5TJD6NF',
+  syVaultContractId:
+    import.meta.env.VITE_SY_VAULT_CONTRACT_ID ??
+    'CAJBU37EJTL37N4IL63WUQFUC5MHK4VBSAIXDGNE52OGSUQQ2E47UGKO',
+  splitterContractId:
+    import.meta.env.VITE_SPLITTER_CONTRACT_ID ??
+    'CA2ENFLBAFF2F4PFPLUR5M5CUYIFXCLMCO4AYWA6AP3BZ4FSLBENYQNS',
+}
+
+/** True when all three contract IDs are configured (env fully wired). */
+export function isContractsConfigured(): boolean {
+  return (
+    config.mytContractId !== '' &&
+    config.syVaultContractId !== '' &&
+    config.splitterContractId !== ''
+  )
 }
 
 /** Link to a transaction on stellar.expert (Testnet). */

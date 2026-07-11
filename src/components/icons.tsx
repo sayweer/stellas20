@@ -126,6 +126,64 @@ export function SendIcon({ className }: IconProps): ReactElement {
   )
 }
 
+export function DropletIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
+    </Icon>
+  )
+}
+
+export function LayersIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+      <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+      <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
+    </Icon>
+  )
+}
+
+export function SplitIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="M16 3h5v5" />
+      <path d="M8 3H3v5" />
+      <path d="M12 22v-8.3a4 4 0 0 0-1.17-2.83L3 3" />
+      <path d="m15 9 6-6" />
+    </Icon>
+  )
+}
+
+export function CoinsIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <circle cx="8" cy="8" r="6" />
+      <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
+      <path d="M7 6h1v4" />
+      <path d="m16.71 13.88.7.71-2.82 2.82" />
+    </Icon>
+  )
+}
+
+export function ClockIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 6v6l4 2" />
+    </Icon>
+  )
+}
+
+export function TrendingUpIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="M16 7h6v6" />
+      <path d="m22 7-8.5 8.5-5-5L2 17" />
+    </Icon>
+  )
+}
+
 export function Spinner({ className = 'h-4 w-4' }: IconProps): ReactElement {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={`animate-spin ${className}`} aria-hidden="true">

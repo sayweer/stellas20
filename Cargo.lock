@@ -1600,10 +1600,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "stellas-vault"
+name = "stellas-mock-yield-token"
 version = "0.1.0"
 dependencies = [
  "soroban-sdk",
+]
+
+[[package]]
+name = "stellas-splitter"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+ "stellas-mock-yield-token",
+ "stellas-sy-vault",
+]
+
+[[package]]
+name = "stellas-sy-vault"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+ "stellas-mock-yield-token",
 ]
 
 [[package]]

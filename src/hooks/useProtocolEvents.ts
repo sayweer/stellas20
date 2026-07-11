@@ -1,18 +1,20 @@
-/** Hook that polls the vault's contract events for a live activity feed. */
+/** Hook that polls the protocol's contract events for a live activity feed. */
 import { useEffect, useRef, useState } from 'react'
-import { fetchVaultEvents, type VaultEvent } from '../lib/events'
+import { fetchProtocolEvents, type ProtocolEvent } from '../lib/events'
 import { isAppError } from '../types'
 
 const POLL_INTERVAL_MS = 5000
 const MAX_EVENTS = 25
 
 /**
- * Poll the vault contract's events every 5s, keeping the newest 25,
- * deduped by event id. `onNewEvents` fires with each freshly-seen batch so
- * the caller can refresh the funding-pot totals in near-real-time.
+ * Poll the protocol's events every 5s, keeping the newest 25, deduped by id.
+ * `onNewEvents` fires with each freshly-seen batch so the caller can refresh
+ * portfolio totals in near-real-time.
  */
-export function useVaultEvents(onNewEvents?: (events: VaultEvent[]) => void): VaultEvent[] {
-  const [events, setEvents] = useState<VaultEvent[]>([])
+export function useProtocolEvents(
+  onNewEvents?: (events: ProtocolEvent[]) => void,
+): ProtocolEvent[] {
+  const [events, setEvents] = useState<ProtocolEvent[]>([])
   const cursorRef = useRef<string | undefined>(undefined)
   const seenIds = useRef<Set<string>>(new Set())
   const onNewEventsRef = useRef(onNewEvents)
@@ -24,7 +26,7 @@ export function useVaultEvents(onNewEvents?: (events: VaultEvent[]) => void): Va
     let cancelled = false
 
     async function poll(): Promise<void> {
-      const result = await fetchVaultEvents(cursorRef.current)
+      const result = await fetchProtocolEvents(cursorRef.current)
       if (cancelled || isAppError(result)) return
       cursorRef.current = result.cursor
       if (result.events.length === 0) return

@@ -1,0 +1,114 @@
+/** Top-level portfolio balances: mUSDY, SY, total PT, and live claimable yield. */
+import type { ReactElement } from 'react'
+import type { Portfolio } from '../hooks/usePortfolio'
+import { formatAmount } from '../lib/format'
+import { projectedClaimable } from '../lib/yield'
+import type { AppError } from '../types'
+import { FaucetButton } from './FaucetButton'
+import { RefreshIcon, Spinner } from './icons'
+
+interface PortfolioPanelProps {
+  address: string | null
+  portfolio: Portfolio
+  loading: boolean
+  error: AppError | null
+  liveRate: bigint | null
+  isWrongNetwork: boolean
+  onRefresh: () => void
+}
+
+interface Stat {
+  label: string
+  value: string
+  accent?: boolean
+}
+
+export function PortfolioPanel({
+  address,
+  portfolio,
+  loading,
+  error,
+  liveRate,
+  isWrongNetwork,
+  onRefresh,
+}: PortfolioPanelProps): ReactElement {
+  const totalPt = portfolio.positions.reduce((sum, p) => sum + p.position.pt, 0n)
+  const totalClaimable =
+    liveRate === null
+      ? 0n
+      : portfolio.positions.reduce(
+          (sum, p) => sum + projectedClaimable(p.position, liveRate),
+          0n,
+        )
+
+  const stats: Stat[] = [
+    { label: 'mUSDY', value: formatAmount(portfolio.myt) },
+    { label: 'SY', value: formatAmount(portfolio.sy) },
+    { label: 'PT (all maturities)', value: formatAmount(totalPt) },
+    { label: 'Claimable yield', value: formatAmount(totalClaimable, 6), accent: true },
+  ]
+
+  return (
+    <section
+      aria-labelledby="portfolio-heading"
+      className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 sm:p-6"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="portfolio-heading" className="text-sm font-medium text-neutral-400">
+          Portfolio
+        </h2>
+        <div className="flex items-center gap-2">
+          {address && <FaucetButton address={address} disabled={isWrongNetwork} onSuccess={onRefresh} />}
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={loading}
+            aria-label="Refresh portfolio"
+            className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:opacity-50"
+          >
+            {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
+
+      {error ? (
+        <div className="mt-4 space-y-3">
+          <p className="text-sm text-neutral-300">{error.message}</p>
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="rounded-lg border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+          >
+            Try again
+          </button>
+        </div>
+      ) : (
+        <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-xl border border-neutral-800/80 bg-neutral-950/40 px-3 py-3"
+            >
+              <dt className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">
+                {stat.label}
+              </dt>
+              <dd
+                className={`mt-1 font-mono text-lg font-semibold tabular-nums ${
+                  stat.accent ? 'text-emerald-300' : 'text-neutral-50'
+                }`}
+              >
+                {loading && !address ? '—' : stat.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      {!address && (
+        <p className="mt-4 text-sm text-neutral-500">
+          Connect a Testnet wallet to see your balances and start splitting yield.
+        </p>
+      )}
+    </section>
+  )
+}

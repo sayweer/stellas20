@@ -1,0 +1,19 @@
+[package]
+name = "stellas-splitter"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+stellas-mock-yield-token = { path = "../mock-yield-token", features = ["testutils"] }
+stellas-sy-vault = { path = "../sy-vault", features = ["testutils"] }
+
+[features]
+testutils = ["soroban-sdk/testutils"]

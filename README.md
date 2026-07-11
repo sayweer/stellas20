@@ -1,173 +1,210 @@
-# stellas-vault — Yellow Belt Crowdfunding Vault
+# stellas-core — PT/YT Yield Splitting on Stellar
 
-A Soroban crowdfunding-vault dApp for **Stellar Testnet**: a smart contract that accepts XLM deposits toward a funding goal and lets contributors withdraw their own balance, paired with a multi-wallet frontend that reads and writes the contract live, tracks every transaction's status, and streams a real-time activity feed from the contract's own events. This is the **Yellow Belt (Level 2)** submission for the Stellar *Journey to Mastery* program, evolving in place from the [White Belt payment dApp](#-belt-history) submitted earlier in this same repository.
+**The missing fixed-income primitive for Stellar's RWA boom.** stellas-core splits a
+yield-bearing token into two tradable parts — a **Principal Token (PT)**, redeemable 1:1 for the
+underlying at maturity (a zero-coupon bond / fixed rate), and a **Yield Token (YT)**, which
+receives all the yield until maturity (pure yield exposure). On Ethereum, Pendle turned this into
+the backbone of on-chain fixed income; Stellar has no equivalent. This is that primitive, on
+**Testnet**, as the **Orange Belt (Level 3)** submission for the Stellar *Journey to Mastery*.
 
-> **Testnet only.** This app never touches mainnet. Signing always happens inside your connected wallet — this app never sees your secret key.
+> **Testnet only.** No mainnet config. Signing happens only inside your wallet — this app never
+> sees your secret key.
 
-## Features
+- **Live demo:** _(deploy to Vercel and paste the URL here)_
+- **Demo video:** _(record and link at the Level 3 submission checkpoint)_
 
-Mapped to the Level 2 requirements:
+## The three contracts
 
-- **Multi-wallet connect** via [StellarWalletsKit](https://github.com/Creit-Tech/Stellar-Wallets-Kit) — pick Freighter, xBull, or Albedo (no install needed) from a picker modal; connect/disconnect, with the session restored automatically on reload.
-- **Smart contract deployed on Testnet** — a Rust/Soroban vault contract with `initialize`, `deposit`, `withdraw`, and read-only views, unit-tested (8 tests) and built with the `stellar` CLI.
-- **Contract calls from the frontend, read AND write** — the funding pot's total/goal/contributor-count/your-balance are free simulate-only reads (work even while disconnected); deposit/withdraw are full build → simulate → sign → submit → confirm writes.
-- **Event listening / live state sync** — an activity feed polls the contract's `deposit`/`withdraw` events every 5s and updates the funding-pot totals in near-real-time, without a manual refresh.
-- **Transaction status tracking** — every deposit/withdraw visibly moves through **pending** (with hash) → **success** (hash + stellar.expert link) or a **specific failure reason**.
-- **3+ distinct, visibly-handled error types**: wallet not available, user declined the connection/signature, insufficient balance (both a client-side pre-check and the contract's own `#[contracterror]` mapped to a friendly message) — plus a bonus wrong-network guard that blocks sending.
+stellas-core is three Soroban contracts that call each other — inter-contract communication is
+intrinsic to the design, not bolted on:
+
+1. **MockYieldToken (mUSDY)** — a demo yield-bearing token (simulating USDY / a Blend position).
+   Balances are fixed; an **exchange rate grows linearly with ledger time**, checkpointed so any
+   past rate is recoverable exactly. Implements the full SEP-41 token interface + a public faucet.
+2. **SYVault** — wraps mUSDY into **Standardized Yield (SY)** shares 1:1, with a `transfer` entry
+   point so the Splitter can move SY cross-contract. Delegates its exchange rate to mUSDY.
+3. **Splitter** — for a chosen maturity `T`: `split(SY) → PT + YT`, `merge(PT+YT) → SY`,
+   `claim_yield(YT) → accrued yield`, `redeem_pt(PT) → fixed principal` at/after maturity.
+
+```mermaid
+flowchart LR
+  User(("User wallet"))
+  MYT["MockYieldToken<br/>(mUSDY, SEP-41)"]
+  SY["SYVault<br/>(SY shares)"]
+  SP["Splitter<br/>(PT / YT market)"]
+
+  User -->|faucet / approve| MYT
+  User -->|wrap / unwrap| SY
+  User -->|split / merge / claim / redeem| SP
+  SY -->|transfer, exchange_rate| MYT
+  SP -->|transfer, exchange_rate_at| SY
+  SP -.->|2-hop: rate at maturity| MYT
+```
+
+### Inter-contract call inventory
+
+| # | Caller → Callee | Call | When |
+|---|---|---|---|
+| 1 | SYVault → MockYieldToken | `transfer` (user → vault) | `wrap` |
+| 2 | SYVault → MockYieldToken | `transfer` (vault → user) | `unwrap` |
+| 3 | SYVault → MockYieldToken | `exchange_rate` / `exchange_rate_at` | rate views |
+| 4 | Splitter → SYVault | `transfer` (user → splitter, nested auth, one signature) | `split` |
+| 5 | Splitter → SYVault | `transfer` (splitter → user, invoker auth) | `merge`, `claim_yield`, `redeem_pt` |
+| 6 | Splitter → SYVault → MockYieldToken | `exchange_rate_at(min(now, T))` — **two-hop chain** | every settle |
+
+## Deployed on Testnet
+
+| Contract | ID |
+|---|---|
+| MockYieldToken (mUSDY) | `CCJ53CNTNHS3AQJR54QFU6N3CVN7WA54JOVKHE7O2PBSVDEZD5TJD6NF` |
+| SYVault | `CAJBU37EJTL37N4IL63WUQFUC5MHK4VBSAIXDGNE52OGSUQQ2E47UGKO` |
+| Splitter | `CA2ENFLBAFF2F4PFPLUR5M5CUYIFXCLMCO4AYWA6AP3BZ4FSLBENYQNS` |
+
+**Verifiable contract-call transactions** (Stellar Expert, Testnet):
+
+- **Split** (cross-contract: Splitter pulls SY from SYVault, mints PT/YT) — [`f1e00efc…2965`](https://stellar.expert/explorer/testnet/tx/f1e00efc3e5bd79907a2acb791e66dcf36926ca8cca615f2b9378f1da4b42965)
+- **Wrap** (SYVault ← mUSDY) — [`e3a3bfbe…4f0e`](https://stellar.expert/explorer/testnet/tx/e3a3bfbecf7c9207b84e096d6c49077fd932afe7e3bd6c2c8f9208b3212c4f0e)
+- **Faucet** (mUSDY) — [`c0e064e4…95ee`](https://stellar.expert/explorer/testnet/tx/c0e064e4d5b7ade3b0054894b1a9b025276266b592825aec48d816623f5795ee)
+
+> **Testnet resets periodically.** If a contract ID no longer resolves, redeploy with
+> `./scripts/deploy-testnet.sh` and update `.env` / Vercel env vars.
+
+## Protocol mechanics
+
+**Reserve accounting.** PT and YT are internal, non-transferable per-`(user, maturity)` balances in
+this v0 (transferable tokens + an AMM are a later belt). Since they only change together
+pre-maturity, `pt == yt` per position, so yield is accounted with a simple per-user reserve instead
+of a global index:
+
+> For a position holding `yt` principal units, the protocol reserves
+> `reserve_sy = ceil(yt · RATE_SCALE / R)` SY to back the principal at exchange rate `R`. As `R`
+> grows, the required reserve shrinks — and **the released difference is the yield**, moved to the
+> position's claimable balance on every settle. This is the Pendle mechanism expressed as a reserve
+> delta, exact under integer math.
+
+**Rounding law.** Every amount that *leaves* the protocol is rounded **down** (floor); every amount
+*reserved* against a liability is rounded **up** (ceil). Consequence: the SY the contract holds is
+always `≥ Σ reserve_sy + Σ accrued_sy` — there is never mintable dust. A solvency invariant test
+asserts exactly this after every operation in a scripted lifecycle.
+
+**Invariants** (enforced + tested):
+- `PT_supply == YT_supply` for a maturity, through all pre-maturity operations.
+- `split` then immediate `merge` of *n* SY returns *n* minus at most 2 stroops (one floor each way).
+- YT stops accruing exactly at maturity; PT then redeems its fixed principal at the frozen maturity
+  rate. (Post-maturity, `redeem` burns PT while YT stays inert — the `PT == YT` equality is a
+  *pre-maturity* invariant, by design.)
 
 ## Tech stack
 
-- **Frontend**: [Vite](https://vite.dev/) + React 19 + TypeScript (strict), [Tailwind CSS](https://tailwindcss.com/)
-- **Wallet**: [`@creit.tech/stellar-wallets-kit`](https://github.com/Creit-Tech/Stellar-Wallets-Kit) (Freighter, xBull, Albedo modules) behind a thin adapter (`src/lib/wallet.ts`)
-- **Chain**: [`@stellar/stellar-sdk`](https://github.com/stellar/js-stellar-sdk) — Horizon (wallet XLM balance), `/rpc` and `/contract` (Soroban reads/writes/events) via the official `Client`/`AssembledTransaction` pipeline
-- **Contract**: Rust + [`soroban-sdk`](https://crates.io/crates/soroban-sdk) `27.0.0`, built and deployed with the `stellar` CLI `27.0.0`
-- **ESLint + Prettier** — linting and formatting
-
-## Prerequisites
-
-**Frontend:**
-- **Node.js 20.19+ or 22.12+** (required by Vite 8) and npm.
-- A Stellar Testnet wallet: **[Freighter](https://www.freighter.app/)**, **[xBull](https://xbull.app/)**, or nothing at all — **[Albedo](https://albedo.link/)** works from the picker with no install.
-- A **funded Testnet account**. Fund one in-app with **Fund with Friendbot**, or directly via [https://friendbot.stellar.org](https://friendbot.stellar.org/?addr=YOUR_PUBLIC_KEY).
-
-**Contract (only if you want to rebuild/redeploy it yourself):**
-- Rust + `cargo`, with the `wasm32v1-none` target: `rustup target add wasm32v1-none`
-- The [`stellar` CLI](https://developers.stellar.org/docs/tools/developer-tools/cli/install-cli) `27.x`
+- **Contracts:** Rust + [`soroban-sdk`](https://crates.io/crates/soroban-sdk) `27.0.0`, built &
+  deployed with the `stellar` CLI `27.0.0`. A Cargo workspace of three crates under `contracts/`.
+- **Frontend:** [Vite](https://vite.dev/) + React 19 + TypeScript (strict), [Tailwind CSS](https://tailwindcss.com/).
+- **Wallet:** [`@creit.tech/stellar-wallets-kit`](https://github.com/Creit-Tech/Stellar-Wallets-Kit)
+  (multi-wallet picker) behind a thin adapter.
+- **Chain:** [`@stellar/stellar-sdk`](https://github.com/stellar/js-stellar-sdk) — the official
+  `contract` Client/AssembledTransaction pipeline (build → simulate → sign → send → poll), plus
+  `/rpc` `getEvents` for the live activity feed.
+- **Tests:** Rust unit + integration (39), [Vitest](https://vitest.dev/) for the frontend (27).
+- **CI:** GitHub Actions (`.github/workflows/ci.yml`).
 
 ## Setup / run locally
 
-No secrets or API keys are required — the app is Testnet-only and reads non-secret configuration from `VITE_`-prefixed environment variables. A vault is already deployed on Testnet (see [Deployed contract](#deployed-contract) below), so you can run the frontend against it immediately.
+A deployment is already live on Testnet (IDs are baked in as defaults), so the frontend runs with
+zero config.
 
 ```bash
-# 1. Clone the repository
 git clone <repository-url>
 cd stellas20
-
-# 2. Install dependencies
 npm install
-
-# 3. Create your local env file (already points at the deployed vault + Testnet defaults)
-cp .env.example .env
-
-# 4. Start the dev server
-npm run dev
+cp .env.example .env   # optional — defaults already point at the live deployment
+npm run dev            # http://localhost:5173
 ```
 
-Then open the printed URL (default **http://localhost:5173**).
-
-**Available scripts:**
+**Scripts:**
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Start the Vite dev server |
-| `npm run build` | Type-check and build for production |
-| `npm run preview` | Preview the production build locally |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Format the codebase with Prettier |
-| `cargo test` | Run the contract's unit tests (from repo root) |
-| `stellar contract build` | Build the contract to WASM (from repo root) |
+| `npm run dev` / `build` / `preview` | Vite dev server / production build / preview |
+| `npm run lint` | ESLint |
+| `npm run test` | Vitest (frontend unit tests) |
+| `cargo test --workspace` | All Rust contract tests |
+| `stellar contract build` | Build all contracts to WASM |
 
-## Deployed contract
+## Testing
 
-| | |
-| --- | --- |
-| **Contract ID (Testnet)** | `CDUMZWQZID4WCIQ5U3QBILM2A4H5GEYXPBTVSUM6EUWUR5AZB5GVVTSZ` |
-| **Token (native XLM SAC)** | `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` |
-| **Goal** | 1,000 XLM |
-| **Deploy tx** | [`d441922d…2b75`](https://stellar.expert/explorer/testnet/tx/d441922dc8cb22727676f7ea562284d1bed89c4afd5d6fc4f13c8034eb242b75) |
-| **Initialize tx** | [`30c76170…3a`](https://stellar.expert/explorer/testnet/tx/30c76170eb7e41ac5423ae1abc15569660e11720ae2adef55da514638105363a) |
-| **Deposit tx (from this frontend)** | [`cbdfc98d…49e`](https://stellar.expert/explorer/testnet/tx/cbdfc98d7c810b3ed349b97e28d705e67e78fc1ef687b03a5d59aa06bb1349e) |
+- **Contracts — 39 Rust tests.** `cargo test --workspace`
+  - `mock-yield-token` (12): SEP-41 behavior, faucet cap, linear rate growth, checkpoint history.
+  - `sy-vault` (9): 1:1 wrap/unwrap with cross-contract token moves, rate delegation.
+  - `splitter` (15 unit + 3 integration): split/merge/claim/redeem with hand-computed exact values,
+    the `PT == YT` and yield-stops-at-maturity invariants, a full mint→wrap→split→accrue→claim→
+    mature→redeem lifecycle, and a **solvency sweep** asserting the no-dust invariant after each step.
+- **Frontend — 27 Vitest tests.** `npm run test` — amount math, input validation, the client-side
+  yield math (mirroring the contract), per-contract error mapping, and event parsing from ScVal
+  fixtures.
 
-Rebuild and redeploy your own instance:
+## CI/CD
+
+`.github/workflows/ci.yml` runs on every push and PR:
+
+- **contracts** job: `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test --workspace`,
+  then `stellar contract build` (uploads the WASM artifacts).
+- **frontend** job: `npm ci`, `npm run lint`, `npm run test`, `npm run build`.
+
+The frontend is deployed to **Vercel via its GitHub integration** (auto-deploy on push to `main`).
+Contract deployment is a documented local workflow — the admin key lives only in the local
+`stellar keys` store, never in CI secrets.
+
+## Deployment workflow
 
 ```bash
 stellar keys generate vault-admin --network testnet --fund
-cargo test && stellar contract build
-stellar contract id asset --asset native --network testnet   # confirm the native SAC id for your network
-stellar contract deploy --wasm target/wasm32v1-none/release/stellas_vault.wasm \
-  --source vault-admin --network testnet --alias stellas-vault
-stellar contract invoke --id stellas-vault --source vault-admin --network testnet -- \
-  initialize --admin <ADMIN_G...> --goal 10000000000 --token <NATIVE_SAC_C...>
+./scripts/deploy-testnet.sh
+# prints VITE_MYT_CONTRACT_ID / VITE_SY_VAULT_CONTRACT_ID / VITE_SPLITTER_CONTRACT_ID
 ```
 
-Then update `VITE_VAULT_CONTRACT_ID` (and `VITE_NATIVE_SAC_ID` if it differs) in your `.env`.
-
-> **Testnet resets periodically.** If the contract ID above no longer resolves, redeploy with the steps above and update your `.env`.
-
-## Contract design
-
-Rust / `soroban-sdk`, in `contracts/vault/src/lib.rs`:
-
-- `initialize(admin, goal, token)` — one-time setup; rejects a second call (`AlreadyInitialized`).
-- `deposit(from, amount)` — `from.require_auth()`; transfers `amount` of `token` from `from` into the vault; updates the per-user balance, running total, and contributor count; publishes a `Deposit` event.
-- `withdraw(to, amount)` — `to.require_auth()`; pays out up to `to`'s own recorded balance (rejects with `InsufficientBalance` otherwise); publishes a `Withdraw` event. The contract has no admin backdoor into user funds.
-- `get_total`, `get_goal`, `get_contributors`, `get_balance(addr)` — free read-only views.
-- Storage: instance storage for config/aggregates, persistent storage per-user balance, with TTL extended on every mutation.
-- 8 unit tests: init, double-init rejection, deposit/withdraw happy paths, withdraw-exceeds-balance rejection, invalid-amount rejection, events published, auth required.
-
-## How to use
-
-1. Click **Connect Wallet** (top right) and pick Freighter, xBull, or Albedo from the picker.
-2. The **funding pot** (goal, total raised, progress bar, contributor count) is visible immediately — it works even before you connect.
-3. Once connected, your XLM balance appears; unfunded accounts get a **Fund with Friendbot** button.
-4. In **Deposit or withdraw**, enter an amount and click **Deposit** (from your wallet into the vault) or **Withdraw** (your own vault balance back to your wallet).
-5. Watch the transaction move from **pending** (with hash) to **success** (hash + Stellar Expert link) or a specific error.
-6. The **Activity** feed below updates automatically as deposits/withdrawals happen — yours or anyone else's.
+The script builds, deploys, and initializes all three contracts in dependency order and creates a
+demo maturity. Paste the printed IDs into `.env`, `.env.example`, and your Vercel project's
+environment variables.
 
 ## Error handling
 
-| # | Error | Where it's triggered | What the UI shows |
-| --- | --- | --- | --- |
-| 1 | Wallet not available | Picking an uninstalled wallet in the modal (or signing while disconnected mid-session) | The picker marks uninstalled wallets with an install link; a fallback message points to Freighter |
-| 2 | User declined | Closing the wallet picker, or rejecting a signature request | A calm, non-error message — the UI just returns to idle |
-| 3 | Insufficient balance | Withdrawing more than your recorded vault balance | Inline: the **Withdraw** button disables itself, backed by the contract's own `InsufficientBalance` error if ever bypassed |
-| 4 (bonus) | Wrong network | Connected wallet isn't on Testnet | A blocking banner; deposit/withdraw are disabled |
-| — | Account not funded, simulation/contract failure, network timeout | RPC/tx pipeline | A specific message in the transaction status card |
+Every service normalizes failures into a friendly `AppError`; cards render exactly one of
+loading / error+retry / empty / content, and a wrong-network banner blocks writes off Testnet.
+Distinct, visibly-handled error types include:
+
+| Trigger | What the UI shows |
+|---|---|
+| Wallet not available / not installed | The picker marks it with an install link |
+| User declines a signature | The action quietly returns to idle |
+| Insufficient balance | Inline form error; the button disables |
+| Faucet cap exceeded, maturity passed/not reached, nothing to claim, … | The contract's `#[contracterror]` mapped to a specific message |
+| Wrong network | A blocking banner; writes disabled |
+
+## How to use
+
+1. **Connect** a Testnet wallet (Freighter, xBull, or Albedo).
+2. **Faucet** 1,000 mUSDY, then **Wrap** it into SY.
+3. **Split** SY at a maturity → equal PT and YT (supplies always match — an on-chain invariant).
+4. Watch **claimable yield tick up live**, and **Claim** it as SY.
+5. After maturity, **Redeem PT** for its fixed principal.
+6. The **Activity feed** streams every protocol event across all three contracts in real time.
+
+## Demo video script (1–2 min)
+
+Problem (no fixed income on Stellar; PT = bond, YT = coupon) → faucet + wrap → split (equal PT/YT,
+invariant) → live accrual + claim → maturity countdown hits zero, accrual freezes → redeem PT for
+fixed principal → flash the green CI run and test counts (39 Rust / 27 Vitest).
 
 ## Screenshots
 
-Deferred until the Level 3 (Orange Belt) submission checkpoint, since development continues past this point in the same repository. At that point, add here (and to `screenshots/`, alongside the White Belt screenshots kept for that submission's record):
+Deferred to the Level 3 submission checkpoint. Capture and add here: the app (desktop + 375px
+mobile), a green CI run, `cargo test --workspace` output, and `npm run test` output.
 
-| | |
-| --- | --- |
-| **Wallet picker** | **Funding pot / vault** |
-| ![Wallet picker](screenshots/wallet-options.png) | ![Funding pot](screenshots/funding-pot.png) |
-| **Successful deposit** | |
-| ![Successful deposit](screenshots/deposit-success.png) | |
+## Security & notes
 
-## Project structure
-
-```
-contracts/
-└── vault/
-    ├── src/lib.rs        # Contract: initialize, deposit, withdraw, views, events
-    └── src/test.rs       # 8 unit tests
-src/
-├── components/           # FundingPot, VaultActions, ActivityFeed, TxStatus,
-│                         # WalletButton, NetworkBanner, BalanceCard, Header, Toast, icons
-├── context/              # WalletContext (StellarWalletsKit-backed), ToastContext
-├── hooks/                # useVaultState, useVaultEvents, useBalance, useToast
-├── lib/                  # Framework-agnostic services (no React):
-│                         # wallet (kit adapter), contract (reads/writes), events
-│                         # (getEvents polling), amounts (stroop math), stellar
-│                         # (Horizon balance), validation, friendbot
-├── types/                # Shared TypeScript types
-├── config.ts             # Env + constants (Testnet only)
-├── App.tsx                # Layout composition
-├── main.tsx               # Entry point + providers
-└── index.css              # Tailwind directives + dark base theme
-```
-
-Contract methods are invoked via the official `@stellar/stellar-sdk/contract` `Client`, which fetches the on-chain spec directly — no generated bindings package needed. Components never import the wallet kit or the Soroban SDK directly, only through `lib/wallet.ts` and `lib/contract.ts`.
-
-## Notes
-
-- **Testnet only.** There is no mainnet configuration, by design.
-- **Your keys stay in your wallet.** This app never requests, stores, or logs private keys or secrets — signing happens entirely inside the connected wallet extension.
-- **No secrets in the repo.** `.env` is gitignored; only non-secret `VITE_`-prefixed values (Horizon, Friendbot, Soroban RPC, explorer, and contract IDs) ship to the client, with Testnet defaults baked in.
-- **No admin backdoor.** The vault contract can only ever pay a withdrawal to the address that authorized it, for its own recorded balance.
-
-## Belt history
-
-- **White Belt (Level 1)** — Freighter connect, XLM balance, a single payment form. That code lives on in this repo's git history; its screenshots stay in `screenshots/` as the submission record.
-- **Yellow Belt (Level 2, this submission)** — the payment form was replaced by the crowdfunding vault above, evolved in place in the same repository.
+- **Testnet only**, by design — no mainnet configuration.
+- **Keys stay in your wallet.** The app never requests, stores, or logs secrets.
+- **No admin backdoor into user funds.** `withdraw`/`unwrap`/`merge`/`claim`/`redeem` only ever pay
+  the caller that authorized the call, from their own recorded balance.
+- **No secrets in the repo.** `.env` is gitignored; only non-secret `VITE_`-prefixed values ship to
+  the client, and the contract IDs are public Testnet addresses.

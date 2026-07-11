@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["contracts/vault"]
+members = ["contracts/mock-yield-token", "contracts/sy-vault", "contracts/splitter"]
 
 [workspace.dependencies]
 soroban-sdk = "27.0.0"

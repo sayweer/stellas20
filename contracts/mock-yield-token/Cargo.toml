@@ -1,5 +1,5 @@
 [package]
-name = "stellas-vault"
+name = "stellas-mock-yield-token"
 version = "0.1.0"
 edition = "2021"
 publish = false
