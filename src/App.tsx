@@ -80,6 +80,7 @@ function App(): ReactElement {
                 address={address}
                 mytBalance={portfolio.myt}
                 syBalance={portfolio.sy}
+                loading={loading}
                 isWrongNetwork={isWrongNetwork}
                 onSuccess={refreshAll}
               />
@@ -88,6 +89,7 @@ function App(): ReactElement {
                 syBalance={portfolio.sy}
                 positions={portfolio.positions}
                 liveRate={liveRate}
+                loading={loading}
                 isWrongNetwork={isWrongNetwork}
                 onSuccess={refreshAll}
               />

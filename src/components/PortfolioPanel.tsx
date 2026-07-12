@@ -87,18 +87,25 @@ export function PortfolioPanel({
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-xl border border-neutral-800/80 bg-neutral-950/40 px-3 py-3"
+              className="min-w-0 rounded-xl border border-neutral-800/80 bg-neutral-950/40 px-3 py-3"
             >
-              <dt className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">
+              <dt className="truncate text-[11px] font-medium uppercase tracking-wide text-neutral-500">
                 {stat.label}
               </dt>
-              <dd
-                className={`mt-1 font-mono text-lg font-semibold tabular-nums ${
-                  stat.accent ? 'text-emerald-300' : 'text-neutral-50'
-                }`}
-              >
-                {loading && !address ? '—' : stat.value}
-              </dd>
+              {loading && address ? (
+                <div
+                  aria-hidden="true"
+                  className="mt-1.5 h-6 w-20 animate-pulse rounded bg-neutral-800"
+                />
+              ) : (
+                <dd
+                  className={`mt-1 truncate font-mono text-base font-semibold tabular-nums sm:text-lg ${
+                    stat.accent ? 'text-emerald-300' : 'text-neutral-50'
+                  }`}
+                >
+                  {stat.value}
+                </dd>
+              )}
             </div>
           ))}
         </dl>

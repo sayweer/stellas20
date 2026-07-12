@@ -24,15 +24,19 @@ export function RateTicker({ rateInfo }: RateTickerProps): ReactElement {
         </p>
         <p className="font-mono text-lg font-semibold tabular-nums text-neutral-50">
           {liveRate === null ? '—' : rateToDecimal(liveRate).toFixed(6)}
-          <span className="ml-2 text-xs font-normal text-emerald-400">
-            ≈ +{pctPerMin.toFixed(2)}%/min
-          </span>
+          {rateInfo && (
+            <span className="ml-2 text-xs font-normal text-emerald-400">
+              ≈ +{pctPerMin.toFixed(2)}%/min
+            </span>
+          )}
         </p>
       </div>
-      <span
-        aria-hidden="true"
-        className="ml-auto h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60"
-      />
+      {rateInfo && (
+        <span
+          aria-hidden="true"
+          className="ml-auto h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60"
+        />
+      )}
     </div>
   )
 }

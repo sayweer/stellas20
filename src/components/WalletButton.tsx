@@ -3,7 +3,7 @@ import { useState } from 'react'
 import type { ReactElement } from 'react'
 import { useWallet } from '../context/WalletContext'
 import { useToast } from '../hooks/useToast'
-import { CheckIcon, CopyIcon, Spinner } from './icons'
+import { CheckIcon, CopyIcon, Spinner, XIcon } from './icons'
 
 function truncate(address: string): string {
   return `${address.slice(0, 4)}…${address.slice(-4)}`
@@ -68,9 +68,13 @@ export function WalletButton(): ReactElement {
         <button
           type="button"
           onClick={disconnect}
-          className="rounded-lg border border-neutral-800 px-3 py-2 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+          aria-label="Disconnect wallet"
+          className="grid h-9 w-9 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 sm:h-auto sm:w-auto sm:px-3 sm:py-2 sm:text-sm sm:font-medium"
         >
-          Disconnect
+          <span className="sm:hidden">
+            <XIcon className="h-4 w-4" />
+          </span>
+          <span className="hidden sm:inline">Disconnect</span>
         </button>
       </div>
     )

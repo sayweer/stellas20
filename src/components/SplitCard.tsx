@@ -18,6 +18,7 @@ interface SplitCardProps {
   syBalance: bigint
   positions: MaturityPosition[]
   liveRate: bigint | null
+  loading: boolean
   isWrongNetwork: boolean
   onSuccess: () => void
 }
@@ -35,6 +36,7 @@ export function SplitCard({
   syBalance,
   positions,
   liveRate,
+  loading,
   isWrongNetwork,
   onSuccess,
 }: SplitCardProps): ReactElement {
@@ -141,9 +143,11 @@ export function SplitCard({
               onChange={setAmount}
               unit={tab === 'split' ? 'SY' : 'PT'}
               hint={
-                tab === 'split'
-                  ? `Available: ${formatAmount(syBalance)} SY`
-                  : `Your PT: ${formatAmount(position.pt)}`
+                loading
+                  ? 'Loading balances…'
+                  : tab === 'split'
+                    ? `Available: ${formatAmount(syBalance)} SY`
+                    : `Your PT: ${formatAmount(position.pt)}`
               }
               error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
               onEnter={submit}

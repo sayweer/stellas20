@@ -13,6 +13,7 @@ interface WrapCardProps {
   address: string
   mytBalance: bigint
   syBalance: bigint
+  loading: boolean
   isWrongNetwork: boolean
   onSuccess: () => void
 }
@@ -23,6 +24,7 @@ export function WrapCard({
   address,
   mytBalance,
   syBalance,
+  loading,
   isWrongNetwork,
   onSuccess,
 }: WrapCardProps): ReactElement {
@@ -77,7 +79,11 @@ export function WrapCard({
           value={amount}
           onChange={setAmount}
           unit={tab === 'wrap' ? 'mUSDY' : 'SY'}
-          hint={`Available: ${formatAmount(balance)} ${tab === 'wrap' ? 'mUSDY' : 'SY'}`}
+          hint={
+            loading
+              ? 'Loading balances…'
+              : `Available: ${formatAmount(balance)} ${tab === 'wrap' ? 'mUSDY' : 'SY'}`
+          }
           error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
           onEnter={submit}
         />

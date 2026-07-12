@@ -38,7 +38,6 @@ export function MaturityPanel({
   }, [])
 
   const active = positions.filter((p) => p.position.pt > 0n || p.position.yt > 0n)
-  if (active.length === 0) return null
 
   return (
     <section
@@ -48,6 +47,12 @@ export function MaturityPanel({
       <h2 id="positions-heading" className="text-sm font-medium text-neutral-400">
         Your positions
       </h2>
+      {active.length === 0 && (
+        <p className="mt-4 text-sm text-neutral-500">
+          Split SY at a maturity to open a position — your PT, YT and claimable yield will appear
+          here.
+        </p>
+      )}
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         {active.map((p) => (
           <MaturityCard

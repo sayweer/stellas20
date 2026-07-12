@@ -16,7 +16,7 @@ export function Header(): ReactElement {
           </span>
           <div className="flex flex-col leading-none">
             <span className="text-sm font-semibold text-neutral-100">stellas-core</span>
-            <span className="mt-1 text-[11px] font-medium uppercase tracking-wider text-neutral-500">
+            <span className="mt-1 hidden text-[11px] font-medium uppercase tracking-wider text-neutral-500 sm:block">
               PT/YT · Testnet
             </span>
           </div>
