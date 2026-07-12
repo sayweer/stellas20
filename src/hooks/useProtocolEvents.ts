@@ -34,6 +34,11 @@ export function useProtocolEvents(
       const fresh = result.events.filter((e) => !seenIds.current.has(e.id))
       if (fresh.length === 0) return
       fresh.forEach((e) => seenIds.current.add(e.id))
+      // The cursor prevents re-delivering old events, so the seen set only needs
+      // to cover recent overlap — keep it bounded on long sessions.
+      if (seenIds.current.size > 500) {
+        seenIds.current = new Set(fresh.map((e) => e.id))
+      }
 
       // The RPC returns events oldest-first; show newest-first in the feed.
       const newestFirst = [...fresh].reverse()

@@ -18,8 +18,11 @@ const INITIAL_STATE: WalletState = {
 export interface WalletContextValue extends WalletState {
   /** True when an account is connected. */
   isConnected: boolean
-  /** True when connected but not on Stellar Testnet (should block sending). */
+  /** True when connected but confirmed to be on a non-Testnet network (blocks sending). */
   isWrongNetwork: boolean
+  /** True when connected but the wallet doesn't report its network (e.g. Albedo) — a
+   *  soft warning, not a block, since the tx would fail at the wallet if truly wrong. */
+  networkUnknown: boolean
   /** Open the multi-wallet picker. Resolves to an AppError on failure, or null on success. */
   connect: () => Promise<AppError | null>
   /** Clear the wallet connection (kit exposes no server-side disconnect). */
@@ -31,6 +34,9 @@ const WalletContext = createContext<WalletContextValue | null>(null)
 /** Provides wallet connection state and actions to the tree. */
 export function WalletProvider({ children }: { children: ReactNode }): ReactElement {
   const [state, setState] = useState<WalletState>(INITIAL_STATE)
+  // Whether the network read has resolved for the current address (so the
+  // "network unknown" warning doesn't flicker during the async fetch).
+  const [networkChecked, setNetworkChecked] = useState(false)
 
   // The kit fires this immediately with its persisted address (restoring a
   // session across reloads with no popup), then again on every
@@ -40,8 +46,10 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
     const unsubscribe = onWalletAddressChange((address) => {
       if (!address) {
         setState(INITIAL_STATE)
+        setNetworkChecked(false)
         return
       }
+      setNetworkChecked(false)
       setState((prev) => ({ ...prev, status: 'connected', address, network: null, networkPassphrase: null }))
       void getWalletNetwork().then((net) => {
         setState((prev) =>
@@ -49,6 +57,7 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
             ? { ...prev, network: net?.network ?? null, networkPassphrase: net?.networkPassphrase ?? null }
             : prev,
         )
+        setNetworkChecked(true)
       })
     })
     return unsubscribe
@@ -78,10 +87,11 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
       isConnected,
       isWrongNetwork:
         isConnected && state.networkPassphrase !== null && state.networkPassphrase !== config.networkPassphrase,
+      networkUnknown: isConnected && networkChecked && state.networkPassphrase === null,
       connect,
       disconnect,
     }
-  }, [state, connect, disconnect])
+  }, [state, networkChecked, connect, disconnect])
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>
 }

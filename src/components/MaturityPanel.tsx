@@ -136,7 +136,7 @@ function MaturityCard({
       <div className="mt-3 flex gap-2">
         <ActionButton
           onClick={claim}
-          disabled={isWrongNetwork || claimable <= 0n}
+          disabled={isWrongNetwork || pending || claimable <= 0n}
           pending={pending && outcome?.status === 'pending' && outcome.label === 'Claim'}
           pendingLabel="Claiming…"
         >
@@ -145,7 +145,7 @@ function MaturityCard({
         <ActionButton
           variant="secondary"
           onClick={redeem}
-          disabled={isWrongNetwork || !countdown.matured || position.pt <= 0n}
+          disabled={isWrongNetwork || pending || !countdown.matured || position.pt <= 0n}
           pending={pending && outcome?.status === 'pending' && outcome.label === 'Redeem'}
           pendingLabel="Redeeming…"
         >

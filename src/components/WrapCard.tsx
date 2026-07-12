@@ -28,7 +28,7 @@ export function WrapCard({
 }: WrapCardProps): ReactElement {
   const [tab, setTab] = useState<Tab>('wrap')
   const [amount, setAmount] = useState('')
-  const { outcome, pending, run } = useTxRunner()
+  const { outcome, pending, run, reset } = useTxRunner()
 
   const balance = tab === 'wrap' ? mytBalance : syBalance
   const valid = isValidTokenAmount(amount, balance, { label: tab === 'wrap' ? 'mUSDY' : 'SY' })
@@ -67,6 +67,7 @@ export function WrapCard({
         onChange={(id) => {
           setTab(id as Tab)
           setAmount('')
+          reset()
         }}
       />
 
