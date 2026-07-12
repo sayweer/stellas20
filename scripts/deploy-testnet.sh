@@ -21,8 +21,10 @@ NETWORK="${NETWORK:-testnet}"
 # Demo rate: 1.0 start, +0.0002/s (~+1.2%/min) so yield visibly ticks.
 INITIAL_RATE="${INITIAL_RATE:-1000000000000}"
 SLOPE_PER_SEC="${SLOPE_PER_SEC:-200000000}"
-# Demo maturity: 30 minutes out. Re-run create_maturity before recording a demo.
-MATURITY_OFFSET_SECS="${MATURITY_OFFSET_SECS:-1800}"
+# Maturities to create, as offsets (seconds) from now. Defaults: +1h, +1d, +7d
+# so at least one long-lived maturity survives a demo. For a video, also add a
+# short one on the fly, e.g. create_maturity --maturity $(( $(date +%s) + 480 )).
+MATURITY_OFFSETS="${MATURITY_OFFSETS:-3600 86400 604800}"
 
 ADMIN=$(stellar keys address "$IDENTITY")
 echo "Admin: $ADMIN"
@@ -52,10 +54,13 @@ SPLITTER=$(stellar contract deploy \
   --source "$IDENTITY" --network "$NETWORK" --alias splitter \
   -- --admin "$ADMIN" --sy_vault "$SY")
 
-MATURITY=$(( $(date +%s) + MATURITY_OFFSET_SECS ))
-echo "Creating maturity at unix $MATURITY..."
-stellar contract invoke --id "$SPLITTER" --source "$IDENTITY" --network "$NETWORK" -- \
-  create_maturity --maturity "$MATURITY"
+NOW=$(date +%s)
+for offset in $MATURITY_OFFSETS; do
+  MATURITY=$(( NOW + offset ))
+  echo "Creating maturity at unix $MATURITY (+${offset}s)..."
+  stellar contract invoke --id "$SPLITTER" --source "$IDENTITY" --network "$NETWORK" -- \
+    create_maturity --maturity "$MATURITY"
+done
 
 echo ""
 echo "=== Deployed. Copy these into .env / .env.example / Vercel ==="
