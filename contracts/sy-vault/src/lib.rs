@@ -125,7 +125,7 @@ impl SyVault {
         }
         let yield_token = Self::require_yield_token(&env)?;
         let new_balance = debit(&env, &from, amount)?;
-        let new_total = sub_supply(&env, amount);
+        let new_total = sub_supply(&env, amount)?;
 
         token::TokenClient::new(&env, &yield_token).transfer(
             &env.current_contract_address(),
@@ -152,6 +152,7 @@ impl SyVault {
         }
         debit(&env, &from, amount)?;
         credit(&env, &to, amount)?;
+        extend_instance(&env);
         SyTransfer { from, to, amount }.publish(&env);
         Ok(())
     }
@@ -231,14 +232,14 @@ fn add_supply(env: &Env, amount: i128) -> Result<i128, SyError> {
     Ok(new_supply)
 }
 
-fn sub_supply(env: &Env, amount: i128) -> i128 {
+fn sub_supply(env: &Env, amount: i128) -> Result<i128, SyError> {
     let supply = SyVault::total_supply(env.clone());
-    let new_supply = supply - amount;
+    let new_supply = supply.checked_sub(amount).ok_or(SyError::MathOverflow)?;
     env.storage()
         .instance()
         .set(&DataKey::TotalSupply, &new_supply);
     extend_instance(env);
-    new_supply
+    Ok(new_supply)
 }
 
 fn extend_instance(env: &Env) {

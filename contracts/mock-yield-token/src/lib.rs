@@ -24,6 +24,13 @@ pub const RATE_SCALE: i128 = 1_000_000_000_000;
 /// Max tokens a single `faucet` call may mint (10,000 tokens, 7 decimals).
 const FAUCET_MAX: i128 = 100_000_000_000;
 
+/// Upper bound for the rate slope (`+100%/sec` scaled) — generous, but finite,
+/// so an admin can't push the rate into overflow territory.
+const MAX_SLOPE: i128 = RATE_SCALE;
+
+/// Cap on stored rate checkpoints to keep the instance entry bounded.
+const MAX_CHECKPOINTS: u32 = 100;
+
 /// Token metadata (7 decimals, Stellar-style).
 const DECIMALS: u32 = 7;
 
@@ -143,7 +150,7 @@ impl MockYieldToken {
         initial_rate: i128,
         slope_per_sec: i128,
     ) -> Result<(), TokenError> {
-        if initial_rate <= 0 || slope_per_sec < 0 {
+        if initial_rate <= 0 || !(0..=MAX_SLOPE).contains(&slope_per_sec) {
             return Err(TokenError::InvalidAmount);
         }
         env.storage().instance().set(&DataKey::Admin, &admin);
@@ -204,12 +211,15 @@ impl MockYieldToken {
     pub fn set_rate(env: Env, slope_per_sec: i128) -> Result<(), TokenError> {
         let admin = Self::require_admin(&env)?;
         admin.require_auth();
-        if slope_per_sec < 0 {
+        if !(0..=MAX_SLOPE).contains(&slope_per_sec) {
             return Err(TokenError::InvalidAmount);
         }
         let now = env.ledger().timestamp();
         let rate = rate_at(&env, now);
         let mut checkpoints = load_checkpoints(&env);
+        if checkpoints.len() >= MAX_CHECKPOINTS {
+            return Err(TokenError::MathOverflow);
+        }
         checkpoints.push_back(RateCheckpoint {
             since: now,
             rate,
@@ -273,7 +283,10 @@ impl TokenInterface for MockYieldToken {
             },
         );
         if amount > 0 {
-            let live_for = expiration_ledger - env.ledger().sequence();
+            // Clamp to the network's max entry TTL so a far-future expiration
+            // doesn't trap the host on extend_ttl.
+            let live_for =
+                (expiration_ledger - env.ledger().sequence()).min(env.storage().max_ttl());
             env.storage()
                 .temporary()
                 .extend_ttl(&key, live_for, live_for);
@@ -334,15 +347,21 @@ impl TokenInterface for MockYieldToken {
 
 // -- internal helpers --
 
-/// Compute the rate at `ts` from the checkpoint history.
+/// Compute the rate at `ts` from the checkpoint history. Traps on overflow
+/// rather than saturating, so a bad rate can never silently divide downstream
+/// reserve math to zero.
 fn rate_at(env: &Env, ts: u64) -> i128 {
     let checkpoints = load_checkpoints(env);
     let cp = active_checkpoint(&checkpoints, ts);
     // Clamp elapsed to 0 for timestamps before the first checkpoint.
     let elapsed = ts.saturating_sub(cp.since) as i128;
+    let growth = cp
+        .slope_per_sec
+        .checked_mul(elapsed)
+        .unwrap_or_else(|| panic_with_error!(env, TokenError::MathOverflow));
     cp.rate
-        .checked_add(cp.slope_per_sec.checked_mul(elapsed).unwrap_or(i128::MAX))
-        .unwrap_or(i128::MAX)
+        .checked_add(growth)
+        .unwrap_or_else(|| panic_with_error!(env, TokenError::MathOverflow))
 }
 
 /// The last checkpoint effective at or before `ts` (or the first, if `ts`
@@ -409,15 +428,21 @@ fn debit(env: &Env, from: &Address, amount: i128) {
     if balance < amount {
         panic_with_error!(env, TokenError::InsufficientBalance);
     }
-    env.storage().persistent().set(&key, &(balance - amount));
+    let new_balance = balance
+        .checked_sub(amount)
+        .unwrap_or_else(|| panic_with_error!(env, TokenError::MathOverflow));
+    env.storage().persistent().set(&key, &new_balance);
     env.storage()
         .persistent()
         .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
 
     let supply = MockYieldToken::total_supply(env.clone());
+    let new_supply = supply
+        .checked_sub(amount)
+        .unwrap_or_else(|| panic_with_error!(env, TokenError::MathOverflow));
     env.storage()
         .instance()
-        .set(&DataKey::TotalSupply, &(supply - amount));
+        .set(&DataKey::TotalSupply, &new_supply);
     extend_instance(env);
 }
 

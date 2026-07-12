@@ -39,6 +39,9 @@ pub const RATE_SCALE: i128 = 1_000_000_000_000;
 const TTL_THRESHOLD: u32 = 14 * 24 * 60 * 12;
 const TTL_EXTEND_TO: u32 = 30 * 24 * 60 * 12;
 
+/// Cap on registered maturities to keep the instance entry bounded.
+const MAX_MATURITIES: u32 = 32;
+
 #[contracttype]
 #[derive(Clone)]
 pub enum DataKey {
@@ -170,6 +173,10 @@ impl Splitter {
         if maturities.iter().any(|m| m == maturity) {
             return Err(SplitterError::MaturityAlreadyExists);
         }
+        // Bound the instance-stored list (admin-only, but keep the entry small).
+        if maturities.len() >= MAX_MATURITIES {
+            return Err(SplitterError::MathOverflow);
+        }
         maturities.push_back(maturity);
         env.storage()
             .instance()
@@ -266,8 +273,14 @@ impl Splitter {
         let r = sy.exchange_rate();
         let sy_out = mul_div_floor(pt_amount, RATE_SCALE, r)?;
 
-        pos.pt -= pt_amount;
-        pos.yt -= pt_amount;
+        pos.pt = pos
+            .pt
+            .checked_sub(pt_amount)
+            .ok_or(SplitterError::MathOverflow)?;
+        pos.yt = pos
+            .yt
+            .checked_sub(pt_amount)
+            .ok_or(SplitterError::MathOverflow)?;
         // Recompute the reserve for the remaining YT; the released reserve
         // covers sy_out (any excess stays as protocol surplus).
         let new_reserve = mul_div_ceil(pos.yt, RATE_SCALE, r)?;
@@ -343,8 +356,14 @@ impl Splitter {
         // Solvency clamp: never pay more than the position's reserve holds.
         let sy_out = raw.min(pos.reserve_sy);
 
-        pos.pt -= pt_amount;
-        pos.reserve_sy -= sy_out;
+        pos.pt = pos
+            .pt
+            .checked_sub(pt_amount)
+            .ok_or(SplitterError::MathOverflow)?;
+        pos.reserve_sy = pos
+            .reserve_sy
+            .checked_sub(sy_out)
+            .ok_or(SplitterError::MathOverflow)?;
         Self::save_position(&env, &from, maturity, &pos);
         Self::adjust_totals(&env, maturity, -pt_amount, 0)?;
 
@@ -387,6 +406,7 @@ impl Splitter {
         addr: Address,
         maturity: u64,
     ) -> Result<i128, SplitterError> {
+        Self::require_maturity(&env, maturity)?;
         let sy = Self::sy_client(&env)?;
         let pos = Self::load_position(&env, &addr, maturity);
         let released = Self::released_yield(&env, &pos, maturity, &sy)?;
@@ -408,7 +428,10 @@ impl Splitter {
                 .accrued_sy
                 .checked_add(released)
                 .ok_or(SplitterError::MathOverflow)?;
-            pos.reserve_sy -= released;
+            pos.reserve_sy = pos
+                .reserve_sy
+                .checked_sub(released)
+                .ok_or(SplitterError::MathOverflow)?;
         }
         Ok(())
     }
@@ -475,6 +498,9 @@ impl Splitter {
         env.storage()
             .persistent()
             .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+        // Every mutating op saves a position, so this keeps the instance entry
+        // (Admin/SyVault/Maturities) alive on hot paths that create no new maturity.
+        extend_instance(env);
     }
 
     fn load_maturities(env: &Env) -> Vec<u64> {
@@ -511,12 +537,18 @@ impl Splitter {
 
 /// `floor(a * b / c)` with overflow checks. Inputs are non-negative.
 fn mul_div_floor(a: i128, b: i128, c: i128) -> Result<i128, SplitterError> {
+    if c <= 0 {
+        return Err(SplitterError::MathOverflow);
+    }
     let prod = a.checked_mul(b).ok_or(SplitterError::MathOverflow)?;
     Ok(prod / c)
 }
 
 /// `ceil(a * b / c)` with overflow checks. Inputs are non-negative, `c > 0`.
 fn mul_div_ceil(a: i128, b: i128, c: i128) -> Result<i128, SplitterError> {
+    if c <= 0 {
+        return Err(SplitterError::MathOverflow);
+    }
     let prod = a.checked_mul(b).ok_or(SplitterError::MathOverflow)?;
     let sum = prod.checked_add(c - 1).ok_or(SplitterError::MathOverflow)?;
     Ok(sum / c)
