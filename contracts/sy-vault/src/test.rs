@@ -175,3 +175,35 @@ fn test_events_published() {
         [unwrap_event.to_xdr(&ctx.env, &ctx.vault_id)]
     );
 }
+
+#[test]
+fn test_transfer_insufficient_rejected() {
+    let ctx = setup();
+    let a = Address::generate(&ctx.env);
+    let b = Address::generate(&ctx.env);
+    fund(&ctx, &a, 100_0000000);
+    ctx.vault.wrap(&a, &10_0000000);
+
+    let result = ctx.vault.try_transfer(&a, &b, &10_0000001);
+    assert_eq!(result, Err(Ok(SyError::InsufficientBalance)));
+}
+
+#[test]
+fn test_transfer_event_published() {
+    let ctx = setup();
+    let a = Address::generate(&ctx.env);
+    let b = Address::generate(&ctx.env);
+    fund(&ctx, &a, 100_0000000);
+    ctx.vault.wrap(&a, &50_0000000);
+
+    ctx.vault.transfer(&a, &b, &20_0000000);
+    let transfer_event = crate::SyTransfer {
+        from: a,
+        to: b,
+        amount: 20_0000000,
+    };
+    assert_eq!(
+        ctx.env.events().all().filter_by_contract(&ctx.vault_id),
+        [transfer_event.to_xdr(&ctx.env, &ctx.vault_id)]
+    );
+}

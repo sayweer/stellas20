@@ -197,3 +197,71 @@ fn test_events_published() {
         [transfer_event.to_xdr(&ctx.env, &ctx.contract_id)]
     );
 }
+
+#[test]
+fn test_mint_rejects_non_admin() {
+    let ctx = setup();
+    // Drop the blanket auth so admin.require_auth() is no longer satisfied.
+    ctx.env.mock_auths(&[]);
+    let user = Address::generate(&ctx.env);
+    assert!(ctx.client.try_mint(&user, &100_0000000).is_err());
+}
+
+#[test]
+fn test_set_rate_rejects_non_admin() {
+    let ctx = setup();
+    ctx.env.mock_auths(&[]);
+    assert!(ctx.client.try_set_rate(&(SLOPE * 2)).is_err());
+}
+
+#[test]
+fn test_burn_reduces_balance_and_supply() {
+    let ctx = setup();
+    let user = Address::generate(&ctx.env);
+    ctx.client.faucet(&user, &100_0000000);
+    ctx.token.burn(&user, &30_0000000);
+    assert_eq!(ctx.token.balance(&user), 70_0000000);
+    assert_eq!(ctx.client.total_supply(), 70_0000000);
+}
+
+#[test]
+fn test_approve_past_expiration_rejected() {
+    let ctx = setup();
+    ctx.env.ledger().with_mut(|li| li.sequence_number = 100);
+    let owner = Address::generate(&ctx.env);
+    let spender = Address::generate(&ctx.env);
+    // amount > 0 with an already-passed expiration ledger must be rejected.
+    assert!(ctx
+        .token
+        .try_approve(&owner, &spender, &10_0000000, &99)
+        .is_err());
+}
+
+#[test]
+fn test_approve_zero_clears_allowance() {
+    let ctx = setup();
+    let owner = Address::generate(&ctx.env);
+    let spender = Address::generate(&ctx.env);
+    let expiry = ctx.env.ledger().sequence() + 1000;
+    ctx.token.approve(&owner, &spender, &50_0000000, &expiry);
+    assert_eq!(ctx.token.allowance(&owner, &spender), 50_0000000);
+    // Clearing (amount 0) needs no valid expiration.
+    ctx.token.approve(&owner, &spender, &0, &0);
+    assert_eq!(ctx.token.allowance(&owner, &spender), 0);
+}
+
+#[test]
+fn test_exchange_rate_at_before_first_checkpoint() {
+    let ctx = setup();
+    // A timestamp before the first checkpoint clamps elapsed to 0 → initial rate.
+    assert_eq!(ctx.client.exchange_rate_at(&(BASE_TS - 500)), INITIAL_RATE);
+}
+
+#[test]
+fn test_repeated_faucet_accumulates_under_cap() {
+    let ctx = setup();
+    let user = Address::generate(&ctx.env);
+    ctx.client.faucet(&user, &1_000_0000000);
+    ctx.client.faucet(&user, &2_000_0000000);
+    assert_eq!(ctx.token.balance(&user), 3_000_0000000);
+}

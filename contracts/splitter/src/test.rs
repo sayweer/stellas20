@@ -2,10 +2,10 @@
 // boundary legible in a Stellar context; that grouping is intentional.
 #![allow(clippy::inconsistent_digit_grouping)]
 
-use crate::{Splitter, SplitterClient, SplitterError};
+use crate::{Split, Splitter, SplitterClient, SplitterError, YieldClaim};
 use soroban_sdk::{
-    testutils::{Address as _, Ledger},
-    Address, Env,
+    testutils::{Address as _, Events, Ledger},
+    Address, Env, Event,
 };
 use stellas_mock_yield_token::{MockYieldToken, MockYieldTokenClient, RATE_SCALE};
 use stellas_sy_vault::{SyVault, SyVaultClient};
@@ -285,4 +285,122 @@ fn test_redeem_pays_fixed_principal_at_maturity_rate() {
     assert_eq!(sy_out, 71_4285714);
     let pos = ctx.splitter.get_position(&user, &maturity);
     assert_eq!(pos.pt, 0);
+}
+
+#[test]
+fn test_create_maturity_rejects_non_admin() {
+    let ctx = setup();
+    ctx.env.mock_auths(&[]);
+    assert!(ctx.splitter.try_create_maturity(&T_FAR).is_err());
+}
+
+#[test]
+fn test_split_and_claim_events_published() {
+    let ctx = setup();
+    ctx.splitter.create_maturity(&T_FAR);
+    let user = Address::generate(&ctx.env);
+    fund_sy(&ctx, &user, 100_0000000);
+
+    ctx.splitter.split(&user, &T_FAR, &100_0000000);
+    let split_event = Split {
+        from: user.clone(),
+        maturity: T_FAR,
+        sy_in: 100_0000000,
+        pt_out: 100_0000000,
+    };
+    assert_eq!(
+        ctx.env.events().all().filter_by_contract(&ctx.splitter_id),
+        [split_event.to_xdr(&ctx.env, &ctx.splitter_id)]
+    );
+
+    ctx.env.ledger().set_timestamp(BASE_TS + 1000);
+    let claimed = ctx.splitter.claim_yield(&user, &T_FAR);
+    let claim_event = YieldClaim {
+        from: user,
+        maturity: T_FAR,
+        sy_out: claimed,
+    };
+    assert_eq!(
+        ctx.env.events().all().filter_by_contract(&ctx.splitter_id),
+        [claim_event.to_xdr(&ctx.env, &ctx.splitter_id)]
+    );
+}
+
+#[test]
+fn test_redeem_twice_rejected() {
+    let ctx = setup();
+    let maturity = BASE_TS + 2000;
+    ctx.splitter.create_maturity(&maturity);
+    let user = Address::generate(&ctx.env);
+    fund_sy(&ctx, &user, 100_0000000);
+    ctx.splitter.split(&user, &maturity, &100_0000000);
+
+    ctx.env.ledger().set_timestamp(maturity + 100);
+    ctx.splitter.redeem_pt(&user, &maturity, &100_0000000);
+    // No PT left after redeeming it all.
+    let result = ctx.splitter.try_redeem_pt(&user, &maturity, &1);
+    assert_eq!(result, Err(Ok(SplitterError::InsufficientPt)));
+}
+
+#[test]
+fn test_partial_redeem_then_remainder() {
+    let ctx = setup();
+    let maturity = BASE_TS + 2000;
+    ctx.splitter.create_maturity(&maturity);
+    let user = Address::generate(&ctx.env);
+    fund_sy(&ctx, &user, 100_0000000);
+    ctx.splitter.split(&user, &maturity, &100_0000000);
+
+    ctx.env.ledger().set_timestamp(maturity + 100);
+    ctx.splitter.redeem_pt(&user, &maturity, &40_0000000);
+    assert_eq!(ctx.splitter.get_position(&user, &maturity).pt, 60_0000000);
+    ctx.splitter.redeem_pt(&user, &maturity, &60_0000000);
+    assert_eq!(ctx.splitter.get_position(&user, &maturity).pt, 0);
+}
+
+#[test]
+fn test_claim_after_redeem_has_nothing_new() {
+    let ctx = setup();
+    let maturity = BASE_TS + 2000;
+    ctx.splitter.create_maturity(&maturity);
+    let user = Address::generate(&ctx.env);
+    fund_sy(&ctx, &user, 100_0000000);
+    ctx.splitter.split(&user, &maturity, &100_0000000);
+
+    ctx.env.ledger().set_timestamp(maturity + 100);
+    // Claim all yield first (frozen at maturity), then redeem.
+    ctx.splitter.claim_yield(&user, &maturity);
+    ctx.splitter.redeem_pt(&user, &maturity, &100_0000000);
+    // Rate is frozen post-maturity, so no further yield accrues.
+    let result = ctx.splitter.try_claim_yield(&user, &maturity);
+    assert_eq!(result, Err(Ok(SplitterError::NothingToClaim)));
+}
+
+#[test]
+fn test_one_user_two_maturities_independent() {
+    let ctx = setup();
+    let m1 = BASE_TS + 2000;
+    let m2 = BASE_TS + 5000;
+    ctx.splitter.create_maturity(&m1);
+    ctx.splitter.create_maturity(&m2);
+    let user = Address::generate(&ctx.env);
+    fund_sy(&ctx, &user, 200_0000000);
+
+    ctx.splitter.split(&user, &m1, &100_0000000);
+    ctx.splitter.split(&user, &m2, &50_0000000);
+
+    assert_eq!(ctx.splitter.get_position(&user, &m1).pt, 100_0000000);
+    assert_eq!(ctx.splitter.get_position(&user, &m2).pt, 50_0000000);
+    // Merging one maturity leaves the other untouched.
+    ctx.splitter.merge(&user, &m1, &40_0000000);
+    assert_eq!(ctx.splitter.get_position(&user, &m1).pt, 60_0000000);
+    assert_eq!(ctx.splitter.get_position(&user, &m2).pt, 50_0000000);
+}
+
+#[test]
+fn test_claim_on_nonexistent_maturity_rejected() {
+    let ctx = setup();
+    let user = Address::generate(&ctx.env);
+    let result = ctx.splitter.try_claim_yield(&user, &(BASE_TS + 999));
+    assert_eq!(result, Err(Ok(SplitterError::MaturityNotFound)));
 }
