@@ -1,5 +1,33 @@
 import { describe, expect, it } from 'vitest'
-import { stroopsToXlm, xlmToStroops } from './amounts'
+import { parseTokenAmount, stroopsToXlm, xlmToStroops } from './amounts'
+
+describe('parseTokenAmount', () => {
+  it('normalizes leading-dot and trailing-dot shorthand (regression for the crash)', () => {
+    expect(parseTokenAmount('.5')).toEqual({ ok: true, stroops: 5_000_000n })
+    expect(parseTokenAmount('1.')).toEqual({ ok: true, stroops: 10_000_000n })
+    expect(parseTokenAmount('00.1')).toEqual({ ok: true, stroops: 1_000_000n })
+  })
+
+  it('parses ordinary decimals to stroops', () => {
+    expect(parseTokenAmount('1')).toEqual({ ok: true, stroops: 10_000_000n })
+    expect(parseTokenAmount('1234.5678901')).toEqual({ ok: true, stroops: 12_345_678_901n })
+  })
+
+  it('rejects zero, blank, and malformed input', () => {
+    for (const bad of ['', '   ', '0', '0.0', '.', 'abc', '-1', '1.2.3', '1e5']) {
+      expect(parseTokenAmount(bad).ok).toBe(false)
+    }
+  })
+
+  it('rejects more than 7 decimal places', () => {
+    expect(parseTokenAmount('1.23456789').ok).toBe(false)
+    expect(parseTokenAmount('1.1234567').ok).toBe(true)
+  })
+
+  it('handles large values without float loss', () => {
+    expect(parseTokenAmount('1000000000')).toEqual({ ok: true, stroops: 10_000_000_000_000_000n })
+  })
+})
 
 describe('xlmToStroops', () => {
   it('converts whole and fractional amounts', () => {
