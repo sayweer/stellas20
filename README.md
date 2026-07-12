@@ -56,15 +56,16 @@ flowchart LR
 
 | Contract | ID |
 |---|---|
-| MockYieldToken (mUSDY) | `CCJ53CNTNHS3AQJR54QFU6N3CVN7WA54JOVKHE7O2PBSVDEZD5TJD6NF` |
-| SYVault | `CAJBU37EJTL37N4IL63WUQFUC5MHK4VBSAIXDGNE52OGSUQQ2E47UGKO` |
-| Splitter | `CA2ENFLBAFF2F4PFPLUR5M5CUYIFXCLMCO4AYWA6AP3BZ4FSLBENYQNS` |
+| MockYieldToken (mUSDY) | `CDBSSIUJUVXOUNVTJTZ4J2JXO24KPNGYA5V2MF5BBZLIPWRHS3DKDP46` |
+| SYVault | `CBBASA57N7NUSHID6HURLB7ERU3LKX2JEYBGMKABZIMFUPL7Y6WH4H6Z` |
+| Splitter | `CA6H3XJ2I2PLWKE2DHDUPEUAZSM7PZLACMHM3CGT3ARPZU22BRQT4H7F` |
 
 **Verifiable contract-call transactions** (Stellar Expert, Testnet):
 
-- **Split** (cross-contract: Splitter pulls SY from SYVault, mints PT/YT) — [`f1e00efc…2965`](https://stellar.expert/explorer/testnet/tx/f1e00efc3e5bd79907a2acb791e66dcf36926ca8cca615f2b9378f1da4b42965)
-- **Wrap** (SYVault ← mUSDY) — [`e3a3bfbe…4f0e`](https://stellar.expert/explorer/testnet/tx/e3a3bfbecf7c9207b84e096d6c49077fd932afe7e3bd6c2c8f9208b3212c4f0e)
-- **Faucet** (mUSDY) — [`c0e064e4…95ee`](https://stellar.expert/explorer/testnet/tx/c0e064e4d5b7ade3b0054894b1a9b025276266b592825aec48d816623f5795ee)
+- **Split** (cross-contract: Splitter pulls SY from SYVault, mints PT/YT) — [`06b63994…63eb`](https://stellar.expert/explorer/testnet/tx/06b63994e45ecc0a8e82bc068712bbc2796f2a03ee3b7eb72c881ac8517c63eb)
+- **Claim yield** (invoker-auth SY payout: Splitter → SYVault) — [`0f60c1b8…0bd8`](https://stellar.expert/explorer/testnet/tx/0f60c1b88ecf189c19644c42a7ae0fab42a56ad659bc59cfe54022f592c80bd8)
+- **Wrap** (SYVault ← mUSDY) — [`898e89ef…9189`](https://stellar.expert/explorer/testnet/tx/898e89efb235f7f709ab1fdf16f9635723b688badb764b2c301eaff2da209189)
+- **Faucet** (mUSDY) — [`aabb1472…d882`](https://stellar.expert/explorer/testnet/tx/aabb1472a160448ee6bd4ca1b1aeda7411064dd32593e3331e3ade6e1526d882)
 
 > **Testnet resets periodically.** If a contract ID no longer resolves, redeploy with
 > `./scripts/deploy-testnet.sh` and update `.env` / Vercel env vars.
