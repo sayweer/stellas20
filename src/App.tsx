@@ -20,7 +20,7 @@ import { AlertTriangleIcon, WalletIcon } from './components/icons'
 function App(): ReactElement {
   const { isConnected, address, isWrongNetwork } = useWallet()
   const balance = useBalance(address)
-  const { portfolio, loading, error, refresh } = usePortfolio(address)
+  const { portfolio, loading, error, refresh, refreshSilent } = usePortfolio(address)
   const liveRate = useLiveRate(portfolio.rateInfo)
   const configured = isContractsConfigured()
 
@@ -29,8 +29,9 @@ function App(): ReactElement {
     balance.refresh()
   }
 
-  // A new event (ours or anyone's) may make reads stale — refresh from chain.
-  const events = useProtocolEvents(refresh)
+  // A new event (ours or anyone's) may make reads stale — refresh in the
+  // background (no spinner flash) from chain.
+  const events = useProtocolEvents(refreshSilent)
 
   return (
     <div className="flex min-h-screen flex-col">
