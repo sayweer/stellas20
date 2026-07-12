@@ -1,6 +1,7 @@
 /** Hook that ticks the exchange rate client-side, with zero RPC load. */
 import { useEffect, useRef, useState } from 'react'
 import type { RateInfo } from '../lib/contracts/mockToken'
+import { chainNowMs } from '../lib/chainTime'
 import { rateAt, type RateCheckpoint } from '../lib/yield'
 
 const TICK_MS = 1000
@@ -28,7 +29,7 @@ export function useLiveRate(rateInfo: RateInfo | null): bigint | null {
         setRate(null)
         return
       }
-      const nowSec = BigInt(Math.floor(Date.now() / 1000))
+      const nowSec = BigInt(Math.floor(chainNowMs() / 1000))
       setRate(rateAt(cp, nowSec))
     }
     tick()

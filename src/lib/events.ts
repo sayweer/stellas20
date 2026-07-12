@@ -2,6 +2,7 @@
 import { scValToNative } from '@stellar/stellar-sdk'
 import { Api, Server } from '@stellar/stellar-sdk/rpc'
 import { config } from '../config'
+import { noteChainTime } from './chainTime'
 import type { AppError } from '../types'
 
 const server = new Server(config.sorobanRpcUrl)
@@ -58,6 +59,9 @@ export async function fetchProtocolEvents(cursor?: string): Promise<FetchEventsR
       : { filters, startLedger: await resolveStartLedger(), limit: 50 }
 
     const response = await server.getEvents(request)
+    // The response always carries the latest ledger close time (even with no
+    // events) — use it to anchor the UI's countdowns and live rate to chain time.
+    noteChainTime(response.latestLedgerCloseTime)
     const events = response.events
       .map(parseEvent)
       .filter((e): e is ProtocolEvent => e !== null)

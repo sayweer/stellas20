@@ -6,6 +6,7 @@ import { claimYield, redeemPt } from '../lib/contracts/splitter'
 import { formatAmount } from '../lib/format'
 import { maturityCountdown, projectedClaimable } from '../lib/yield'
 import { formatMaturity } from '../lib/format'
+import { chainNowMs } from '../lib/chainTime'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { ClockIcon, CoinsIcon } from './icons'
 import { TxStatus } from './TxStatus'
@@ -26,10 +27,10 @@ export function MaturityPanel({
   isWrongNetwork,
   onSuccess,
 }: MaturityPanelProps): ReactElement | null {
-  const [nowMs, setNowMs] = useState(() => Date.now())
+  const [nowMs, setNowMs] = useState(() => chainNowMs())
   useEffect(() => {
     const t = window.setInterval(() => {
-      setNowMs(Date.now())
+      setNowMs(chainNowMs())
     }, 1000)
     return () => {
       window.clearInterval(t)
