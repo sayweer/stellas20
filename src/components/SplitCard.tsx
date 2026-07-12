@@ -1,6 +1,7 @@
 /** Split SY into PT+YT (and merge back), for a selected maturity. */
 import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
+import { stroopsToXlm } from '../lib/amounts'
 import { formatAmount } from '../lib/format'
 import { mergePtYt, splitSy, type PositionView } from '../lib/contracts/splitter'
 import type { MaturityPosition } from '../hooks/usePortfolio'
@@ -152,6 +153,13 @@ export function SplitCard({
               error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
               onEnter={submit}
               disabled={selectedMatured}
+              onMax={
+                !selectedMatured && balance > 0n
+                  ? () => {
+                      setAmount(stroopsToXlm(balance))
+                    }
+                  : undefined
+              }
             />
           </div>
 

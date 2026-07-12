@@ -1,6 +1,7 @@
 /** Wrap mUSDY into SY (and unwrap back), driving the tx lifecycle. */
 import { useState } from 'react'
 import type { ReactElement } from 'react'
+import { stroopsToXlm } from '../lib/amounts'
 import { formatAmount } from '../lib/format'
 import { unwrapTokens, wrapTokens } from '../lib/contracts/syVault'
 import { isValidTokenAmount } from '../lib/validation'
@@ -86,6 +87,13 @@ export function WrapCard({
           }
           error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
           onEnter={submit}
+          onMax={
+            balance > 0n
+              ? () => {
+                  setAmount(stroopsToXlm(balance))
+                }
+              : undefined
+          }
         />
       </div>
 

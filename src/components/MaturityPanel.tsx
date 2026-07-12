@@ -91,6 +91,8 @@ function MaturityCard({
   const { outcome, pending, run } = useTxRunner()
   const countdown = maturityCountdown(maturity, nowMs)
   const claimable = liveRate === null ? 0n : projectedClaimable(position, liveRate)
+  // Matured, principal redeemed, and nothing left to claim — the position is done.
+  const settled = countdown.matured && position.pt <= 0n && claimable <= 0n
 
   function claim(): void {
     if (pending) return
@@ -138,30 +140,43 @@ function MaturityCard({
         </span>
       </div>
 
-      <div className="mt-3 flex gap-2">
-        <ActionButton
-          onClick={claim}
-          disabled={isWrongNetwork || pending || claimable <= 0n}
-          pending={pending && outcome?.status === 'pending' && outcome.label === 'Claim'}
-          pendingLabel="Claiming…"
-        >
-          Claim yield
-        </ActionButton>
-        <ActionButton
-          variant="secondary"
-          onClick={redeem}
-          disabled={isWrongNetwork || pending || !countdown.matured || position.pt <= 0n}
-          pending={pending && outcome?.status === 'pending' && outcome.label === 'Redeem'}
-          pendingLabel="Redeeming…"
-        >
-          Redeem PT
-        </ActionButton>
-      </div>
-
-      {!countdown.matured && (
-        <p className="mt-2 text-center text-[11px] text-neutral-500">
-          PT redeems its fixed principal once matured.
+      {settled ? (
+        <p className="mt-3 rounded-lg border border-neutral-800 bg-neutral-900/60 px-3 py-2 text-center text-xs font-medium text-neutral-400">
+          Settled — principal redeemed and yield claimed.
         </p>
+      ) : (
+        <>
+          <div className="mt-3 flex gap-2">
+            <ActionButton
+              onClick={claim}
+              disabled={isWrongNetwork || pending || claimable <= 0n}
+              pending={pending && outcome?.status === 'pending' && outcome.label === 'Claim'}
+              pendingLabel="Claiming…"
+            >
+              Claim yield
+            </ActionButton>
+            <ActionButton
+              variant="secondary"
+              onClick={redeem}
+              disabled={isWrongNetwork || pending || !countdown.matured || position.pt <= 0n}
+              pending={pending && outcome?.status === 'pending' && outcome.label === 'Redeem'}
+              pendingLabel="Redeeming…"
+            >
+              Redeem PT
+            </ActionButton>
+          </div>
+
+          {!countdown.matured && (
+            <p className="mt-2 text-center text-[11px] text-neutral-500">
+              PT redeems its fixed principal once matured.
+            </p>
+          )}
+          {isWrongNetwork && (
+            <p className="mt-2 text-center text-[11px] text-amber-300">
+              Switch your wallet to Testnet to act.
+            </p>
+          )}
+        </>
       )}
 
       {outcome && (

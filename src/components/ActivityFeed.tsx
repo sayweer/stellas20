@@ -1,4 +1,5 @@
 /** Live protocol activity feed, driven by polled contract events. */
+import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import { explorerTxUrl } from '../config'
 import { formatAmount, formatRelativeTime, truncateAddress } from '../lib/format'
@@ -21,6 +22,17 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
+  // Tick every 30s so relative timestamps stay fresh between event polls.
+  const [nowMs, setNowMs] = useState(() => Date.now())
+  useEffect(() => {
+    const t = window.setInterval(() => {
+      setNowMs(Date.now())
+    }, 30_000)
+    return () => {
+      window.clearInterval(t)
+    }
+  }, [])
+
   return (
     <section
       aria-labelledby="activity-feed-heading"
@@ -52,7 +64,7 @@ export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
                   <span className="hidden text-xs text-neutral-500 sm:inline">
-                    {formatRelativeTime(event.closedAt)}
+                    {formatRelativeTime(event.closedAt, nowMs)}
                   </span>
                   <span className="font-mono tabular-nums text-neutral-300">
                     {formatAmount(event.amount)} {meta.unit}

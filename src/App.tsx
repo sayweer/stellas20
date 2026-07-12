@@ -10,6 +10,7 @@ import { NetworkBanner } from './components/NetworkBanner'
 import { BalanceCard } from './components/BalanceCard'
 import { RateTicker } from './components/RateTicker'
 import { PortfolioPanel } from './components/PortfolioPanel'
+import { OnboardingSteps } from './components/OnboardingSteps'
 import { WrapCard } from './components/WrapCard'
 import { SplitCard } from './components/SplitCard'
 import { MaturityPanel } from './components/MaturityPanel'
@@ -23,6 +24,7 @@ function App(): ReactElement {
   const { portfolio, loading, error, refresh, refreshSilent } = usePortfolio(address)
   const liveRate = useLiveRate(portfolio.rateInfo)
   const configured = isContractsConfigured()
+  const hasSplit = portfolio.positions.some((p) => p.position.pt > 0n || p.position.yt > 0n)
 
   function refreshAll(): void {
     refresh()
@@ -75,6 +77,13 @@ function App(): ReactElement {
 
         {isConnected && address ? (
           <>
+            {!hasSplit && (
+              <OnboardingSteps
+                gotTokens={portfolio.myt > 0n || portfolio.sy > 0n || hasSplit}
+                wrapped={portfolio.sy > 0n || hasSplit}
+                split={hasSplit}
+              />
+            )}
             <div className="grid gap-6 lg:grid-cols-2">
               <WrapCard
                 address={address}

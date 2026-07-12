@@ -1,7 +1,7 @@
 /** Top app bar: brand + Testnet indicator, with the wallet control on the right. */
 import type { ReactElement } from 'react'
 import { WalletButton } from './WalletButton'
-import { SendIcon } from './icons'
+import { SplitIcon } from './icons'
 
 export function Header(): ReactElement {
   return (
@@ -12,7 +12,7 @@ export function Header(): ReactElement {
             aria-hidden="true"
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20"
           >
-            <SendIcon className="h-4 w-4" />
+            <SplitIcon className="h-4 w-4" />
           </span>
           <div className="flex flex-col leading-none">
             <span className="text-sm font-semibold text-neutral-100">stellas-core</span>

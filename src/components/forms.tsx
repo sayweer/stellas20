@@ -3,7 +3,7 @@ import type { ReactElement, ReactNode } from 'react'
 import { Spinner } from './icons'
 
 const inputClass =
-  'w-full rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5 pr-16 text-sm text-neutral-100 placeholder:text-neutral-600 font-mono tabular-nums transition-colors focus:border-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30 aria-[invalid=true]:border-rose-500/70'
+  'w-full rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-600 font-mono tabular-nums transition-colors focus:border-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30 aria-[invalid=true]:border-rose-500/70'
 
 interface AmountFieldProps {
   id: string
@@ -14,6 +14,8 @@ interface AmountFieldProps {
   error: string | null
   onEnter?: () => void
   disabled?: boolean
+  /** When set, renders a MAX button that fills the field with this value. */
+  onMax?: () => void
 }
 
 /** A labelled decimal amount input with a unit suffix, hint, and inline error. */
@@ -26,6 +28,7 @@ export function AmountField({
   error,
   onEnter,
   disabled,
+  onMax,
 }: AmountFieldProps): ReactElement {
   return (
     <div className="space-y-1.5">
@@ -50,14 +53,24 @@ export function AmountField({
           disabled={disabled}
           aria-invalid={error !== null ? 'true' : undefined}
           aria-describedby={error !== null ? `${id}-error` : `${id}-hint`}
-          className={`${inputClass} disabled:cursor-not-allowed disabled:opacity-50`}
+          className={`${inputClass} ${onMax ? 'pr-24' : 'pr-16'} disabled:cursor-not-allowed disabled:opacity-50`}
         />
-        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-medium text-neutral-500">
-          {unit}
-        </span>
+        <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center gap-2">
+          {onMax && (
+            <button
+              type="button"
+              onClick={onMax}
+              disabled={disabled}
+              className="pointer-events-auto rounded border border-neutral-700 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-300 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:opacity-50"
+            >
+              MAX
+            </button>
+          )}
+          <span className="text-sm font-medium text-neutral-500">{unit}</span>
+        </div>
       </div>
       {error !== null ? (
-        <p id={`${id}-error`} className="text-xs text-rose-400">
+        <p id={`${id}-error`} aria-live="polite" className="text-xs text-rose-400">
           {error}
         </p>
       ) : (
@@ -79,7 +92,10 @@ interface TabToggleProps {
 /** A two-or-more segmented control for switching an action's mode. */
 export function TabToggle({ options, active, onChange, className = '' }: TabToggleProps): ReactElement {
   return (
-    <div className={`inline-flex rounded-lg border border-neutral-800 bg-neutral-950 p-1 ${className}`}>
+    <div
+      role="group"
+      className={`inline-flex rounded-lg border border-neutral-800 bg-neutral-950 p-1 ${className}`}
+    >
       {options.map((opt) => (
         <button
           key={opt.id}
