@@ -105,8 +105,8 @@ asserts exactly this after every operation in a scripted lifecycle.
 - **Chain:** [`@stellar/stellar-sdk`](https://github.com/stellar/js-stellar-sdk) — the official
   `contract` Client/AssembledTransaction pipeline (build → simulate → sign → send → poll), plus
   `/rpc` `getEvents` for the live activity feed.
-- **Tests:** Rust unit + integration (39), [Vitest](https://vitest.dev/) for the frontend (27).
-- **CI:** GitHub Actions (`.github/workflows/ci.yml`).
+- **Tests:** Rust unit + integration (53), [Vitest](https://vitest.dev/) for the frontend (35).
+- **CI:** GitHub Actions (`.github/workflows/ci.yml`), on a pinned Rust toolchain.
 
 ## Setup / run locally
 
@@ -133,15 +133,17 @@ npm run dev            # http://localhost:5173
 
 ## Testing
 
-- **Contracts — 39 Rust tests.** `cargo test --workspace`
-  - `mock-yield-token` (12): SEP-41 behavior, faucet cap, linear rate growth, checkpoint history.
-  - `sy-vault` (9): 1:1 wrap/unwrap with cross-contract token moves, rate delegation.
-  - `splitter` (15 unit + 3 integration): split/merge/claim/redeem with hand-computed exact values,
+- **Contracts — 53 Rust tests.** `cargo test --workspace`
+  - `mock-yield-token` (18): SEP-41 behavior, auth-gated admin ops, faucet cap, linear rate growth,
+    checkpoint history, burn, and allowance expiration.
+  - `sy-vault` (10): 1:1 wrap/unwrap with cross-contract token moves, transfer, rate delegation.
+  - `splitter` (22 unit + 3 integration): split/merge/claim/redeem with hand-computed exact values,
+    event assertions, auth-negative and edge cases (double redeem, claim-after-redeem, multi-maturity),
     the `PT == YT` and yield-stops-at-maturity invariants, a full mint→wrap→split→accrue→claim→
     mature→redeem lifecycle, and a **solvency sweep** asserting the no-dust invariant after each step.
-- **Frontend — 27 Vitest tests.** `npm run test` — amount math, input validation, the client-side
-  yield math (mirroring the contract), per-contract error mapping, and event parsing from ScVal
-  fixtures.
+- **Frontend — 35 Vitest tests.** `npm run test` — amount parsing (incl. the crash regression),
+  input validation in stroops, the client-side yield math (mirroring the contract), chain-time
+  anchoring, per-contract error mapping, and event parsing from ScVal fixtures.
 
 ## CI/CD
 
@@ -194,7 +196,7 @@ Distinct, visibly-handled error types include:
 
 Problem (no fixed income on Stellar; PT = bond, YT = coupon) → faucet + wrap → split (equal PT/YT,
 invariant) → live accrual + claim → maturity countdown hits zero, accrual freezes → redeem PT for
-fixed principal → flash the green CI run and test counts (39 Rust / 27 Vitest).
+fixed principal → flash the green CI run and test counts (53 Rust / 35 Vitest).
 
 ## Screenshots
 
