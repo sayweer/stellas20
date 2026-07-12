@@ -13,6 +13,7 @@ interface AmountFieldProps {
   hint: string
   error: string | null
   onEnter?: () => void
+  disabled?: boolean
 }
 
 /** A labelled decimal amount input with a unit suffix, hint, and inline error. */
@@ -24,6 +25,7 @@ export function AmountField({
   hint,
   error,
   onEnter,
+  disabled,
 }: AmountFieldProps): ReactElement {
   return (
     <div className="space-y-1.5">
@@ -45,9 +47,10 @@ export function AmountField({
           autoComplete="off"
           spellCheck={false}
           placeholder="0.0"
+          disabled={disabled}
           aria-invalid={error !== null ? 'true' : undefined}
           aria-describedby={error !== null ? `${id}-error` : `${id}-hint`}
-          className={inputClass}
+          className={`${inputClass} disabled:cursor-not-allowed disabled:opacity-50`}
         />
         <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-medium text-neutral-500">
           {unit}

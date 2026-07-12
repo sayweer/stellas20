@@ -1,16 +1,17 @@
 /** Split SY into PT+YT (and merge back), for a selected maturity. */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import { formatAmount } from '../lib/format'
 import { mergePtYt, splitSy, type PositionView } from '../lib/contracts/splitter'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { isValidTokenAmount } from '../lib/validation'
+import { chainNowMs } from '../lib/chainTime'
 import { RATE_SCALE } from '../lib/yield'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { SplitIcon } from './icons'
 import { TxStatus } from './TxStatus'
 import { AmountField, TabToggle, ActionButton } from './forms'
-import { MaturitySelect } from './MaturitySelect'
+import { MaturitySelect, type MaturityOption } from './MaturitySelect'
 
 interface SplitCardProps {
   address: string
@@ -25,6 +26,10 @@ type Tab = 'split' | 'merge'
 
 const ZERO_POSITION: PositionView = { pt: 0n, yt: 0n, reserveSy: 0n, accruedSy: 0n }
 
+function isMatured(maturity: bigint, nowMs: number): boolean {
+  return Number(maturity) * 1000 <= nowMs
+}
+
 export function SplitCard({
   address,
   syBalance,
@@ -35,25 +40,49 @@ export function SplitCard({
 }: SplitCardProps): ReactElement {
   const [tab, setTab] = useState<Tab>('split')
   const [amount, setAmount] = useState('')
-  const [maturity, setMaturity] = useState<bigint | null>(positions[0]?.maturity ?? null)
-  const { outcome, pending, run } = useTxRunner()
+  const [maturity, setMaturity] = useState<bigint | null>(null)
+  const [nowMs, setNowMs] = useState(() => chainNowMs())
+  const { outcome, pending, run, reset } = useTxRunner()
 
-  // Keep a valid selection as maturities load.
-  const selected = maturity ?? positions[0]?.maturity ?? null
-  const position =
-    positions.find((p) => p.maturity === selected)?.position ?? ZERO_POSITION
+  useEffect(() => {
+    const t = window.setInterval(() => {
+      setNowMs(chainNowMs())
+    }, 1000)
+    return () => {
+      window.clearInterval(t)
+    }
+  }, [])
+
+  const options: MaturityOption[] = positions.map((p) => ({
+    maturity: p.maturity,
+    matured: isMatured(p.maturity, nowMs),
+  }))
+  // Prefer the user's pick if it still exists; else the first active maturity; else the first.
+  const firstActive = options.find((o) => !o.matured)?.maturity
+  const selected =
+    maturity !== null && positions.some((p) => p.maturity === maturity)
+      ? maturity
+      : (firstActive ?? positions[0]?.maturity ?? null)
+  const selectedMatured = selected !== null && isMatured(selected, nowMs)
+  const position = positions.find((p) => p.maturity === selected)?.position ?? ZERO_POSITION
 
   const balance = tab === 'split' ? syBalance : position.pt
   const valid = isValidTokenAmount(amount, balance, { label: tab === 'split' ? 'SY' : 'PT' })
 
   // Client-side floor preview of the PT/YT that a split would mint.
   const preview =
-    tab === 'split' && liveRate !== null && valid.ok
+    tab === 'split' && !selectedMatured && liveRate !== null && valid.ok
       ? (valid.stroops * liveRate) / RATE_SCALE
       : null
 
+  function switchTab(id: Tab): void {
+    setTab(id)
+    setAmount('')
+    reset()
+  }
+
   function submit(): void {
-    if (!valid.ok || pending || selected === null) return
+    if (!valid.ok || pending || selected === null || selectedMatured) return
     const stroops = valid.stroops
     const label = tab === 'split' ? 'Split' : 'Merge'
     void run(
@@ -84,9 +113,12 @@ export function SplitCard({
         <>
           <div className="mt-4">
             <MaturitySelect
-              maturities={positions.map((p) => p.maturity)}
+              options={options}
               value={selected}
-              onChange={setMaturity}
+              onChange={(m) => {
+                setMaturity(m)
+                reset()
+              }}
             />
           </div>
 
@@ -98,8 +130,7 @@ export function SplitCard({
             ]}
             active={tab}
             onChange={(id) => {
-              setTab(id as Tab)
-              setAmount('')
+              switchTab(id as Tab)
             }}
           />
 
@@ -116,6 +147,7 @@ export function SplitCard({
               }
               error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
               onEnter={submit}
+              disabled={selectedMatured}
             />
           </div>
 
@@ -129,17 +161,24 @@ export function SplitCard({
           <ActionButton
             className="mt-4"
             onClick={submit}
-            disabled={isWrongNetwork || !valid.ok}
+            disabled={isWrongNetwork || selectedMatured || !valid.ok}
             pending={pending}
             pendingLabel={tab === 'split' ? 'Splitting…' : 'Merging…'}
           >
             {tab === 'split' ? 'Split SY' : 'Merge back to SY'}
           </ActionButton>
 
-          {isWrongNetwork && (
+          {selectedMatured ? (
             <p className="mt-3 text-center text-xs text-amber-300">
-              Switch your wallet to Testnet to continue.
+              This maturity has passed — split and merge are closed. Claim or redeem it under “Your
+              positions”.
             </p>
+          ) : (
+            isWrongNetwork && (
+              <p className="mt-3 text-center text-xs text-amber-300">
+                Switch your wallet to Testnet to continue.
+              </p>
+            )
           )}
 
           {outcome && (

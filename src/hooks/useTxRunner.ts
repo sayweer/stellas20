@@ -18,6 +18,8 @@ export interface UseTxRunnerResult {
     fn: (onPhase: OnTxPhase) => Promise<{ hash: string } | AppError>,
     onDone?: () => void,
   ) => Promise<void>
+  /** Clear the current outcome card (e.g. when switching tabs/maturities). */
+  reset: () => void
 }
 
 export function useTxRunner(): UseTxRunnerResult {
@@ -57,5 +59,9 @@ export function useTxRunner(): UseTxRunnerResult {
     [notify],
   )
 
-  return { outcome, pending, run }
+  const reset = useCallback((): void => {
+    setOutcome(null)
+  }, [])
+
+  return { outcome, pending, run, reset }
 }
