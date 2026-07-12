@@ -148,18 +148,15 @@ pub struct Splitter;
 
 #[contractimpl]
 impl Splitter {
-    /// One-time setup: record the admin and the SY vault this Splitter uses.
-    pub fn initialize(env: Env, admin: Address, sy_vault: Address) -> Result<(), SplitterError> {
-        if env.storage().instance().has(&DataKey::Admin) {
-            return Err(SplitterError::AlreadyInitialized);
-        }
+    /// Constructor: runs once at deploy (no front-run). Records the admin and
+    /// the SY vault this Splitter operates on.
+    pub fn __constructor(env: Env, admin: Address, sy_vault: Address) {
         env.storage().instance().set(&DataKey::Admin, &admin);
         env.storage().instance().set(&DataKey::SyVault, &sy_vault);
         env.storage()
             .instance()
             .set(&DataKey::Maturities, &Vec::<u64>::new(&env));
         extend_instance(&env);
-        Ok(())
     }
 
     /// Admin-only: register a new maturity timestamp (must be in the future).

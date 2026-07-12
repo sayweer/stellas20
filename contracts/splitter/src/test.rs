@@ -31,17 +31,14 @@ pub fn setup() -> TestCtx {
 
     let admin = Address::generate(&env);
 
-    let myt_id = env.register(MockYieldToken, ());
+    let myt_id = env.register(MockYieldToken, (admin.clone(), INITIAL_RATE, SLOPE));
     let myt = MockYieldTokenClient::new(&env, &myt_id);
-    myt.initialize(&admin, &INITIAL_RATE, &SLOPE);
 
-    let sy_id = env.register(SyVault, ());
+    let sy_id = env.register(SyVault, (admin.clone(), myt_id.clone()));
     let sy = SyVaultClient::new(&env, &sy_id);
-    sy.initialize(&admin, &myt_id);
 
-    let splitter_id = env.register(Splitter, ());
+    let splitter_id = env.register(Splitter, (admin.clone(), sy_id.clone()));
     let splitter = SplitterClient::new(&env, &splitter_id);
-    splitter.initialize(&admin, &sy_id);
 
     TestCtx {
         env,

@@ -78,18 +78,15 @@ pub struct SyVault;
 
 #[contractimpl]
 impl SyVault {
-    /// One-time setup: record the admin and the underlying yield token.
-    pub fn initialize(env: Env, admin: Address, yield_token: Address) -> Result<(), SyError> {
-        if env.storage().instance().has(&DataKey::Admin) {
-            return Err(SyError::AlreadyInitialized);
-        }
+    /// Constructor: runs once at deploy (no front-run). Records the admin and
+    /// the underlying yield token.
+    pub fn __constructor(env: Env, admin: Address, yield_token: Address) {
         env.storage().instance().set(&DataKey::Admin, &admin);
         env.storage()
             .instance()
             .set(&DataKey::YieldToken, &yield_token);
         env.storage().instance().set(&DataKey::TotalSupply, &0i128);
         extend_instance(&env);
-        Ok(())
     }
 
     /// Wrap `amount` of the underlying yield token into SY (1:1).

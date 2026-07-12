@@ -29,14 +29,12 @@ fn setup() -> TestCtx {
 
     let admin = Address::generate(&env);
 
-    let myt_id = env.register(MockYieldToken, ());
+    let myt_id = env.register(MockYieldToken, (admin.clone(), INITIAL_RATE, SLOPE));
     let myt = MockYieldTokenClient::new(&env, &myt_id);
-    myt.initialize(&admin, &INITIAL_RATE, &SLOPE);
     let myt_token = token::TokenClient::new(&env, &myt_id);
 
-    let vault_id = env.register(SyVault, ());
+    let vault_id = env.register(SyVault, (admin.clone(), myt_id.clone()));
     let vault = SyVaultClient::new(&env, &vault_id);
-    vault.initialize(&admin, &myt_id);
 
     TestCtx {
         env,
@@ -58,13 +56,6 @@ fn test_initialize_stores_config() {
     let ctx = setup();
     assert_eq!(ctx.vault.yield_token(), ctx.myt_id);
     assert_eq!(ctx.vault.total_supply(), 0);
-}
-
-#[test]
-fn test_double_initialize_rejected() {
-    let ctx = setup();
-    let result = ctx.vault.try_initialize(&ctx.myt_id, &ctx.myt_id);
-    assert_eq!(result, Err(Ok(SyError::AlreadyInitialized)));
 }
 
 #[test]

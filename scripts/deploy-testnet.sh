@@ -32,26 +32,25 @@ stellar contract build >/dev/null
 
 WASM_DIR="target/wasm32v1-none/release"
 
+# Each contract is initialized atomically via its constructor (args after `--`),
+# so admin/config can never be front-run by a separate initialize call.
 echo "Deploying MockYieldToken..."
 MYT=$(stellar contract deploy \
   --wasm "$WASM_DIR/stellas_mock_yield_token.wasm" \
-  --source "$IDENTITY" --network "$NETWORK" --alias mock-yield-token)
-stellar contract invoke --id "$MYT" --source "$IDENTITY" --network "$NETWORK" -- \
-  initialize --admin "$ADMIN" --initial_rate "$INITIAL_RATE" --slope_per_sec "$SLOPE_PER_SEC"
+  --source "$IDENTITY" --network "$NETWORK" --alias mock-yield-token \
+  -- --admin "$ADMIN" --initial_rate "$INITIAL_RATE" --slope_per_sec "$SLOPE_PER_SEC")
 
 echo "Deploying SYVault..."
 SY=$(stellar contract deploy \
   --wasm "$WASM_DIR/stellas_sy_vault.wasm" \
-  --source "$IDENTITY" --network "$NETWORK" --alias sy-vault)
-stellar contract invoke --id "$SY" --source "$IDENTITY" --network "$NETWORK" -- \
-  initialize --admin "$ADMIN" --yield_token "$MYT"
+  --source "$IDENTITY" --network "$NETWORK" --alias sy-vault \
+  -- --admin "$ADMIN" --yield_token "$MYT")
 
 echo "Deploying Splitter..."
 SPLITTER=$(stellar contract deploy \
   --wasm "$WASM_DIR/stellas_splitter.wasm" \
-  --source "$IDENTITY" --network "$NETWORK" --alias splitter)
-stellar contract invoke --id "$SPLITTER" --source "$IDENTITY" --network "$NETWORK" -- \
-  initialize --admin "$ADMIN" --sy_vault "$SY"
+  --source "$IDENTITY" --network "$NETWORK" --alias splitter \
+  -- --admin "$ADMIN" --sy_vault "$SY")
 
 MATURITY=$(( $(date +%s) + MATURITY_OFFSET_SECS ))
 echo "Creating maturity at unix $MATURITY..."

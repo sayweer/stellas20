@@ -26,9 +26,8 @@ fn setup() -> TestCtx {
     env.ledger().set_timestamp(BASE_TS);
 
     let admin = Address::generate(&env);
-    let contract_id = env.register(MockYieldToken, ());
+    let contract_id = env.register(MockYieldToken, (admin.clone(), INITIAL_RATE, SLOPE));
     let client = MockYieldTokenClient::new(&env, &contract_id);
-    client.initialize(&admin, &INITIAL_RATE, &SLOPE);
 
     let token = token::TokenClient::new(&env, &contract_id);
     TestCtx {
@@ -54,13 +53,6 @@ fn test_initialize_and_metadata() {
     );
     assert_eq!(ctx.client.total_supply(), 0);
     assert_eq!(ctx.client.exchange_rate(), INITIAL_RATE);
-}
-
-#[test]
-fn test_double_initialize_rejected() {
-    let ctx = setup();
-    let result = ctx.client.try_initialize(&ctx.admin, &INITIAL_RATE, &SLOPE);
-    assert_eq!(result, Err(Ok(TokenError::AlreadyInitialized)));
 }
 
 #[test]

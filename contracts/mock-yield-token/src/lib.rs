@@ -135,16 +135,14 @@ pub struct MockYieldToken;
 // -- custom (non-SEP-41) methods --
 #[contractimpl]
 impl MockYieldToken {
-    /// One-time setup. Seeds the first rate checkpoint at the current time.
-    pub fn initialize(
+    /// Constructor: runs once, atomically, at deploy — so admin/config can't be
+    /// front-run by a separate initialize call. Seeds the first rate checkpoint.
+    pub fn __constructor(
         env: Env,
         admin: Address,
         initial_rate: i128,
         slope_per_sec: i128,
     ) -> Result<(), TokenError> {
-        if env.storage().instance().has(&DataKey::Admin) {
-            return Err(TokenError::AlreadyInitialized);
-        }
         if initial_rate <= 0 || slope_per_sec < 0 {
             return Err(TokenError::InvalidAmount);
         }
