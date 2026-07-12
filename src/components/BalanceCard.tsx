@@ -55,7 +55,7 @@ export function BalanceCard({
     >
       <div className="flex items-center justify-between">
         <h2 id="balance-heading" className="text-sm font-medium text-neutral-400">
-          XLM balance <span className="font-normal text-neutral-600">· for network fees</span>
+          XLM balance <span className="font-normal text-neutral-400">· for network fees</span>
         </h2>
         <button
           type="button"

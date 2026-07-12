@@ -10,7 +10,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 > **Testnet only.** No mainnet config. Signing happens only inside your wallet — this app never
 > sees your secret key.
 
-- **Live demo:** _(deploy to Vercel and paste the URL here)_
+- **Live demo:** _(import the repo on Vercel — see [CI/CD](#cicd) — and paste the URL here)_
 - **Demo video:** _(record and link at the Level 3 submission checkpoint)_
 
 ## The three contracts
@@ -153,9 +153,10 @@ npm run dev            # http://localhost:5173
   then `stellar contract build` (uploads the WASM artifacts).
 - **frontend** job: `npm ci`, `npm run lint`, `npm run test`, `npm run build`.
 
-The frontend is deployed to **Vercel via its GitHub integration** (auto-deploy on push to `main`).
-Contract deployment is a documented local workflow — the admin key lives only in the local
-`stellar keys` store, never in CI secrets.
+The frontend deploys to **Vercel via its GitHub integration**: import the repo (Vite is
+auto-detected, no build config needed), and once connected Vercel auto-deploys on every push to
+`main`. Contract deployment stays a documented local workflow — the admin key lives only in the
+local `stellar keys` store, never in CI secrets.
 
 ## Deployment workflow
 

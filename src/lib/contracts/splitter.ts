@@ -3,7 +3,7 @@ import type { AssembledTransaction, MethodOptions } from '@stellar/stellar-sdk/c
 import { config } from '../../config'
 import type { AppError } from '../../types'
 import { getClient, invokeWrite, readCall, type OnTxPhase } from './base'
-import { SPLITTER_ERRORS } from './errors'
+import { SPLITTER_ERRORS, SPLITTER_WRITE_ERRORS } from './errors'
 
 /** A user's position for one maturity, all amounts in stroops. */
 export interface PositionView {
@@ -108,7 +108,7 @@ export async function splitSy(
     (options) => c.split({ from: address, maturity, sy_amount: syAmount }, options),
     address,
     onPhase,
-    SPLITTER_ERRORS,
+    SPLITTER_WRITE_ERRORS,
   )
   return 'hash' in result ? { hash: result.hash, ptOut: result.result } : result
 }
@@ -125,7 +125,7 @@ export async function mergePtYt(
     (options) => c.merge({ from: address, maturity, pt_amount: ptAmount }, options),
     address,
     onPhase,
-    SPLITTER_ERRORS,
+    SPLITTER_WRITE_ERRORS,
   )
   return 'hash' in result ? { hash: result.hash, syOut: result.result } : result
 }
@@ -141,7 +141,7 @@ export async function claimYield(
     (options) => c.claim_yield({ from: address, maturity }, options),
     address,
     onPhase,
-    SPLITTER_ERRORS,
+    SPLITTER_WRITE_ERRORS,
   )
   return 'hash' in result ? { hash: result.hash, syOut: result.result } : result
 }
@@ -158,7 +158,7 @@ export async function redeemPt(
     (options) => c.redeem_pt({ from: address, maturity, pt_amount: ptAmount }, options),
     address,
     onPhase,
-    SPLITTER_ERRORS,
+    SPLITTER_WRITE_ERRORS,
   )
   return 'hash' in result ? { hash: result.hash, syOut: result.result } : result
 }

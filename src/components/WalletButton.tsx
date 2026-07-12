@@ -45,7 +45,7 @@ export function WalletButton(): ReactElement {
 
   if (isConnected && address) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <button
           type="button"
           onClick={() => {
@@ -101,7 +101,7 @@ export function WalletButton(): ReactElement {
         )}
       </button>
       {notFound && (
-        <p className="text-right text-xs text-neutral-400">
+        <p role="alert" className="text-right text-xs text-neutral-400">
           No compatible wallet found. Install{' '}
           <a
             href="https://www.freighter.app/"

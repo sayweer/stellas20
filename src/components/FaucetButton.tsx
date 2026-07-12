@@ -1,27 +1,23 @@
-/** One-click faucet to mint demo mUSDY into the connected wallet. */
+/** Presentational faucet button — the tx runner lives in the parent so its
+ * outcome (hash + explorer link, persistent errors) can be rendered as a
+ * TxStatus card, consistently with the other write actions. */
 import type { ReactElement } from 'react'
-import { requestFaucet } from '../lib/contracts/mockToken'
-import { useTxRunner } from '../hooks/useTxRunner'
 import { DropletIcon, Spinner } from './icons'
 
 /** Faucet amount per click: 1,000 mUSDY (7 decimals). */
-const FAUCET_AMOUNT = 1_000_0000000n
+export const FAUCET_AMOUNT = 1_000_0000000n
 
 interface FaucetButtonProps {
-  address: string
+  pending: boolean
   disabled?: boolean
-  onSuccess: () => void
+  onClick: () => void
 }
 
-export function FaucetButton({ address, disabled, onSuccess }: FaucetButtonProps): ReactElement {
-  const { pending, run } = useTxRunner()
-
+export function FaucetButton({ pending, disabled, onClick }: FaucetButtonProps): ReactElement {
   return (
     <button
       type="button"
-      onClick={() => {
-        void run('Faucet', (onPhase) => requestFaucet(address, FAUCET_AMOUNT, onPhase), onSuccess)
-      }}
+      onClick={onClick}
       disabled={pending || disabled}
       aria-busy={pending}
       className="inline-flex items-center gap-2 rounded-lg border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:opacity-50"

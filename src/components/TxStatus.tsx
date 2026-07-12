@@ -37,7 +37,10 @@ export function TxStatus({ outcome }: { outcome: TxOutcome | null }): ReactEleme
             <p className="font-semibold text-amber-100">{outcome.label} pending…</p>
             <p className="mt-0.5 text-amber-200/70">Waiting for the network to confirm your transaction.</p>
             {outcome.hash && (
-              <code className="mt-3 block break-all rounded-md bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-amber-100">
+              <code
+                aria-hidden="true"
+                className="mt-3 block break-all rounded-md bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-amber-100"
+              >
                 {outcome.hash}
               </code>
             )}
@@ -75,7 +78,10 @@ export function TxStatus({ outcome }: { outcome: TxOutcome | null }): ReactEleme
               Transaction hash
             </span>
             <div className="mt-1 flex items-start gap-2">
-              <code className="min-w-0 flex-1 break-all rounded-md bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-emerald-100">
+              <code
+                aria-hidden="true"
+                className="min-w-0 flex-1 break-all rounded-md bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-emerald-100"
+              >
                 {hash}
               </code>
               <button

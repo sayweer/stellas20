@@ -15,3 +15,15 @@
     @apply min-h-screen;
   }
 }
+
+/* Respect the OS "reduce motion" setting — matches the motion-safe: guard used
+   on the toast, applied globally to the spinner, pulses, and transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

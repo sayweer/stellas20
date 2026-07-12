@@ -81,3 +81,31 @@ export const SPLITTER_ERRORS: ErrorTable = {
   12: { code: 'unauthorized', message: 'Only the admin can do that.' },
   13: { code: 'math_overflow', message: 'That amount is too large to process.' },
 }
+
+/**
+ * Splitter write paths (split/merge/claim/redeem) call SYVault.transfer, so a
+ * failed sub-call can surface a `SyError` code where a `SplitterError` code is
+ * expected — the numeric spaces overlap. In these paths the maturity is always
+ * one the user selected and there is no un-create, so SplitterError #4
+ * (MaturityNotFound) and #5 (MaturityExists) are unreachable; a #4/#5 therefore
+ * comes from SYVault. Resolve those two to their SY meaning so an insufficient-SY
+ * failure reads correctly instead of "that maturity does not exist".
+ */
+export const SPLITTER_WRITE_ERRORS: ErrorTable = {
+  ...SPLITTER_ERRORS,
+  // SyError::InsufficientBalance (via SYVault.transfer), not SplitterError::MaturityNotFound.
+  4: { code: 'insufficient_sy', message: 'That exceeds your SY balance.' },
+  // SyError::MathOverflow, not SplitterError::MaturityExists.
+  5: { code: 'math_overflow', message: 'That amount is too large to process.' },
+}
+
+/**
+ * SYVault.wrap pulls the underlying via MockYieldToken.transfer, so an
+ * insufficient-underlying failure surfaces as `TokenError::InsufficientBalance` #4.
+ * Wrap mints SY (never debits it), so SyError #4 is unreachable here — a #4 means
+ * insufficient mUSDY, not SY.
+ */
+export const WRAP_ERRORS: ErrorTable = {
+  ...SY_ERRORS,
+  4: { code: 'insufficient_myt', message: 'You don’t have enough mUSDY for that.' },
+}

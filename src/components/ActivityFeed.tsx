@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import { explorerTxUrl } from '../config'
 import { formatAmount, formatRelativeTime, truncateAddress } from '../lib/format'
+import { chainNowMs } from '../lib/chainTime'
 import type { ProtocolEvent, ProtocolEventType } from '../lib/events'
 import { ExternalLinkIcon } from './icons'
 
@@ -22,11 +23,12 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
-  // Tick every 30s so relative timestamps stay fresh between event polls.
-  const [nowMs, setNowMs] = useState(() => Date.now())
+  // Tick every 30s so relative timestamps stay fresh between event polls. Use
+  // chain time (not the local clock) since event timestamps are ledger times.
+  const [nowMs, setNowMs] = useState(() => chainNowMs())
   useEffect(() => {
     const t = window.setInterval(() => {
-      setNowMs(Date.now())
+      setNowMs(chainNowMs())
     }, 30_000)
     return () => {
       window.clearInterval(t)
@@ -43,7 +45,7 @@ export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
       </h2>
 
       {events.length === 0 ? (
-        <p className="mt-4 text-sm text-neutral-500">No protocol activity yet.</p>
+        <p className="mt-4 text-sm text-neutral-400">No protocol activity yet.</p>
       ) : (
         <ul className="mt-4 space-y-2">
           {events.map((event) => {
@@ -57,13 +59,13 @@ export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
                   <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${meta.dot}`} />
                   <span className="font-medium text-neutral-200">{meta.label}</span>
                   {event.address && (
-                    <span className="truncate font-mono text-xs text-neutral-500">
+                    <span className="truncate font-mono text-xs text-neutral-400">
                       {truncateAddress(event.address)}
                     </span>
                   )}
                 </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <span className="hidden text-xs text-neutral-500 sm:inline">
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="hidden text-xs text-neutral-400 sm:inline">
                     {formatRelativeTime(event.closedAt, nowMs)}
                   </span>
                   <span className="font-mono tabular-nums text-neutral-300">
@@ -74,7 +76,7 @@ export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
                     target="_blank"
                     rel="noreferrer"
                     aria-label="View transaction on Stellar Expert"
-                    className="text-neutral-500 transition-colors hover:text-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                    className="-m-2 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-neutral-400 transition-colors hover:text-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
                   >
                     <ExternalLinkIcon className="h-3.5 w-3.5" />
                   </a>

@@ -46,11 +46,11 @@ export function OnboardingSteps({ gotTokens, wrapped, split }: OnboardingStepsPr
             </span>
             <div className="min-w-0">
               <p
-                className={`text-sm font-medium ${step.done ? 'text-neutral-500 line-through' : 'text-neutral-100'}`}
+                className={`text-sm font-medium ${step.done ? 'text-neutral-400 line-through' : 'text-neutral-100'}`}
               >
                 {step.title}
               </p>
-              <p className="mt-0.5 text-xs text-neutral-500">{step.detail}</p>
+              <p className="mt-0.5 text-xs text-neutral-400">{step.detail}</p>
             </div>
           </li>
         ))}

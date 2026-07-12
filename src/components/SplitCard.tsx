@@ -72,10 +72,14 @@ export function SplitCard({
   const balance = tab === 'split' ? syBalance : position.pt
   const valid = isValidTokenAmount(amount, balance, { label: tab === 'split' ? 'SY' : 'PT' })
 
-  // Client-side floor preview of the PT/YT that a split would mint.
+  // Client-side floor preview of what the action produces: PT/YT from a split
+  // (sy·rate/SCALE), or SY from a merge (pt·SCALE/rate) — merge isn't 1:1 as the
+  // rate grows, so the estimate is genuinely useful before signing.
   const preview =
-    tab === 'split' && !selectedMatured && liveRate !== null && valid.ok
-      ? (valid.stroops * liveRate) / RATE_SCALE
+    !selectedMatured && liveRate !== null && valid.ok
+      ? tab === 'split'
+        ? (valid.stroops * liveRate) / RATE_SCALE
+        : (valid.stroops * RATE_SCALE) / liveRate
       : null
 
   function switchTab(id: Tab): void {
@@ -109,7 +113,7 @@ export function SplitCard({
       </div>
 
       {positions.length === 0 ? (
-        <p className="mt-4 text-sm text-neutral-500">
+        <p className="mt-4 text-sm text-neutral-400">
           No maturities are available yet. The admin must create one before you can split.
         </p>
       ) : (
@@ -127,6 +131,7 @@ export function SplitCard({
 
           <TabToggle
             className="mt-4"
+            label="Split or merge mode"
             options={[
               { id: 'split', label: 'Split → PT + YT' },
               { id: 'merge', label: 'Merge → SY' },
@@ -163,12 +168,22 @@ export function SplitCard({
             />
           </div>
 
-          {preview !== null && (
-            <p className="mt-2 text-xs text-neutral-400">
-              You’ll receive ≈ <span className="font-mono text-emerald-300">{formatAmount(preview)}</span>{' '}
-              PT and the same amount of YT.
-            </p>
-          )}
+          {/* Reserve the line so the submit button doesn't jump as validity toggles. */}
+          <p className="mt-2 min-h-[1rem] text-xs text-neutral-400">
+            {preview !== null &&
+              (tab === 'split' ? (
+                <>
+                  You’ll receive ≈{' '}
+                  <span className="font-mono text-emerald-300">{formatAmount(preview)}</span> PT and the
+                  same amount of YT.
+                </>
+              ) : (
+                <>
+                  You’ll receive ≈{' '}
+                  <span className="font-mono text-emerald-300">{formatAmount(preview)}</span> SY.
+                </>
+              ))}
+          </p>
 
           <ActionButton
             className="mt-4"

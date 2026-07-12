@@ -62,6 +62,7 @@ export function WrapCard({
 
       <TabToggle
         className="mt-4"
+        label="Wrap or unwrap mode"
         options={[
           { id: 'wrap', label: 'Wrap → SY' },
           { id: 'unwrap', label: 'Unwrap → mUSDY' },

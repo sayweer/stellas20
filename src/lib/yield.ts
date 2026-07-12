@@ -44,6 +44,22 @@ export function projectedClaimable(pos: PositionLike, rate: bigint): bigint {
   return pos.accruedSy + released
 }
 
+/**
+ * Claimable SY for a position with the exchange rate frozen at `min(now, maturity)`,
+ * mirroring the contract's settle (`t_eff = min(now, maturity)`). YT accrual stops
+ * at maturity, so using the live (uncapped) rate would over-report a matured
+ * position's yield and it would keep ticking up forever — this caps it exactly.
+ */
+export function claimableAt(
+  pos: PositionLike,
+  cp: RateCheckpoint,
+  maturitySec: bigint,
+  nowSec: bigint,
+): bigint {
+  const effTs = nowSec < maturitySec ? nowSec : maturitySec
+  return projectedClaimable(pos, rateAt(cp, effTs))
+}
+
 /** A rate as a human decimal (e.g. 1_200_000_000_000n -> 1.2). */
 export function rateToDecimal(rate: bigint): number {
   return Number(rate) / Number(RATE_SCALE)

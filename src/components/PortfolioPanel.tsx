@@ -2,9 +2,13 @@
 import type { ReactElement } from 'react'
 import type { Portfolio } from '../hooks/usePortfolio'
 import { formatAmount } from '../lib/format'
-import { projectedClaimable } from '../lib/yield'
+import { claimableAt } from '../lib/yield'
+import { chainNowMs } from '../lib/chainTime'
+import { requestFaucet } from '../lib/contracts/mockToken'
+import { useTxRunner } from '../hooks/useTxRunner'
 import type { AppError } from '../types'
-import { FaucetButton } from './FaucetButton'
+import { FaucetButton, FAUCET_AMOUNT } from './FaucetButton'
+import { TxStatus } from './TxStatus'
 import { RefreshIcon, Spinner } from './icons'
 
 interface PortfolioPanelProps {
@@ -32,21 +36,40 @@ export function PortfolioPanel({
   isWrongNetwork,
   onRefresh,
 }: PortfolioPanelProps): ReactElement {
+  const faucet = useTxRunner()
+  const disconnected = address === null
   const totalPt = portfolio.positions.reduce((sum, p) => sum + p.position.pt, 0n)
+  // Cap each position's claimable at its own maturity (mirrors the contract) so a
+  // matured position with residual YT doesn't inflate the headline figure.
+  const cp = portfolio.rateInfo
+  const nowSec = BigInt(Math.floor(chainNowMs() / 1000))
   const totalClaimable =
-    liveRate === null
-      ? 0n
+    liveRate === null || cp === null
+      ? null
       : portfolio.positions.reduce(
-          (sum, p) => sum + projectedClaimable(p.position, liveRate),
+          (sum, p) => sum + claimableAt(p.position, cp, p.maturity, nowSec),
           0n,
         )
 
   const stats: Stat[] = [
-    { label: 'mUSDY', value: formatAmount(portfolio.myt) },
-    { label: 'SY', value: formatAmount(portfolio.sy) },
-    { label: 'PT (all maturities)', value: formatAmount(totalPt) },
-    { label: 'Claimable yield', value: formatAmount(totalClaimable, 6), accent: true },
+    { label: 'mUSDY', value: disconnected ? '—' : formatAmount(portfolio.myt) },
+    { label: 'SY', value: disconnected ? '—' : formatAmount(portfolio.sy) },
+    { label: 'PT (all maturities)', value: disconnected ? '—' : formatAmount(totalPt) },
+    {
+      label: 'Claimable yield',
+      value: disconnected || totalClaimable === null ? '—' : formatAmount(totalClaimable, 6),
+      accent: true,
+    },
   ]
+
+  function runFaucet(): void {
+    if (!address) return
+    void faucet.run(
+      'Faucet',
+      (onPhase) => requestFaucet(address, FAUCET_AMOUNT, onPhase),
+      onRefresh,
+    )
+  }
 
   return (
     <section
@@ -58,7 +81,9 @@ export function PortfolioPanel({
           Portfolio
         </h2>
         <div className="flex items-center gap-2">
-          {address && <FaucetButton address={address} disabled={isWrongNetwork} onSuccess={onRefresh} />}
+          {address && (
+            <FaucetButton pending={faucet.pending} disabled={isWrongNetwork} onClick={runFaucet} />
+          )}
           <button
             type="button"
             onClick={onRefresh}
@@ -89,7 +114,7 @@ export function PortfolioPanel({
               key={stat.label}
               className="min-w-0 rounded-xl border border-neutral-800/80 bg-neutral-950/40 px-3 py-3"
             >
-              <dt className="truncate text-[11px] font-medium uppercase tracking-wide text-neutral-500">
+              <dt className="truncate text-[11px] font-medium uppercase tracking-wide text-neutral-400">
                 {stat.label}
               </dt>
               {loading && address ? (
@@ -111,10 +136,10 @@ export function PortfolioPanel({
         </dl>
       )}
 
-      {!address && (
-        <p className="mt-4 text-sm text-neutral-500">
-          Connect a Testnet wallet to see your balances and start splitting yield.
-        </p>
+      {faucet.outcome && (
+        <div className="mt-4">
+          <TxStatus outcome={faucet.outcome} />
+        </div>
       )}
     </section>
   )

@@ -4,7 +4,7 @@ import type { ReactElement } from 'react'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { claimYield, redeemPt } from '../lib/contracts/splitter'
 import { formatAmount } from '../lib/format'
-import { maturityCountdown, projectedClaimable } from '../lib/yield'
+import { maturityCountdown, claimableAt, type RateCheckpoint } from '../lib/yield'
 import { formatMaturity } from '../lib/format'
 import { chainNowMs } from '../lib/chainTime'
 import { useTxRunner } from '../hooks/useTxRunner'
@@ -15,7 +15,8 @@ import { ActionButton } from './forms'
 interface MaturityPanelProps {
   address: string
   positions: MaturityPosition[]
-  liveRate: bigint | null
+  /** Rate checkpoint; claimable is computed per-position, frozen at its maturity. */
+  rateInfo: RateCheckpoint | null
   isWrongNetwork: boolean
   onSuccess: () => void
 }
@@ -23,7 +24,7 @@ interface MaturityPanelProps {
 export function MaturityPanel({
   address,
   positions,
-  liveRate,
+  rateInfo,
   isWrongNetwork,
   onSuccess,
 }: MaturityPanelProps): ReactElement | null {
@@ -48,7 +49,7 @@ export function MaturityPanel({
         Your positions
       </h2>
       {active.length === 0 && (
-        <p className="mt-4 text-sm text-neutral-500">
+        <p className="mt-4 text-sm text-neutral-400">
           Split SY at a maturity to open a position — your PT, YT and claimable yield will appear
           here.
         </p>
@@ -59,7 +60,7 @@ export function MaturityPanel({
             key={p.maturity.toString()}
             address={address}
             item={p}
-            liveRate={liveRate}
+            rateInfo={rateInfo}
             nowMs={nowMs}
             isWrongNetwork={isWrongNetwork}
             onSuccess={onSuccess}
@@ -73,7 +74,7 @@ export function MaturityPanel({
 interface MaturityCardProps {
   address: string
   item: MaturityPosition
-  liveRate: bigint | null
+  rateInfo: RateCheckpoint | null
   nowMs: number
   isWrongNetwork: boolean
   onSuccess: () => void
@@ -82,7 +83,7 @@ interface MaturityCardProps {
 function MaturityCard({
   address,
   item,
-  liveRate,
+  rateInfo,
   nowMs,
   isWrongNetwork,
   onSuccess,
@@ -90,9 +91,15 @@ function MaturityCard({
   const { maturity, position } = item
   const { outcome, pending, run } = useTxRunner()
   const countdown = maturityCountdown(maturity, nowMs)
-  const claimable = liveRate === null ? 0n : projectedClaimable(position, liveRate)
+  // Freeze the rate at this position's maturity so a matured position's claimable
+  // plateaus instead of ticking up forever. `null` (rate unknown) shows "—".
+  const claimable =
+    rateInfo === null
+      ? null
+      : claimableAt(position, rateInfo, maturity, BigInt(Math.floor(nowMs / 1000)))
   // Matured, principal redeemed, and nothing left to claim — the position is done.
-  const settled = countdown.matured && position.pt <= 0n && claimable <= 0n
+  const settled = countdown.matured && position.pt <= 0n && claimable !== null && claimable <= 0n
+  const canClaim = claimable !== null && claimable > 0n
 
   function claim(): void {
     if (pending) return
@@ -106,13 +113,15 @@ function MaturityCard({
   return (
     <div className="rounded-xl border border-neutral-800/80 bg-neutral-950/40 p-4">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium text-neutral-200">{formatMaturity(maturity)}</span>
+        <span className="min-w-0 truncate text-sm font-medium text-neutral-200">
+          {formatMaturity(maturity)}
+        </span>
         {countdown.matured ? (
-          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+          <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
             Matured
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 text-xs text-neutral-400">
+          <span className="inline-flex shrink-0 items-center gap-1 text-xs tabular-nums text-neutral-400">
             <ClockIcon className="h-3.5 w-3.5" />
             {countdown.days > 0 && `${countdown.days.toString()}d `}
             {String(countdown.hours).padStart(2, '0')}:{String(countdown.minutes).padStart(2, '0')}:
@@ -123,20 +132,20 @@ function MaturityCard({
 
       <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
         <div>
-          <dt className="text-[11px] uppercase tracking-wide text-neutral-500">PT (principal)</dt>
+          <dt className="text-[11px] uppercase tracking-wide text-neutral-400">PT (principal)</dt>
           <dd className="font-mono tabular-nums text-neutral-100">{formatAmount(position.pt)}</dd>
         </div>
         <div>
-          <dt className="text-[11px] uppercase tracking-wide text-neutral-500">YT (yield)</dt>
+          <dt className="text-[11px] uppercase tracking-wide text-neutral-400">YT (yield)</dt>
           <dd className="font-mono tabular-nums text-neutral-100">{formatAmount(position.yt)}</dd>
         </div>
       </dl>
 
       <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
         <CoinsIcon className="h-4 w-4 text-emerald-400" />
-        <span className="text-xs text-neutral-400">Claimable now</span>
+        <span className="text-xs text-neutral-300">Claimable now</span>
         <span className="ml-auto font-mono text-sm font-semibold tabular-nums text-emerald-300">
-          {formatAmount(claimable, 6)} SY
+          {claimable === null ? '—' : `${formatAmount(claimable, 6)} SY`}
         </span>
       </div>
 
@@ -149,7 +158,7 @@ function MaturityCard({
           <div className="mt-3 flex gap-2">
             <ActionButton
               onClick={claim}
-              disabled={isWrongNetwork || pending || claimable <= 0n}
+              disabled={isWrongNetwork || pending || !canClaim}
               pending={pending && outcome?.status === 'pending' && outcome.label === 'Claim'}
               pendingLabel="Claiming…"
             >
@@ -166,8 +175,13 @@ function MaturityCard({
             </ActionButton>
           </div>
 
+          {claimable !== null && claimable <= 0n && position.yt > 0n && (
+            <p className="mt-2 text-center text-[11px] text-neutral-400">
+              No yield to claim yet — it accrues over time.
+            </p>
+          )}
           {!countdown.matured && (
-            <p className="mt-2 text-center text-[11px] text-neutral-500">
+            <p className="mt-2 text-center text-[11px] text-neutral-400">
               PT redeems its fixed principal once matured.
             </p>
           )}

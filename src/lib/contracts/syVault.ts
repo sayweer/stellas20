@@ -3,7 +3,7 @@ import type { AssembledTransaction, MethodOptions } from '@stellar/stellar-sdk/c
 import { config } from '../../config'
 import type { AppError } from '../../types'
 import { getClient, invokeWrite, readCall, type OnTxPhase } from './base'
-import { SY_ERRORS } from './errors'
+import { SY_ERRORS, WRAP_ERRORS } from './errors'
 
 /** Runtime shape of the deployed SYVault (methods from the on-chain spec). */
 interface SyClient {
@@ -37,7 +37,7 @@ export async function wrapTokens(
     (options) => c.wrap({ from: address, amount }, options),
     address,
     onPhase,
-    SY_ERRORS,
+    WRAP_ERRORS,
   )
   return 'hash' in result ? { hash: result.hash, newBalance: result.result } : result
 }

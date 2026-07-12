@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   ceilDiv,
+  claimableAt,
   maturityCountdown,
   projectedClaimable,
   ratePerMinutePct,
@@ -38,6 +39,25 @@ describe('projectedClaimable', () => {
 
   it('returns just the accrued amount when there is no YT', () => {
     expect(projectedClaimable({ yt: 0n, reserveSy: 0n, accruedSy: 42n }, RATE_SCALE)).toBe(42n)
+  })
+})
+
+describe('claimableAt', () => {
+  const cp = { since: 0n, rate: RATE_SCALE, slopePerSec: 200_000_000n }
+  const pos = { yt: 1_000_000_000n, reserveSy: 1_000_000_000n, accruedSy: 0n }
+  const maturity = 1000n
+
+  it('uses the live rate before maturity', () => {
+    // At t=500 the rate is 1e12 + 500*2e8 = 1.1e12; matches projectedClaimable at that rate.
+    expect(claimableAt(pos, cp, maturity, 500n)).toBe(projectedClaimable(pos, rateAt(cp, 500n)))
+  })
+
+  it('freezes at the maturity rate once matured, so claimable plateaus', () => {
+    const atMaturity = projectedClaimable(pos, rateAt(cp, maturity))
+    // Any time past maturity yields exactly the maturity-frozen value — never more.
+    expect(claimableAt(pos, cp, maturity, 1000n)).toBe(atMaturity)
+    expect(claimableAt(pos, cp, maturity, 5000n)).toBe(atMaturity)
+    expect(claimableAt(pos, cp, maturity, 999_999n)).toBe(atMaturity)
   })
 })
 

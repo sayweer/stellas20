@@ -36,7 +36,7 @@ function App(): ReactElement {
   const events = useProtocolEvents(refreshSilent)
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col overflow-x-clip">
       <Header />
       <NetworkBanner />
 
@@ -77,6 +77,18 @@ function App(): ReactElement {
 
         {isConnected && address ? (
           <>
+            {/* An unfunded account can't pay tx fees — surface funding above the
+                actions so the first click (faucet) doesn't fail into a dead-end. */}
+            {!balance.funded && !balance.loading && !balance.error && (
+              <BalanceCard
+                address={address}
+                balance={balance.balance}
+                funded={balance.funded}
+                loading={balance.loading}
+                error={balance.error}
+                onRefresh={balance.refresh}
+              />
+            )}
             {!hasSplit && (
               <OnboardingSteps
                 gotTokens={portfolio.myt > 0n || portfolio.sy > 0n || hasSplit}
@@ -107,19 +119,21 @@ function App(): ReactElement {
             <MaturityPanel
               address={address}
               positions={portfolio.positions}
-              liveRate={liveRate}
+              rateInfo={portfolio.rateInfo}
               isWrongNetwork={isWrongNetwork}
               onSuccess={refreshAll}
             />
 
-            <BalanceCard
-              address={address}
-              balance={balance.balance}
-              funded={balance.funded}
-              loading={balance.loading}
-              error={balance.error}
-              onRefresh={balance.refresh}
-            />
+            {(balance.funded || balance.loading || balance.error) && (
+              <BalanceCard
+                address={address}
+                balance={balance.balance}
+                funded={balance.funded}
+                loading={balance.loading}
+                error={balance.error}
+                onRefresh={balance.refresh}
+              />
+            )}
           </>
         ) : (
           <div className="mx-auto mt-2 max-w-md text-center">
@@ -140,7 +154,7 @@ function App(): ReactElement {
       </main>
 
       <footer className="border-t border-neutral-800/60 py-6">
-        <p className="mx-auto max-w-5xl px-4 text-center text-xs text-neutral-600">
+        <p className="mx-auto max-w-5xl px-4 text-center text-xs text-neutral-400">
           stellas-core · Orange Belt · Testnet only · Never share your secret key.
         </p>
       </footer>

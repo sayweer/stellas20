@@ -3,7 +3,7 @@ import type { ReactElement, ReactNode } from 'react'
 import { Spinner } from './icons'
 
 const inputClass =
-  'w-full rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-600 font-mono tabular-nums transition-colors focus:border-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30 aria-[invalid=true]:border-rose-500/70'
+  'w-full rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-500 font-mono tabular-nums transition-colors focus:border-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30 aria-[invalid=true]:border-rose-500/70'
 
 interface AmountFieldProps {
   id: string
@@ -66,7 +66,7 @@ export function AmountField({
               MAX
             </button>
           )}
-          <span className="text-sm font-medium text-neutral-500">{unit}</span>
+          <span className="text-sm font-medium text-neutral-400">{unit}</span>
         </div>
       </div>
       {error !== null ? (
@@ -74,7 +74,7 @@ export function AmountField({
           {error}
         </p>
       ) : (
-        <p id={`${id}-hint`} className="text-xs text-neutral-500">
+        <p id={`${id}-hint`} className="text-xs text-neutral-400">
           {hint}
         </p>
       )}
@@ -86,14 +86,23 @@ interface TabToggleProps {
   options: { id: string; label: string }[]
   active: string
   onChange: (id: string) => void
+  /** Accessible name for the segmented control (announced as the group label). */
+  label: string
   className?: string
 }
 
 /** A two-or-more segmented control for switching an action's mode. */
-export function TabToggle({ options, active, onChange, className = '' }: TabToggleProps): ReactElement {
+export function TabToggle({
+  options,
+  active,
+  onChange,
+  label,
+  className = '',
+}: TabToggleProps): ReactElement {
   return (
     <div
       role="group"
+      aria-label={label}
       className={`inline-flex rounded-lg border border-neutral-800 bg-neutral-950 p-1 ${className}`}
     >
       {options.map((opt) => (

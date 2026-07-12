@@ -19,7 +19,7 @@ export function RateTicker({ rateInfo }: RateTickerProps): ReactElement {
         <TrendingUpIcon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">
           mUSDY exchange rate
         </p>
         <p className="font-mono text-lg font-semibold tabular-nums text-neutral-50">
