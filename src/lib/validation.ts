@@ -1,61 +1,34 @@
 /** Input validation for token amounts (>0, up to 7 decimals, within a balance). */
+import { parseTokenAmount, stroopsToXlm } from './amounts'
 
-/** Maximum number of decimal places a Stellar-style (7-decimal) amount may have. */
-const MAX_DECIMALS = 7
-
-export type AmountResult = { ok: true } | { ok: false; reason: string }
-
-/** Parse and range-check a raw amount string, with no balance ceiling applied yet. */
-function parseAmount(amount: string): { ok: true; value: number } | { ok: false; reason: string } {
-  const trimmed = amount.trim()
-  if (trimmed === '') {
-    return { ok: false, reason: 'Enter an amount.' }
-  }
-  // Plain decimal only: digits with an optional single decimal point. No sign, no exponent.
-  if (!/^\d*\.?\d+$/.test(trimmed)) {
-    return { ok: false, reason: 'Enter a valid number.' }
-  }
-
-  const value = Number(trimmed)
-  if (!Number.isFinite(value) || value <= 0) {
-    return { ok: false, reason: 'Amount must be greater than 0.' }
-  }
-
-  const dotIndex = trimmed.indexOf('.')
-  const decimals = dotIndex === -1 ? 0 : trimmed.length - dotIndex - 1
-  if (decimals > MAX_DECIMALS) {
-    return { ok: false, reason: 'Up to 7 decimal places are supported.' }
-  }
-
-  return { ok: true, value }
-}
+/** On success the parsed stroop amount is returned so callers needn't re-parse. */
+export type AmountResult = { ok: true; stroops: bigint } | { ok: false; reason: string }
 
 /**
- * Validate a token amount: a positive decimal with at most 7 places, no more
- * than the available `balance`.
+ * Validate a token amount against an available balance, comparing in stroops
+ * (bigint) end-to-end so there is never a float/exact mismatch between what the
+ * form accepts and what the contract receives.
  *
  * @param amount - Raw amount string from the form.
- * @param balance - The relevant token balance (same units as `amount`).
+ * @param balanceStroops - The relevant token balance, in stroops.
  * @param opts.label - Token label used in the "exceeds your balance" message.
- * @returns `{ ok: true }`, or `{ ok: false, reason }` with a user-facing reason.
+ * @returns `{ ok: true, stroops }`, or `{ ok: false, reason }`.
  */
 export function isValidTokenAmount(
   amount: string,
-  balance: number,
+  balanceStroops: bigint,
   opts: { label?: string } = {},
 ): AmountResult {
-  const parsed = parseAmount(amount)
+  const parsed = parseTokenAmount(amount)
   if (!parsed.ok) return parsed
 
-  if (parsed.value > balance) {
+  if (parsed.stroops > balanceStroops) {
     const label = opts.label ?? 'balance'
     return {
       ok: false,
-      reason: `Amount exceeds your ${label} (${balance.toLocaleString('en-US', {
-        maximumFractionDigits: MAX_DECIMALS,
-      })}).`,
+      reason: `Amount exceeds your ${label} (${stroopsToXlm(balanceStroops)}).`,
     }
   }
 
-  return { ok: true }
+  return { ok: true, stroops: parsed.stroops }
 }

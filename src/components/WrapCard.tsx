@@ -1,7 +1,6 @@
 /** Wrap mUSDY into SY (and unwrap back), driving the tx lifecycle. */
 import { useState } from 'react'
 import type { ReactElement } from 'react'
-import { stroopsToXlm, xlmToStroops } from '../lib/amounts'
 import { formatAmount } from '../lib/format'
 import { unwrapTokens, wrapTokens } from '../lib/contracts/syVault'
 import { isValidTokenAmount } from '../lib/validation'
@@ -32,12 +31,11 @@ export function WrapCard({
   const { outcome, pending, run } = useTxRunner()
 
   const balance = tab === 'wrap' ? mytBalance : syBalance
-  const balanceNum = Number(stroopsToXlm(balance))
-  const valid = isValidTokenAmount(amount, balanceNum, { label: tab === 'wrap' ? 'mUSDY' : 'SY' })
+  const valid = isValidTokenAmount(amount, balance, { label: tab === 'wrap' ? 'mUSDY' : 'SY' })
 
   function submit(): void {
     if (!valid.ok || pending) return
-    const stroops = xlmToStroops(amount.trim())
+    const stroops = valid.stroops
     const label = tab === 'wrap' ? 'Wrap' : 'Unwrap'
     void run(
       label,

@@ -1,7 +1,6 @@
 /** Split SY into PT+YT (and merge back), for a selected maturity. */
 import { useState } from 'react'
 import type { ReactElement } from 'react'
-import { stroopsToXlm, xlmToStroops } from '../lib/amounts'
 import { formatAmount } from '../lib/format'
 import { mergePtYt, splitSy, type PositionView } from '../lib/contracts/splitter'
 import type { MaturityPosition } from '../hooks/usePortfolio'
@@ -45,18 +44,17 @@ export function SplitCard({
     positions.find((p) => p.maturity === selected)?.position ?? ZERO_POSITION
 
   const balance = tab === 'split' ? syBalance : position.pt
-  const balanceNum = Number(stroopsToXlm(balance))
-  const valid = isValidTokenAmount(amount, balanceNum, { label: tab === 'split' ? 'SY' : 'PT' })
+  const valid = isValidTokenAmount(amount, balance, { label: tab === 'split' ? 'SY' : 'PT' })
 
   // Client-side floor preview of the PT/YT that a split would mint.
-  let preview: bigint | null = null
-  if (tab === 'split' && liveRate !== null && valid.ok && amount.trim() !== '') {
-    preview = (xlmToStroops(amount.trim()) * liveRate) / RATE_SCALE
-  }
+  const preview =
+    tab === 'split' && liveRate !== null && valid.ok
+      ? (valid.stroops * liveRate) / RATE_SCALE
+      : null
 
   function submit(): void {
     if (!valid.ok || pending || selected === null) return
-    const stroops = xlmToStroops(amount.trim())
+    const stroops = valid.stroops
     const label = tab === 'split' ? 'Split' : 'Merge'
     void run(
       label,
