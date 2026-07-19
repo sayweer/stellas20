@@ -56,7 +56,10 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          # Node 24 ships npm 11, which matches the npm that generated
+          # package-lock.json — npm 10 (Node 22) resolves peer deps
+          # differently and rejects the lock as out of sync.
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
