@@ -10,7 +10,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 > **Testnet only.** No mainnet config. Signing happens only inside your wallet — this app never
 > sees your secret key.
 
-- **Live demo:** _(import the repo on Vercel — see [CI/CD](#cicd) — and paste the URL here)_
+- **Live demo:** [stellas20.vercel.app](https://stellas20.vercel.app/)
 - **Demo video:** _(record and link at the Level 3 submission checkpoint)_
 
 ## The three contracts
