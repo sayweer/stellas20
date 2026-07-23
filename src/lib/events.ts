@@ -76,6 +76,9 @@ async function resolveStartLedger(): Promise<number> {
   return Math.max(1, latest.sequence - LOOKBACK_LEDGERS)
 }
 
+// Raw SEP-41 `transfer` events (mUSDY and SY) are deliberately excluded: the
+// moves a user cares about are already narrated by their protocol-level events
+// (wrap/unwrap/split/…), and raw transfers would double-report those rows.
 const KNOWN_TYPES = new Set<string>([
   'faucet',
   'wrap',

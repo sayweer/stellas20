@@ -60,6 +60,8 @@ export const SY_ERRORS: ErrorTable = {
   3: { code: 'invalid_amount', message: 'Enter an amount greater than 0.' },
   4: { code: 'insufficient_balance', message: 'That exceeds your SY balance.' },
   5: { code: 'math_overflow', message: 'That amount is too large to process.' },
+  6: { code: 'insufficient_allowance', message: 'The spender allowance is too low.' },
+  7: { code: 'allowance_expired', message: 'That allowance has expired.' },
 }
 
 /** Splitter (`SplitterError`). */
