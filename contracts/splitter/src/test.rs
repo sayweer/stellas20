@@ -1,14 +1,26 @@
 // Amounts are written as `<whole>_<7-decimal stroops>` to make the decimal
 // boundary legible in a Stellar context; that grouping is intentional.
+//
+// NOTE: these tests factory-deploy the real PT/YT token wasm — run
+// `stellar contract build` once before `cargo test` so the imported wasm
+// files exist (CI builds wasm first for the same reason).
 #![allow(clippy::inconsistent_digit_grouping)]
 
-use crate::{Split, Splitter, SplitterClient, SplitterError, YieldClaim};
+use crate::{MaturityTokens, Split, Splitter, SplitterClient, SplitterError, YieldClaim};
 use soroban_sdk::{
     testutils::{Address as _, Events, Ledger},
-    Address, Env, Event,
+    token, Address, Env, Event, MuxedAddress, String,
 };
 use stellas_mock_yield_token::{MockYieldToken, MockYieldTokenClient, RATE_SCALE};
 use stellas_sy_vault::{SyVault, SyVaultClient};
+
+/// The real PT/YT token wasm, exactly what testnet runs.
+pub mod pt_wasm {
+    soroban_sdk::contractimport!(file = "../../target/wasm32v1-none/release/stellas_pt_token.wasm");
+}
+pub mod yt_wasm {
+    soroban_sdk::contractimport!(file = "../../target/wasm32v1-none/release/stellas_yt_token.wasm");
+}
 
 pub const BASE_TS: u64 = 1_700_000_000;
 pub const INITIAL_RATE: i128 = RATE_SCALE; // 1.0
@@ -37,7 +49,9 @@ pub fn setup() -> TestCtx {
     let sy_id = env.register(SyVault, (admin.clone(), myt_id.clone()));
     let sy = SyVaultClient::new(&env, &sy_id);
 
-    let splitter_id = env.register(Splitter, (admin.clone(), sy_id.clone()));
+    let pt_hash = env.deployer().upload_contract_wasm(pt_wasm::WASM);
+    let yt_hash = env.deployer().upload_contract_wasm(yt_wasm::WASM);
+    let splitter_id = env.register(Splitter, (admin.clone(), sy_id.clone(), pt_hash, yt_hash));
     let splitter = SplitterClient::new(&env, &splitter_id);
 
     TestCtx {
@@ -54,6 +68,48 @@ pub fn setup() -> TestCtx {
 pub fn fund_sy(ctx: &TestCtx, who: &Address, amount: i128) {
     ctx.myt.faucet(who, &amount);
     ctx.sy.wrap(who, &amount);
+}
+
+/// SEP-41 clients for a maturity's factory-deployed PT and YT tokens.
+pub fn tokens(
+    ctx: &TestCtx,
+    maturity: u64,
+) -> (token::TokenClient<'static>, token::TokenClient<'static>) {
+    let mt: MaturityTokens = ctx.splitter.get_market(&maturity);
+    (
+        token::TokenClient::new(&ctx.env, &mt.pt),
+        token::TokenClient::new(&ctx.env, &mt.yt),
+    )
+}
+
+#[test]
+fn test_create_maturity_deploys_wired_tokens() {
+    let ctx = setup();
+    ctx.splitter.create_maturity(&T_FAR);
+
+    let mt: MaturityTokens = ctx.splitter.get_market(&T_FAR);
+    let (pt, yt) = tokens(&ctx, T_FAR);
+    // Metadata follows the convention and the Market is the recorded minter.
+    assert_eq!(
+        pt.symbol(),
+        String::from_str(&ctx.env, "PT-mUSDY-1700100000")
+    );
+    assert_eq!(
+        yt.symbol(),
+        String::from_str(&ctx.env, "YT-mUSDY-1700100000")
+    );
+    assert_eq!(pt.decimals(), 7);
+    assert_eq!(
+        pt_wasm::Client::new(&ctx.env, &mt.pt).market(),
+        ctx.splitter_id
+    );
+    assert_eq!(
+        yt_wasm::Client::new(&ctx.env, &mt.yt).market(),
+        ctx.splitter_id
+    );
+    let totals = ctx.splitter.get_totals(&T_FAR);
+    assert_eq!(totals.pt_supply, 0);
+    assert_eq!(totals.yt_supply, 0);
 }
 
 #[test]
@@ -89,20 +145,32 @@ fn test_create_maturity_requires_admin() {
 }
 
 #[test]
-fn test_split_mints_equal_pt_yt() {
+fn test_create_maturity_rejects_non_admin() {
+    let ctx = setup();
+    ctx.env.mock_auths(&[]);
+    assert!(ctx.splitter.try_create_maturity(&T_FAR).is_err());
+}
+
+#[test]
+fn test_split_mints_equal_pt_yt_tokens() {
     let ctx = setup();
     ctx.splitter.create_maturity(&T_FAR);
     let user = Address::generate(&ctx.env);
     fund_sy(&ctx, &user, 100_0000000);
 
     let pt_out = ctx.splitter.split(&user, &T_FAR, &100_0000000);
-    // At rate 1.0, 100 SY -> 100 PT + 100 YT.
+    // At rate 1.0, 100 SY -> 100 PT + 100 YT — real, transferable tokens.
     assert_eq!(pt_out, 100_0000000);
-    let pos = ctx.splitter.get_position(&user, &T_FAR);
-    assert_eq!(pos.pt, 100_0000000);
-    assert_eq!(pos.yt, 100_0000000);
-    assert_eq!(pos.reserve_sy, 100_0000000);
-    assert_eq!(pos.accrued_sy, 0);
+    let (pt, yt) = tokens(&ctx, T_FAR);
+    assert_eq!(pt.balance(&user), 100_0000000);
+    assert_eq!(yt.balance(&user), 100_0000000);
+
+    let account = ctx.splitter.get_account(&user, &T_FAR);
+    assert_eq!(account.pt, 100_0000000);
+    assert_eq!(account.yt, 100_0000000);
+    assert_eq!(account.index, INITIAL_RATE);
+    assert_eq!(account.accrued_sy, 0);
+    assert_eq!(account.claimable, 0);
 }
 
 #[test]
@@ -117,11 +185,11 @@ fn test_split_amounts_exact_at_known_rate() {
     assert_eq!(ctx.myt.exchange_rate(), 1_200_000_000_000);
 
     let pt_out = ctx.splitter.split(&user, &T_FAR, &100_0000000);
-    // 100 SY * 1.2 = 120 PT/YT; reserve = 120 / 1.2 = 100 SY.
+    // 100 SY * 1.2 = 120 PT/YT, entered at index 1.2.
     assert_eq!(pt_out, 120_0000000);
-    let pos = ctx.splitter.get_position(&user, &T_FAR);
-    assert_eq!(pos.yt, 120_0000000);
-    assert_eq!(pos.reserve_sy, 100_0000000);
+    let account = ctx.splitter.get_account(&user, &T_FAR);
+    assert_eq!(account.yt, 120_0000000);
+    assert_eq!(account.index, 1_200_000_000_000);
 }
 
 #[test]
@@ -146,7 +214,7 @@ fn test_split_pulls_sy_cross_contract() {
     assert_eq!(ctx.sy.balance(&user), 100_0000000);
 
     ctx.splitter.split(&user, &T_FAR, &60_0000000);
-    // Cross-contract proof: SY moved from the user into the Splitter.
+    // Cross-contract proof: SY moved from the user into the Market.
     assert_eq!(ctx.sy.balance(&user), 40_0000000);
     assert_eq!(ctx.sy.balance(&ctx.splitter_id), 60_0000000);
 }
@@ -165,13 +233,13 @@ fn test_merge_roundtrip_within_2_stroops() {
     let end_sy = ctx.sy.balance(&user);
     assert!(start_sy - end_sy <= 2, "lost {} stroops", start_sy - end_sy);
     assert!(sy_back >= 50_0000000 - 2);
-    let pos = ctx.splitter.get_position(&user, &T_FAR);
-    assert_eq!(pos.pt, 0);
-    assert_eq!(pos.yt, 0);
+    let (pt_token, yt_token) = tokens(&ctx, T_FAR);
+    assert_eq!(pt_token.balance(&user), 0);
+    assert_eq!(yt_token.balance(&user), 0);
 }
 
 #[test]
-fn test_merge_exceeding_position_rejected() {
+fn test_merge_exceeding_balance_rejected() {
     let ctx = setup();
     ctx.splitter.create_maturity(&T_FAR);
     let user = Address::generate(&ctx.env);
@@ -180,6 +248,22 @@ fn test_merge_exceeding_position_rejected() {
 
     let result = ctx.splitter.try_merge(&user, &T_FAR, &30_0000001);
     assert_eq!(result, Err(Ok(SplitterError::InsufficientPt)));
+}
+
+#[test]
+fn test_merge_without_yt_rejected() {
+    let ctx = setup();
+    ctx.splitter.create_maturity(&T_FAR);
+    let a = Address::generate(&ctx.env);
+    let b = Address::generate(&ctx.env);
+    fund_sy(&ctx, &a, 100_0000000);
+    ctx.splitter.split(&a, &T_FAR, &30_0000000);
+
+    // A gives away half their YT — merging the full PT now lacks YT backing.
+    let (_, yt) = tokens(&ctx, T_FAR);
+    yt.transfer(&a, MuxedAddress::from(&b), &20_0000000);
+    let result = ctx.splitter.try_merge(&a, &T_FAR, &30_0000000);
+    assert_eq!(result, Err(Ok(SplitterError::InsufficientYt)));
 }
 
 #[test]
@@ -212,7 +296,7 @@ fn test_claim_yield_exact_after_warp() {
     fund_sy(&ctx, &user, 100_0000000);
     ctx.splitter.split(&user, &T_FAR, &100_0000000);
 
-    // Warp to rate 1.2; released yield = 100 - ceil(100/1.2) SY.
+    // Warp to rate 1.2; released = floor(100/1.0) - ceil(100/1.2) SY.
     ctx.env.ledger().set_timestamp(BASE_TS + 1000);
     let expected = 100_0000000 - 83_3333334; // = 16_6666666
     assert_eq!(ctx.splitter.preview_claimable(&user, &T_FAR), expected);
@@ -247,7 +331,7 @@ fn test_yield_stops_at_maturity() {
     fund_sy(&ctx, &user, 100_0000000);
     ctx.splitter.split(&user, &maturity, &100_0000000);
 
-    // At exactly maturity, released = 100 - ceil(100/1.4).
+    // At exactly maturity, released = floor(100/1.0) - ceil(100/1.4).
     ctx.env.ledger().set_timestamp(maturity);
     let at_maturity = ctx.splitter.preview_claimable(&user, &maturity);
     // Far past maturity — accrual is frozen at the maturity value.
@@ -281,17 +365,10 @@ fn test_redeem_pays_fixed_principal_at_maturity_rate() {
     // Move past maturity and redeem all 100 PT.
     ctx.env.ledger().set_timestamp(maturity + 100);
     let sy_out = ctx.splitter.redeem_pt(&user, &maturity, &100_0000000);
-    // 100 base units of principal at rate 1.4 = floor(100 / 1.4) SY = 71.4285714.
+    // 100 base units of principal at rate 1.4 = floor(100 / 1.4) SY.
     assert_eq!(sy_out, 71_4285714);
-    let pos = ctx.splitter.get_position(&user, &maturity);
-    assert_eq!(pos.pt, 0);
-}
-
-#[test]
-fn test_create_maturity_rejects_non_admin() {
-    let ctx = setup();
-    ctx.env.mock_auths(&[]);
-    assert!(ctx.splitter.try_create_maturity(&T_FAR).is_err());
+    let (pt, _) = tokens(&ctx, maturity);
+    assert_eq!(pt.balance(&user), 0);
 }
 
 #[test]
@@ -352,10 +429,11 @@ fn test_partial_redeem_then_remainder() {
     ctx.splitter.split(&user, &maturity, &100_0000000);
 
     ctx.env.ledger().set_timestamp(maturity + 100);
+    let (pt, _) = tokens(&ctx, maturity);
     ctx.splitter.redeem_pt(&user, &maturity, &40_0000000);
-    assert_eq!(ctx.splitter.get_position(&user, &maturity).pt, 60_0000000);
+    assert_eq!(pt.balance(&user), 60_0000000);
     ctx.splitter.redeem_pt(&user, &maturity, &60_0000000);
-    assert_eq!(ctx.splitter.get_position(&user, &maturity).pt, 0);
+    assert_eq!(pt.balance(&user), 0);
 }
 
 #[test]
@@ -389,12 +467,14 @@ fn test_one_user_two_maturities_independent() {
     ctx.splitter.split(&user, &m1, &100_0000000);
     ctx.splitter.split(&user, &m2, &50_0000000);
 
-    assert_eq!(ctx.splitter.get_position(&user, &m1).pt, 100_0000000);
-    assert_eq!(ctx.splitter.get_position(&user, &m2).pt, 50_0000000);
+    let (pt1, _) = tokens(&ctx, m1);
+    let (pt2, _) = tokens(&ctx, m2);
+    assert_eq!(pt1.balance(&user), 100_0000000);
+    assert_eq!(pt2.balance(&user), 50_0000000);
     // Merging one maturity leaves the other untouched.
     ctx.splitter.merge(&user, &m1, &40_0000000);
-    assert_eq!(ctx.splitter.get_position(&user, &m1).pt, 60_0000000);
-    assert_eq!(ctx.splitter.get_position(&user, &m2).pt, 50_0000000);
+    assert_eq!(pt1.balance(&user), 60_0000000);
+    assert_eq!(pt2.balance(&user), 50_0000000);
 }
 
 #[test]
@@ -403,4 +483,19 @@ fn test_claim_on_nonexistent_maturity_rejected() {
     let user = Address::generate(&ctx.env);
     let result = ctx.splitter.try_claim_yield(&user, &(BASE_TS + 999));
     assert_eq!(result, Err(Ok(SplitterError::MaturityNotFound)));
+}
+
+#[test]
+fn test_hook_from_unregistered_address_rejected() {
+    let ctx = setup();
+    ctx.splitter.create_maturity(&T_FAR);
+    let impostor = Address::generate(&ctx.env);
+    let user = Address::generate(&ctx.env);
+    // An address that is not a registered YT token cannot reach settlement.
+    // (On-chain the require_auth that follows the registry lookup additionally
+    // guarantees the *caller* is the registered contract itself.)
+    let result = ctx
+        .splitter
+        .try_on_yt_transfer(&impostor, &user, &None, &100_0000000, &0);
+    assert_eq!(result, Err(Ok(SplitterError::Unauthorized)));
 }
