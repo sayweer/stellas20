@@ -13,19 +13,22 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 - **Live demo:** [stellas20.vercel.app](https://stellas20.vercel.app/)
 - **Demo video:** _(record and link at the Level 3 submission checkpoint)_
 
-## The three contracts
+## The contracts
 
-stellas-core is three Soroban contracts that call each other — inter-contract communication is
-intrinsic to the design, not bolted on:
+stellas-core is three core Soroban contracts plus a factory-deployed PT/YT token pair per
+maturity — inter-contract communication is intrinsic to the design, not bolted on:
 
 1. **MockYieldToken (mUSDY)** — a demo yield-bearing token (simulating USDY / a Blend position).
-   Balances are fixed; an **exchange rate grows linearly with ledger time**, checkpointed so any
-   past rate is recoverable exactly. Implements the full SEP-41 token interface + a public faucet.
+   Balances are fixed; an **exchange rate grows with ledger time** (~5% APY by default),
+   checkpointed so any past rate is recoverable exactly. Full SEP-41 + a public faucet.
 2. **SYVault** — wraps mUSDY into **Standardized Yield (SY)** 1:1. SY is a full SEP-41 token
-   (`SY-mUSDY`: transfer, allowances, burn, metadata), so the Splitter — and any future
+   (`SY-mUSDY`: transfer, allowances, burn, metadata), so the Market — and any future
    contract — moves it like any other token. Delegates its exchange rate to mUSDY.
-3. **Splitter** — for a chosen maturity `T`: `split(SY) → PT + YT`, `merge(PT+YT) → SY`,
-   `claim_yield(YT) → accrued yield`, `redeem_pt(PT) → fixed principal` at/after maturity.
+3. **Splitter (the Market)** — for a chosen maturity `T`: `split(SY) → PT + YT`,
+   `merge(PT+YT) → SY`, `claim_yield(YT) → accrued yield`, `redeem_pt(PT) → fixed principal`
+   at/after maturity. `create_maturity` **factory-deploys** that maturity's token pair:
+4. **PT Token / YT Token** (`PT-mUSDY-<T>` / `YT-mUSDY-<T>`) — real, transferable SEP-41
+   tokens, minted only by the Market; the YT carries the settlement hook described below.
 
 ```mermaid
 flowchart LR
@@ -57,32 +60,41 @@ flowchart LR
 
 | Contract | ID |
 |---|---|
-| MockYieldToken (mUSDY) | `CAJT453ZKZSTJFT6P2FLSPXPYOF4DGKMJHU4TW26KTRRIPR5VMCIYRJZ` |
-| SYVault | `CC35NY2BXCLVHCCQ4EURDMT564YG2QG4VUVVX62Z2QDMZ6CGTQWRQI7U` |
-| Splitter | `CCEGP3NOJCBXF2XUJECAUIYUDVVXS3ZPIRYUJ4TMF2IA4NRZCGCAZNMF` |
+| MockYieldToken (mUSDY) | `CDQT4AHF5JLEQ2CXFXNBAGMTIJLS2UIEYCHQ6NICKBT5TFW54YI5IANU` |
+| SYVault | `CDXY2JXPIBQMSTOTK62JLWT4HULABSBX7BQCFCWOFYUKWXZY6EIVA5OJ` |
+| Splitter | `CARHO56HXKHT5FYBD7R7N2FPE5UFEMEXI3WYA4KV3ILR73PCZYBCZVNU` |
 
 **Verifiable contract-call transactions** (Stellar Expert, Testnet):
 
-- **Split** (cross-contract: Splitter pulls SY from SYVault, mints PT/YT) — [`553c805d…d44a`](https://stellar.expert/explorer/testnet/tx/553c805dbc72f83faaa90b8eda455dcc09c5f3a24b0cc3e6858e9f455cc7d44a)
-- **Claim yield** (invoker-auth SY payout via the SEP-41 transfer: Splitter → SYVault) — [`b388e504…431e`](https://stellar.expert/explorer/testnet/tx/b388e504a55598c6309bb1c46a07cd8ae4ac3a122b1ec041e186a9c4efd5431e)
-- **Wrap** (SYVault ← mUSDY) — [`7fd22469…9267`](https://stellar.expert/explorer/testnet/tx/7fd224696c43650f941ef9d3de56b2fe406b10f878f994ed421f87bc410e9267)
-- **Faucet** (mUSDY) — [`497c8a2d…ca0b`](https://stellar.expert/explorer/testnet/tx/497c8a2d992167102b96073aff24044224d8ec583585aee75fefdc1c633dca0b)
+- **Split** (Market pulls SY cross-contract, mints PT + YT tokens) — [`325a90dd…a898`](https://stellar.expert/explorer/testnet/tx/325a90dde67dbd3848d2f3b60532396dfdc3a64b157546b537f39634e672a898)
+- **YT transfer** (settlement hook: YT → Market settles both parties mid-accrual) — [`e0645064…a46c`](https://stellar.expert/explorer/testnet/tx/e0645064fd1e351092c9c9b421468421650c34c88ad38377bb20d095b640a46c)
+- **Claim yield** (the transfer's *recipient* wallet claims its own rate window) — [`aa1e505e…c089`](https://stellar.expert/explorer/testnet/tx/aa1e505ebd74a005175e2f0d079dfb4c78407622b406ea9fda3cc2c3cb1dc089)
+- **Redeem PT** (fixed principal at the frozen maturity rate) — [`76e64ced…e32a`](https://stellar.expert/explorer/testnet/tx/76e64ced07b63e4435997dee539b19d1a0095a4800c91b5804b958b07bafe32a)
 
 > **Testnet resets periodically.** If a contract ID no longer resolves, redeploy with
 > `./scripts/deploy-testnet.sh` and update `.env` / Vercel env vars.
 
 ## Protocol mechanics
 
-**Reserve accounting.** PT and YT are internal, non-transferable per-`(user, maturity)` balances in
-this v0 (transferable tokens + an AMM are a later belt). Since they only change together
-pre-maturity, `pt == yt` per position, so yield is accounted with a simple per-user reserve instead
-of a global index:
+**Tokenized PT/YT with user-index accounting.** PT and YT are real SEP-41 tokens — one pair per
+maturity, factory-deployed by the Market (`create_maturity` → `deploy_v2` with a deterministic
+salt, constructor-wired to the Market as sole minter; symbols `PT-mUSDY-<T>` / `YT-mUSDY-<T>`).
+Because YT is transferable, yield is settled per holder against a **rate index** (the Pendle
+user-index mechanism):
 
-> For a position holding `yt` principal units, the protocol reserves
-> `reserve_sy = ceil(yt · RATE_SCALE / R)` SY to back the principal at exchange rate `R`. As `R`
-> grows, the required reserve shrinks — and **the released difference is the yield**, moved to the
-> position's claimable balance on every settle. This is the Pendle mechanism expressed as a reserve
-> delta, exact under integer math.
+> Each holder carries `index` — the exchange rate at their last settlement. On settle at effective
+> rate `R` (frozen at `R_T` from maturity on), the holder is credited
+> `released = floor(yt·S/index) − ceil(yt·S/R)`, clamped ≥ 0, and `index := R`. Entitlements
+> floor, retained backing ceils — no settlement can overpay the real released yield.
+
+**The YT settlement hook.** Every user-initiated YT balance change (`transfer`, `transfer_from`,
+`burn`, `burn_from`) first calls `Market.on_yt_transfer` with the **pre-change balances as
+arguments**, settling both parties — sender keeps the yield accrued up to that moment, receiver
+starts earning from it. Balances travel as arguments because Soroban forbids the Market reading
+`YT.balance()` back while YT is mid-call (reentrancy ban); authenticity comes from the factory
+registry plus `require_auth()`, which only the genuine YT contract passes as direct invoker.
+`mint`/`market_burn` are hook-free (the Market settles internally first); `market_burn` demands
+both the Market's and the holder's auth so nobody can skip settlement.
 
 **Rounding law.** Every amount that *leaves* the protocol is rounded **down** (floor); every amount
 *reserved* against a liability is rounded **up** (ceil). Consequence: the SY the contract holds is

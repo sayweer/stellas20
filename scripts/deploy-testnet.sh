@@ -56,11 +56,22 @@ SY=$(stellar contract deploy \
   --source "$IDENTITY" --network "$NETWORK" --alias sy-vault \
   -- --admin "$ADMIN" --yield_token "$MYT")
 
-echo "Deploying Splitter..."
+echo "Uploading PT/YT token wasm (factory templates)..."
+PT_HASH=$(stellar contract upload \
+  --wasm "$WASM_DIR/stellas_pt_token.wasm" \
+  --source "$IDENTITY" --network "$NETWORK")
+YT_HASH=$(stellar contract upload \
+  --wasm "$WASM_DIR/stellas_yt_token.wasm" \
+  --source "$IDENTITY" --network "$NETWORK")
+echo "PT wasm hash: $PT_HASH"
+echo "YT wasm hash: $YT_HASH"
+
+echo "Deploying Splitter (the Market)..."
 SPLITTER=$(stellar contract deploy \
   --wasm "$WASM_DIR/stellas_splitter.wasm" \
   --source "$IDENTITY" --network "$NETWORK" --alias splitter \
-  -- --admin "$ADMIN" --sy_vault "$SY")
+  -- --admin "$ADMIN" --sy_vault "$SY" \
+  --pt_wasm_hash "$PT_HASH" --yt_wasm_hash "$YT_HASH")
 
 NOW=$(date +%s)
 for offset in $MATURITY_OFFSETS; do
