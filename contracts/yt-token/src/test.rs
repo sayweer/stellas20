@@ -45,7 +45,9 @@ impl MockMarket {
             from_bal,
             to_bal,
         });
-        env.storage().instance().set(&symbol_short!("calls"), &calls);
+        env.storage()
+            .instance()
+            .set(&symbol_short!("calls"), &calls);
     }
 
     pub fn get_calls(env: Env) -> Vec<HookCall> {
@@ -205,7 +207,8 @@ fn test_self_transfer_is_noop_without_hook() {
     let user = Address::generate(&ctx.env);
     ctx.client.mint(&user, &50_0000000);
 
-    ctx.token.transfer(&user, MuxedAddress::from(&user), &10_0000000);
+    ctx.token
+        .transfer(&user, MuxedAddress::from(&user), &10_0000000);
 
     // Balance-checked, but no hook and no movement.
     assert_eq!(ctx.market.get_calls().len(), 0);

@@ -129,7 +129,8 @@ fn test_transfer_moves_sy() {
     fund(&ctx, &a, 100_0000000);
     ctx.vault.wrap(&a, &50_0000000);
 
-    ctx.sy_token.transfer(&a, MuxedAddress::from(&b), &20_0000000);
+    ctx.sy_token
+        .transfer(&a, MuxedAddress::from(&b), &20_0000000);
 
     assert_eq!(ctx.sy_token.balance(&a), 30_0000000);
     assert_eq!(ctx.sy_token.balance(&b), 20_0000000);
@@ -202,7 +203,8 @@ fn test_transfer_event_published() {
     fund(&ctx, &a, 100_0000000);
     ctx.vault.wrap(&a, &50_0000000);
 
-    ctx.sy_token.transfer(&a, MuxedAddress::from(&b), &20_0000000);
+    ctx.sy_token
+        .transfer(&a, MuxedAddress::from(&b), &20_0000000);
     let transfer_event = crate::Transfer {
         from: a,
         to: b,
@@ -250,7 +252,9 @@ fn test_expired_allowance_rejected() {
 
     // Advance past the expiration ledger: the allowance reads as zero and
     // transfer_from is rejected.
-    ctx.env.ledger().with_mut(|li| li.sequence_number = expiry + 1);
+    ctx.env
+        .ledger()
+        .with_mut(|li| li.sequence_number = expiry + 1);
     assert_eq!(ctx.sy_token.allowance(&owner, &spender), 0);
     let result = ctx
         .sy_token
