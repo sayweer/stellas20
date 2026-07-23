@@ -18,9 +18,17 @@ set -euo pipefail
 IDENTITY="${IDENTITY:-vault-admin}"
 NETWORK="${NETWORK:-testnet}"
 
-# Demo rate: 1.0 start, +0.0002/s (~+1.2%/min) so yield visibly ticks.
+# Realistic rate: 1.0 start, ~5% APY. Derivation (RATE_SCALE = 1e12):
+#   slope = 0.05 * 1e12 / 31_536_000 s/yr = 1585.5 -> 1585 per second.
 INITIAL_RATE="${INITIAL_RATE:-1000000000000}"
-SLOPE_PER_SEC="${SLOPE_PER_SEC:-200000000}"
+SLOPE_PER_SEC="${SLOPE_PER_SEC:-1585}"
+# Demo-recording runbook: right before recording, temporarily steepen the rate
+# so yield visibly ticks on screen, then restore the realistic slope after:
+#   stellar contract invoke --id <MYT> --source "$IDENTITY" --network "$NETWORK" -- \
+#     set_rate --slope_per_sec "${DEMO_SLOPE:-200000000}"   # ~+1.2%/min
+#   stellar contract invoke --id <MYT> --source "$IDENTITY" --network "$NETWORK" -- \
+#     set_rate --slope_per_sec 1585                          # back to ~5% APY
+# Rate continuity across set_rate is preserved by the checkpoint mechanism.
 # Maturities to create, as offsets (seconds) from now. Defaults: +1h, +1d, +7d
 # so at least one long-lived maturity survives a demo. For a video, also add a
 # short one on the fly, e.g. create_maturity --maturity $(( $(date +%s) + 480 )).
