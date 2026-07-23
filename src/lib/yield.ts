@@ -14,10 +14,11 @@ export interface RateCheckpoint {
   slopePerSec: bigint
 }
 
-/** The reserve-accounting fields a claimable estimate needs. */
+/** The index-accounting fields a claimable estimate needs. */
 export interface PositionLike {
   yt: bigint
-  reserveSy: bigint
+  /** Rate at the holder's last settlement (0 = never touched). */
+  index: bigint
   accruedSy: bigint
 }
 
@@ -35,12 +36,16 @@ export function rateAt(cp: RateCheckpoint, ts: bigint): bigint {
 
 /**
  * SY a position could claim at exchange rate `rate`, mirroring the contract's
- * settle: `accrued + max(0, reserve - ceil(yt * SCALE / rate))`.
+ * settle: `accrued + max(0, floor(yt·S/index) − ceil(yt·S/rate))` — the
+ * entitlement floors, the retained backing ceils (rounding law).
  */
 export function projectedClaimable(pos: PositionLike, rate: bigint): bigint {
-  if (pos.yt <= 0n || rate <= 0n) return pos.accruedSy
+  if (pos.yt <= 0n || pos.index <= 0n || rate <= 0n || rate === pos.index) {
+    return pos.accruedSy
+  }
+  const entitled = (pos.yt * RATE_SCALE) / pos.index
   const needed = ceilDiv(pos.yt * RATE_SCALE, rate)
-  const released = pos.reserveSy > needed ? pos.reserveSy - needed : 0n
+  const released = entitled > needed ? entitled - needed : 0n
   return pos.accruedSy + released
 }
 

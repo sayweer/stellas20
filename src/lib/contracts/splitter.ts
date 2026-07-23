@@ -5,21 +5,34 @@ import type { AppError } from '../../types'
 import { getClient, invokeWrite, readCall, type OnTxPhase } from './base'
 import { SPLITTER_ERRORS, SPLITTER_WRITE_ERRORS } from './errors'
 
-/** A user's position for one maturity, all amounts in stroops. */
-export interface PositionView {
+/**
+ * A user's account for one maturity, all amounts in stroops. `index` is the
+ * rate at the user's last settlement (0 = never touched) — with `yt` and
+ * `accruedSy` it lets the client project claimable live between polls.
+ */
+export interface AccountView {
   pt: bigint
   yt: bigint
-  reserveSy: bigint
+  index: bigint
   accruedSy: bigint
+  claimable: bigint
 }
 
 /** Runtime shape of the deployed Splitter (methods from the on-chain spec). */
 interface SplitterClient {
   get_maturities(options?: MethodOptions): Promise<AssembledTransaction<bigint[]>>
-  get_position(
+  get_account(
     args: { addr: string; maturity: bigint },
     options?: MethodOptions,
-  ): Promise<AssembledTransaction<{ pt: bigint; yt: bigint; reserve_sy: bigint; accrued_sy: bigint }>>
+  ): Promise<
+    AssembledTransaction<{
+      pt: bigint
+      yt: bigint
+      index: bigint
+      accrued_sy: bigint
+      claimable: bigint
+    }>
+  >
   get_totals(
     args: { maturity: bigint },
     options?: MethodOptions,
@@ -54,22 +67,20 @@ export async function readMaturities(): Promise<bigint[] | AppError> {
   return readCall(() => c.get_maturities(), SPLITTER_ERRORS)
 }
 
-/** Read `address`'s position for `maturity`. */
-export async function readPosition(
+/** Read `address`'s full account (balances + yield state) for `maturity`. */
+export async function readAccount(
   address: string,
   maturity: bigint,
-): Promise<PositionView | AppError> {
+): Promise<AccountView | AppError> {
   const c = await client()
-  const result = await readCall(
-    () => c.get_position({ addr: address, maturity }),
-    SPLITTER_ERRORS,
-  )
+  const result = await readCall(() => c.get_account({ addr: address, maturity }), SPLITTER_ERRORS)
   if (typeof result === 'object' && 'pt' in result) {
     return {
       pt: result.pt,
       yt: result.yt,
-      reserveSy: result.reserve_sy,
+      index: result.index,
       accruedSy: result.accrued_sy,
+      claimable: result.claimable,
     }
   }
   return result

@@ -29,22 +29,29 @@ describe('rateAt', () => {
 })
 
 describe('projectedClaimable', () => {
-  it('mirrors the contract: accrued + released reserve', () => {
-    // yt = 100 (1e9 stroops), reserve set at rate 1.0, now valued at rate 1.2.
-    const pos = { yt: 1_000_000_000n, reserveSy: 1_000_000_000n, accruedSy: 0n }
+  it('mirrors the contract: accrued + floor(yt·S/index) − ceil(yt·S/rate)', () => {
+    // yt = 100 (1e9 stroops), settled at index 1.0, now valued at rate 1.2.
+    const pos = { yt: 1_000_000_000n, index: RATE_SCALE, accruedSy: 0n }
     const rate = 1_200_000_000_000n
-    // needed = ceil(1e9 * 1e12 / 1.2e12) = 833_333_334; released = 166_666_666.
+    // entitled = floor(1e9·1e12/1e12) = 1e9;
+    // needed = ceil(1e9·1e12/1.2e12) = 833_333_334; released = 166_666_666.
     expect(projectedClaimable(pos, rate)).toBe(166_666_666n)
   })
 
   it('returns just the accrued amount when there is no YT', () => {
-    expect(projectedClaimable({ yt: 0n, reserveSy: 0n, accruedSy: 42n }, RATE_SCALE)).toBe(42n)
+    expect(projectedClaimable({ yt: 0n, index: 0n, accruedSy: 42n }, RATE_SCALE)).toBe(42n)
+  })
+
+  it('returns just the accrued amount for an untouched (index 0) position', () => {
+    expect(projectedClaimable({ yt: 1_000_000_000n, index: 0n, accruedSy: 7n }, RATE_SCALE)).toBe(
+      7n,
+    )
   })
 })
 
 describe('claimableAt', () => {
   const cp = { since: 0n, rate: RATE_SCALE, slopePerSec: 200_000_000n }
-  const pos = { yt: 1_000_000_000n, reserveSy: 1_000_000_000n, accruedSy: 0n }
+  const pos = { yt: 1_000_000_000n, index: RATE_SCALE, accruedSy: 0n }
   const maturity = 1000n
 
   it('uses the live rate before maturity', () => {

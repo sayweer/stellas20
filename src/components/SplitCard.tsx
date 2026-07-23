@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import { stroopsToXlm } from '../lib/amounts'
 import { formatAmount } from '../lib/format'
-import { mergePtYt, splitSy, type PositionView } from '../lib/contracts/splitter'
+import { mergePtYt, splitSy, type AccountView } from '../lib/contracts/splitter'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { isValidTokenAmount } from '../lib/validation'
 import { chainNowMs } from '../lib/chainTime'
@@ -26,7 +26,7 @@ interface SplitCardProps {
 
 type Tab = 'split' | 'merge'
 
-const ZERO_POSITION: PositionView = { pt: 0n, yt: 0n, reserveSy: 0n, accruedSy: 0n }
+const ZERO_POSITION: AccountView = { pt: 0n, yt: 0n, index: 0n, accruedSy: 0n, claimable: 0n }
 
 function isMatured(maturity: bigint, nowMs: number): boolean {
   return Number(maturity) * 1000 <= nowMs

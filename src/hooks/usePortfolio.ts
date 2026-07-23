@@ -2,13 +2,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { readMytBalance, readRateInfo, type RateInfo } from '../lib/contracts/mockToken'
 import { readSyBalance } from '../lib/contracts/syVault'
-import { readMaturities, readPosition, type PositionView } from '../lib/contracts/splitter'
+import { readAccount, readMaturities, type AccountView } from '../lib/contracts/splitter'
 import { isAppError, type AppError } from '../types'
 
 /** A maturity and the connected account's position in it. */
 export interface MaturityPosition {
   maturity: bigint
-  position: PositionView
+  position: AccountView
 }
 
 export interface Portfolio {
@@ -76,7 +76,7 @@ export function usePortfolio(address: string | null): UsePortfolioResult {
       const [mytRes, syRes, ...positionResults] = await Promise.all([
         readMytBalance(address),
         readSyBalance(address),
-        ...maturitiesRes.map((m) => readPosition(address, m)),
+        ...maturitiesRes.map((m) => readAccount(address, m)),
       ])
       if (id !== requestId.current) return
 
