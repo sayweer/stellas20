@@ -21,8 +21,9 @@ intrinsic to the design, not bolted on:
 1. **MockYieldToken (mUSDY)** — a demo yield-bearing token (simulating USDY / a Blend position).
    Balances are fixed; an **exchange rate grows linearly with ledger time**, checkpointed so any
    past rate is recoverable exactly. Implements the full SEP-41 token interface + a public faucet.
-2. **SYVault** — wraps mUSDY into **Standardized Yield (SY)** shares 1:1, with a `transfer` entry
-   point so the Splitter can move SY cross-contract. Delegates its exchange rate to mUSDY.
+2. **SYVault** — wraps mUSDY into **Standardized Yield (SY)** 1:1. SY is a full SEP-41 token
+   (`SY-mUSDY`: transfer, allowances, burn, metadata), so the Splitter — and any future
+   contract — moves it like any other token. Delegates its exchange rate to mUSDY.
 3. **Splitter** — for a chosen maturity `T`: `split(SY) → PT + YT`, `merge(PT+YT) → SY`,
    `claim_yield(YT) → accrued yield`, `redeem_pt(PT) → fixed principal` at/after maturity.
 
@@ -56,16 +57,16 @@ flowchart LR
 
 | Contract | ID |
 |---|---|
-| MockYieldToken (mUSDY) | `CDBSSIUJUVXOUNVTJTZ4J2JXO24KPNGYA5V2MF5BBZLIPWRHS3DKDP46` |
-| SYVault | `CBBASA57N7NUSHID6HURLB7ERU3LKX2JEYBGMKABZIMFUPL7Y6WH4H6Z` |
-| Splitter | `CA6H3XJ2I2PLWKE2DHDUPEUAZSM7PZLACMHM3CGT3ARPZU22BRQT4H7F` |
+| MockYieldToken (mUSDY) | `CAJT453ZKZSTJFT6P2FLSPXPYOF4DGKMJHU4TW26KTRRIPR5VMCIYRJZ` |
+| SYVault | `CC35NY2BXCLVHCCQ4EURDMT564YG2QG4VUVVX62Z2QDMZ6CGTQWRQI7U` |
+| Splitter | `CCEGP3NOJCBXF2XUJECAUIYUDVVXS3ZPIRYUJ4TMF2IA4NRZCGCAZNMF` |
 
 **Verifiable contract-call transactions** (Stellar Expert, Testnet):
 
-- **Split** (cross-contract: Splitter pulls SY from SYVault, mints PT/YT) — [`06b63994…63eb`](https://stellar.expert/explorer/testnet/tx/06b63994e45ecc0a8e82bc068712bbc2796f2a03ee3b7eb72c881ac8517c63eb)
-- **Claim yield** (invoker-auth SY payout: Splitter → SYVault) — [`0f60c1b8…0bd8`](https://stellar.expert/explorer/testnet/tx/0f60c1b88ecf189c19644c42a7ae0fab42a56ad659bc59cfe54022f592c80bd8)
-- **Wrap** (SYVault ← mUSDY) — [`898e89ef…9189`](https://stellar.expert/explorer/testnet/tx/898e89efb235f7f709ab1fdf16f9635723b688badb764b2c301eaff2da209189)
-- **Faucet** (mUSDY) — [`aabb1472…d882`](https://stellar.expert/explorer/testnet/tx/aabb1472a160448ee6bd4ca1b1aeda7411064dd32593e3331e3ade6e1526d882)
+- **Split** (cross-contract: Splitter pulls SY from SYVault, mints PT/YT) — [`553c805d…d44a`](https://stellar.expert/explorer/testnet/tx/553c805dbc72f83faaa90b8eda455dcc09c5f3a24b0cc3e6858e9f455cc7d44a)
+- **Claim yield** (invoker-auth SY payout via the SEP-41 transfer: Splitter → SYVault) — [`b388e504…431e`](https://stellar.expert/explorer/testnet/tx/b388e504a55598c6309bb1c46a07cd8ae4ac3a122b1ec041e186a9c4efd5431e)
+- **Wrap** (SYVault ← mUSDY) — [`7fd22469…9267`](https://stellar.expert/explorer/testnet/tx/7fd224696c43650f941ef9d3de56b2fe406b10f878f994ed421f87bc410e9267)
+- **Faucet** (mUSDY) — [`497c8a2d…ca0b`](https://stellar.expert/explorer/testnet/tx/497c8a2d992167102b96073aff24044224d8ec583585aee75fefdc1c633dca0b)
 
 > **Testnet resets periodically.** If a contract ID no longer resolves, redeploy with
 > `./scripts/deploy-testnet.sh` and update `.env` / Vercel env vars.
