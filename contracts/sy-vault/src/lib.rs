@@ -3,20 +3,24 @@
 //! SYVault: a Standardized-Yield wrapper over a yield-bearing token.
 //!
 //! Users `wrap` the underlying yield token (the MockYieldToken) into SY at a
-//! 1:1 ratio and `unwrap` back. SY is an internal balance ledger inside this
-//! contract, with a `transfer` entry point so the Splitter can pull SY from a
-//! user and pay it back cross-contract. The vault delegates its exchange rate
-//! to the underlying token, so `value(SY) == value(underlying)` always holds.
-//! This is the direct evolution of the Yellow-belt crowdfunding vault.
+//! 1:1 ratio and `unwrap` back. SY is a **full SEP-41 token** (transfer,
+//! allowances, burn, metadata), so any contract — the Splitter, the PT-AMM —
+//! or wallet can hold and move it like any other token. The vault delegates
+//! its exchange rate to the underlying token, so `value(SY) == value(underlying)`
+//! always holds. This is the direct evolution of the Yellow-belt crowdfunding
+//! vault, upgraded per MASTERPLAN Phase 1.
 
 use soroban_sdk::{
-    contract, contractclient, contracterror, contractevent, contractimpl, contracttype, token,
-    Address, Env, MuxedAddress,
+    contract, contractclient, contracterror, contractevent, contractimpl, contracttype,
+    panic_with_error, token, token::TokenInterface, Address, Env, MuxedAddress, String,
 };
 
 /// TTL management (~5s per ledger on testnet): extend below ~14 days, up to ~30 days.
 const TTL_THRESHOLD: u32 = 14 * 24 * 60 * 12;
 const TTL_EXTEND_TO: u32 = 30 * 24 * 60 * 12;
+
+/// Token metadata (7 decimals, Stellar-style).
+const DECIMALS: u32 = 7;
 
 #[contracttype]
 #[derive(Clone)]
@@ -25,6 +29,15 @@ pub enum DataKey {
     YieldToken,
     TotalSupply,
     Balance(Address),
+    Allowance(Address, Address),
+}
+
+/// Stored allowance: how much `spender` may pull, until which ledger.
+#[contracttype]
+#[derive(Clone)]
+pub struct AllowanceValue {
+    pub amount: i128,
+    pub expiration_ledger: u32,
 }
 
 #[contracterror]
@@ -36,6 +49,8 @@ pub enum SyError {
     InvalidAmount = 3,
     InsufficientBalance = 4,
     MathOverflow = 5,
+    InsufficientAllowance = 6,
+    AllowanceExpired = 7,
 }
 
 /// Minimal view of the underlying yield token, for exchange-rate delegation.
@@ -65,7 +80,7 @@ pub struct Unwrap {
 
 #[contractevent]
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct SyTransfer {
+pub struct Transfer {
     #[topic]
     pub from: Address,
     #[topic]
@@ -73,9 +88,29 @@ pub struct SyTransfer {
     pub amount: i128,
 }
 
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Approve {
+    #[topic]
+    pub from: Address,
+    #[topic]
+    pub spender: Address,
+    pub amount: i128,
+    pub expiration_ledger: u32,
+}
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Burn {
+    #[topic]
+    pub from: Address,
+    pub amount: i128,
+}
+
 #[contract]
 pub struct SyVault;
 
+// -- custom (non-SEP-41) methods --
 #[contractimpl]
 impl SyVault {
     /// Constructor: runs once at deploy (no front-run). Records the admin and
@@ -141,29 +176,6 @@ impl SyVault {
         Ok(new_balance)
     }
 
-    /// Move `amount` SY from `from` to `to`. `from.require_auth()` — when the
-    /// Splitter calls this with itself as `from`, invoker-contract auth passes
-    /// with no signature; when it moves a user's SY, the user's wallet covers
-    /// the nested auth entry in one signature.
-    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> Result<(), SyError> {
-        from.require_auth();
-        if amount <= 0 {
-            return Err(SyError::InvalidAmount);
-        }
-        debit(&env, &from, amount)?;
-        credit(&env, &to, amount)?;
-        extend_instance(&env);
-        SyTransfer { from, to, amount }.publish(&env);
-        Ok(())
-    }
-
-    pub fn balance(env: Env, id: Address) -> i128 {
-        env.storage()
-            .persistent()
-            .get(&DataKey::Balance(id))
-            .unwrap_or(0)
-    }
-
     pub fn total_supply(env: Env) -> i128 {
         env.storage()
             .instance()
@@ -195,7 +207,156 @@ impl SyVault {
     }
 }
 
+// -- SEP-41 TokenInterface --
+//
+// SEP-41 methods panic with `SyError` codes (per the interface contract) while
+// the custom wrap/unwrap surface stays Result-based; on the wire both surface
+// identically as `Error(Contract, #N)`.
+#[contractimpl]
+impl TokenInterface for SyVault {
+    fn allowance(env: Env, from: Address, spender: Address) -> i128 {
+        read_allowance(&env, &from, &spender).amount
+    }
+
+    fn approve(env: Env, from: Address, spender: Address, amount: i128, expiration_ledger: u32) {
+        from.require_auth();
+        if amount < 0 {
+            panic_with_error!(&env, SyError::InvalidAmount);
+        }
+        if amount > 0 && expiration_ledger < env.ledger().sequence() {
+            panic_with_error!(&env, SyError::AllowanceExpired);
+        }
+        let key = DataKey::Allowance(from.clone(), spender.clone());
+        env.storage().temporary().set(
+            &key,
+            &AllowanceValue {
+                amount,
+                expiration_ledger,
+            },
+        );
+        if amount > 0 {
+            // Clamp to the network's max entry TTL so a far-future expiration
+            // doesn't trap the host on extend_ttl.
+            let live_for =
+                (expiration_ledger - env.ledger().sequence()).min(env.storage().max_ttl());
+            env.storage()
+                .temporary()
+                .extend_ttl(&key, live_for, live_for);
+        }
+        Approve {
+            from,
+            spender,
+            amount,
+            expiration_ledger,
+        }
+        .publish(&env);
+    }
+
+    fn balance(env: Env, id: Address) -> i128 {
+        env.storage()
+            .persistent()
+            .get(&DataKey::Balance(id))
+            .unwrap_or(0)
+    }
+
+    fn transfer(env: Env, from: Address, to: MuxedAddress, amount: i128) {
+        from.require_auth();
+        let to = to.address();
+        move_sy(&env, &from, &to, amount);
+    }
+
+    fn transfer_from(env: Env, spender: Address, from: Address, to: Address, amount: i128) {
+        spender.require_auth();
+        spend_allowance(&env, &from, &spender, amount);
+        move_sy(&env, &from, &to, amount);
+    }
+
+    /// Burning SY destroys the shares and **forfeits the underlying claim to
+    /// the vault** (the backing tokens stay put and become protocol surplus).
+    /// `unwrap` remains the way to exit to the underlying; burn deliberately
+    /// has no hidden transfer side-effects.
+    fn burn(env: Env, from: Address, amount: i128) {
+        from.require_auth();
+        burn_sy(&env, &from, amount);
+    }
+
+    fn burn_from(env: Env, spender: Address, from: Address, amount: i128) {
+        spender.require_auth();
+        spend_allowance(&env, &from, &spender, amount);
+        burn_sy(&env, &from, amount);
+    }
+
+    fn decimals(_env: Env) -> u32 {
+        DECIMALS
+    }
+
+    fn name(env: Env) -> String {
+        String::from_str(&env, "Standardized Yield mUSDY")
+    }
+
+    fn symbol(env: Env) -> String {
+        String::from_str(&env, "SY-mUSDY")
+    }
+}
+
 // -- internal SY balance helpers --
+
+fn move_sy(env: &Env, from: &Address, to: &Address, amount: i128) {
+    if amount <= 0 {
+        panic_with_error!(env, SyError::InvalidAmount);
+    }
+    debit(env, from, amount).unwrap_or_else(|e| panic_with_error!(env, e));
+    credit(env, to, amount).unwrap_or_else(|e| panic_with_error!(env, e));
+    extend_instance(env);
+    Transfer {
+        from: from.clone(),
+        to: to.clone(),
+        amount,
+    }
+    .publish(env);
+}
+
+fn burn_sy(env: &Env, from: &Address, amount: i128) {
+    if amount <= 0 {
+        panic_with_error!(env, SyError::InvalidAmount);
+    }
+    debit(env, from, amount).unwrap_or_else(|e| panic_with_error!(env, e));
+    sub_supply(env, amount).unwrap_or_else(|e| panic_with_error!(env, e));
+    Burn {
+        from: from.clone(),
+        amount,
+    }
+    .publish(env);
+}
+
+fn read_allowance(env: &Env, from: &Address, spender: &Address) -> AllowanceValue {
+    let key = DataKey::Allowance(from.clone(), spender.clone());
+    match env.storage().temporary().get::<_, AllowanceValue>(&key) {
+        Some(a) if a.expiration_ledger >= env.ledger().sequence() => a,
+        _ => AllowanceValue {
+            amount: 0,
+            expiration_ledger: 0,
+        },
+    }
+}
+
+fn spend_allowance(env: &Env, from: &Address, spender: &Address, amount: i128) {
+    if amount <= 0 {
+        panic_with_error!(env, SyError::InvalidAmount);
+    }
+    let allowance = read_allowance(env, from, spender);
+    if allowance.amount < amount {
+        panic_with_error!(env, SyError::InsufficientAllowance);
+    }
+    let key = DataKey::Allowance(from.clone(), spender.clone());
+    env.storage().temporary().set(
+        &key,
+        &AllowanceValue {
+            amount: allowance.amount - amount,
+            expiration_ledger: allowance.expiration_ledger,
+        },
+    );
+}
 
 fn credit(env: &Env, to: &Address, amount: i128) -> Result<i128, SyError> {
     let key = DataKey::Balance(to.clone());

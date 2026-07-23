@@ -94,6 +94,11 @@ pub enum SplitterError {
 }
 
 /// Cross-contract view of the SY vault the Splitter operates on.
+///
+/// `transfer` matches the vault's SEP-41 entry point: declaring `to` as a
+/// plain `Address` here is wire-compatible with the vault's `MuxedAddress`
+/// parameter (an Address ScVal is a valid MuxedAddress — the same guarantee
+/// the vault itself relies on when calling the underlying token).
 #[contractclient(name = "SyVaultClient")]
 pub trait SyVaultInterface {
     fn transfer(env: Env, from: Address, to: Address, amount: i128);
