@@ -11,7 +11,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 > sees your secret key.
 
 - **Live demo:** [stellas20.vercel.app](https://stellas20.vercel.app/)
-- **Demo video:** _(record and link at the Level 3 submission checkpoint)_
+- **Demo video:** _(record per [`DEMO.md`](DEMO.md), then link here)_
 
 ## The contracts
 
@@ -39,15 +39,24 @@ maturity — inter-contract communication is intrinsic to the design, not bolted
 flowchart LR
   User(("User wallet"))
   MYT["MockYieldToken<br/>(mUSDY, SEP-41)"]
-  SY["SYVault<br/>(SY shares)"]
-  SP["Splitter<br/>(PT / YT market)"]
+  SY["SYVault<br/>(SY, SEP-41)"]
+  SP["Splitter<br/>(the Market)"]
+  PT["PT-mUSDY-T<br/>(SEP-41)"]
+  YT["YT-mUSDY-T<br/>(SEP-41 + hook)"]
+  AMM["PT-AMM<br/>(PT/SY pools)"]
 
-  User -->|faucet / approve| MYT
+  User -->|faucet| MYT
   User -->|wrap / unwrap| SY
   User -->|split / merge / claim / redeem| SP
+  User -->|swap / add / remove LP| AMM
   SY -->|transfer, exchange_rate| MYT
   SP -->|transfer, exchange_rate_at| SY
-  SP -.->|2-hop: rate at maturity| MYT
+  SP -->|factory deploy · mint / burn| PT
+  SP -->|factory deploy · mint / market_burn| YT
+  YT -.->|on_yt_transfer hook| SP
+  AMM -->|transfer| PT
+  AMM -->|transfer| SY
+  AMM -.->|get_market| SP
 ```
 
 ### Inter-contract call inventory
@@ -60,6 +69,11 @@ flowchart LR
 | 4 | Splitter → SYVault | `transfer` (user → splitter, nested auth, one signature) | `split` |
 | 5 | Splitter → SYVault | `transfer` (splitter → user, invoker auth) | `merge`, `claim_yield`, `redeem_pt` |
 | 6 | Splitter → SYVault → MockYieldToken | `exchange_rate_at(min(now, T))` — **two-hop chain** | every settle |
+| 7 | Splitter → PT/YT tokens | `deploy_v2` — **factory deploys** the maturity's token pair | `create_maturity` |
+| 8 | Splitter → PT/YT tokens | `mint` / `burn` / `market_burn` | `split`, `merge`, `redeem_pt` |
+| 9 | YT token → Splitter | `on_yt_transfer` — settlement **callback** with pre-change balances | every YT transfer/burn |
+| 10 | PT-AMM → PT & SY tokens | `transfer` (nested auth) | `swap`, `add_liquidity`, `remove_liquidity` |
+| 11 | PT-AMM → Splitter | `get_market` — resolve the maturity's PT token | `create_pool` |
 
 ## Deployed on Testnet
 
@@ -122,14 +136,18 @@ asserts exactly this after every operation in a scripted lifecycle.
 ## Tech stack
 
 - **Contracts:** Rust + [`soroban-sdk`](https://crates.io/crates/soroban-sdk) `27.0.0`, built &
-  deployed with the `stellar` CLI `27.0.0`. A Cargo workspace of three crates under `contracts/`.
+  deployed with the `stellar` CLI `27.0.0`. A Cargo workspace of six crates under `contracts/`
+  (`mock-yield-token`, `sy-vault`, `splitter`, `pt-token`, `yt-token`, `pt-amm`).
 - **Frontend:** [Vite](https://vite.dev/) + React 19 + TypeScript (strict), [Tailwind CSS](https://tailwindcss.com/).
+  A five-tab product SPA (Markets · Trade · Pool · Portfolio · Advanced); all money math is pure,
+  tested `bigint` in `src/lib/`.
 - **Wallet:** [`@creit.tech/stellar-wallets-kit`](https://github.com/Creit-Tech/Stellar-Wallets-Kit)
-  (multi-wallet picker) behind a thin adapter.
+  (multi-wallet picker — Freighter, xBull, Albedo, …) behind a thin adapter.
 - **Chain:** [`@stellar/stellar-sdk`](https://github.com/stellar/js-stellar-sdk) — the official
   `contract` Client/AssembledTransaction pipeline (build → simulate → sign → send → poll), plus
   `/rpc` `getEvents` for the live activity feed.
-- **Tests:** Rust unit + integration (53), [Vitest](https://vitest.dev/) for the frontend (35).
+- **Tests:** Rust unit + integration + a randomized invariant harness (98), [Vitest](https://vitest.dev/)
+  for the frontend (60).
 - **CI:** GitHub Actions (`.github/workflows/ci.yml`), on a pinned Rust toolchain.
 
 ## Setup / run locally
@@ -157,17 +175,25 @@ npm run dev            # http://localhost:5173
 
 ## Testing
 
-- **Contracts — 53 Rust tests.** `cargo test --workspace`
+- **Contracts — 98 Rust tests.** `cargo test --workspace` (run `stellar contract build` first —
+  the Market's factory tests import the real PT/YT WASM).
   - `mock-yield-token` (18): SEP-41 behavior, auth-gated admin ops, faucet cap, linear rate growth,
     checkpoint history, burn, and allowance expiration.
-  - `sy-vault` (10): 1:1 wrap/unwrap with cross-contract token moves, transfer, rate delegation.
-  - `splitter` (22 unit + 3 integration): split/merge/claim/redeem with hand-computed exact values,
-    event assertions, auth-negative and edge cases (double redeem, claim-after-redeem, multi-maturity),
-    the `PT == YT` and yield-stops-at-maturity invariants, a full mint→wrap→split→accrue→claim→
-    mature→redeem lifecycle, and a **solvency sweep** asserting the no-dust invariant after each step.
-- **Frontend — 35 Vitest tests.** `npm run test` — amount parsing (incl. the crash regression),
-  input validation in stroops, the client-side yield math (mirroring the contract), chain-time
-  anchoring, per-contract error mapping, and event parsing from ScVal fixtures.
+  - `sy-vault` (15): full SEP-41 (transfer/allowance/expiry/burn/metadata) via `token::TokenClient`,
+    1:1 wrap/unwrap with cross-contract token moves, rate delegation.
+  - `pt-token` (9) / `yt-token` (10): the PT/YT SEP-41 tokens; the YT suite asserts the settlement
+    hook's ordering and pre-change-balance arguments, hook-free `mint`/`market_burn`, and dual-auth.
+  - `splitter` (32): split/merge/claim/redeem against the **factory-deployed real tokens**, with
+    hand-computed exact values, event/auth-negative/edge cases, the headline YT-transfer-settles-both
+    integration test, and a **randomized op-sequence harness** (seeded, 3×200 ops) asserting the
+    solvency and `PT_supply == YT_supply` invariants after *every* operation.
+  - `pt-amm` (14): the hand-derived swap fixture (quote == execution to the stroop), pro-rata LP
+    math, maturity freeze, exact `isqrt`, and a randomized harness asserting `k` never decreases
+    and reserves match token balances.
+- **Frontend — 60 Vitest tests.** `npm run test` — the AMM quote/APY math (the swap fixture matches
+  the Rust one byte-for-byte; a p=0.988/90d → ~5% APY sanity check), amount parsing/validation in
+  `bigint`, the client-side yield math mirroring the contract, chain-time anchoring, per-contract
+  error mapping, and event parsing (both swap directions) from ScVal fixtures.
 
 ## CI/CD
 
@@ -187,12 +213,15 @@ local `stellar keys` store, never in CI secrets.
 ```bash
 stellar keys generate vault-admin --network testnet --fund
 ./scripts/deploy-testnet.sh
-# prints VITE_MYT_CONTRACT_ID / VITE_SY_VAULT_CONTRACT_ID / VITE_SPLITTER_CONTRACT_ID
+# prints VITE_MYT_ / VITE_SY_VAULT_ / VITE_SPLITTER_ / VITE_AMM_CONTRACT_ID
+./scripts/seed-liquidity.sh <maturity-unix> [target-apy]   # seed a pool at a fixed APY
 ```
 
-The script builds, deploys, and initializes all three contracts in dependency order and creates a
-demo maturity. Paste the printed IDs into `.env`, `.env.example`, and your Vercel project's
-environment variables.
+`deploy-testnet.sh` builds everything, uploads the PT/YT token WASM, deploys the four core
+contracts in dependency order (constructor-initialized, so nothing can be front-run), then creates
+the demo maturities and their empty PT/SY pools. `seed-liquidity.sh` derives the fair PT price for
+a target implied APY and seeds a pool. Paste the printed IDs into `.env`, `.env.example`, and your
+Vercel project's environment variables.
 
 ## Error handling
 
@@ -210,23 +239,39 @@ Distinct, visibly-handled error types include:
 
 ## How to use
 
+The app opens on **Markets** — one row per maturity with its implied **fixed APY**, the underlying
+yield APY, and pool depth. To lock a rate:
+
 1. **Connect** a Testnet wallet (Freighter, xBull, or Albedo).
-2. **Faucet** 1,000 mUSDY, then **Wrap** it into SY.
-3. **Split** SY at a maturity → equal PT and YT (supplies always match — an on-chain invariant).
-4. Watch **claimable yield tick up live**, and **Claim** it as SY.
-5. After maturity, **Redeem PT** for its fixed principal.
-6. The **Activity feed** streams every protocol event across all three contracts in real time.
+2. On **Advanced**, **Faucet** 1,000 mUSDY and **Wrap** it into SY (SY is the standardized,
+   yield-bearing unit everything trades against).
+3. **Trade → Lock fixed rate**: buy PT with SY. The panel shows the locked APY, price impact, and
+   minimum received; PT redeems 1:1 in principal at maturity, so the discount you buy at *is* your
+   fixed return.
+4. Or **Trade → Long yield**: split SY and sell the PT (a clearly-staged two-step flow), keeping the
+   YT for pure, leveraged yield exposure.
+5. **Portfolio**: watch **claimable yield tick up live**, **Claim** it as SY, and after maturity
+   **Redeem PT** for its fixed principal. Manage **liquidity positions** here too.
+6. **Pool**: provide PT + SY liquidity and earn the 30 bps swap fee.
+7. The **Activity feed** streams every protocol *and* AMM event across all contracts in real time.
 
-## Demo video script (1–2 min)
+## Demo
 
-Problem (no fixed income on Stellar; PT = bond, YT = coupon) → faucet + wrap → split (equal PT/YT,
-invariant) → live accrual + claim → maturity countdown hits zero, accrual freezes → redeem PT for
-fixed principal → flash the green CI run and test counts (53 Rust / 35 Vitest).
+A **1–2 minute video script** and the exact pre-recording runbook (short demo maturity, seeded
+pool, funded wallet, rate acceleration and restore) live in [`DEMO.md`](DEMO.md).
+
+- **Demo video:** _(record per `DEMO.md`, then link here)_
 
 ## Screenshots
 
-Deferred to the Level 3 submission checkpoint. Capture and add here: the app (desktop + 375px
-mobile), a green CI run, `cargo test --workspace` output, and `npm run test` output.
+| | |
+|---|---|
+| **Markets — fixed-rate discovery** | **Multi-wallet picker** |
+| ![Markets tab on the live site](screenshots/markets-desktop.png) | ![StellarWalletsKit wallet picker](screenshots/wallet-picker.png) |
+
+To round out the submission, capture from a connected session (see `DEMO.md`): the 375px mobile
+layout, the Trade panel with a live quote, a green **CI run** on GitHub Actions, and the
+`cargo test --workspace` (98) and `npm run test` (60) output.
 
 ## Security & notes
 
