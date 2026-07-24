@@ -1639,6 +1639,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "stellas-sy-vault-blend"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "stellas-yt-token"
 version = "0.1.0"
 dependencies = [

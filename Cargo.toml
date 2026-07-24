@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "contracts/mock-yield-token",
     "contracts/sy-vault",
+    "contracts/sy-vault-blend",
     "contracts/splitter",
     "contracts/pt-token",
     "contracts/yt-token",
