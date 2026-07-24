@@ -5,7 +5,7 @@
 import type { AssembledTransaction, MethodOptions } from '@stellar/stellar-sdk/contract'
 import { config } from '../../config'
 import type { AppError } from '../../types'
-import { getClient, readCall } from './base'
+import { getClient, invokeWrite, readCall, type OnTxPhase } from './base'
 import { AMM_ERRORS } from './errors'
 
 /** Which asset goes in on a swap (mirrors the contract enum). */
@@ -45,6 +45,25 @@ interface AmmClient {
     args: { addr: string; maturity: bigint },
     options?: MethodOptions,
   ): Promise<AssembledTransaction<bigint>>
+  swap_exact_in(
+    args: { from: string; maturity: bigint; side: SideArg; amount_in: bigint; min_out: bigint },
+    options?: MethodOptions,
+  ): Promise<AssembledTransaction<bigint>>
+  add_liquidity(
+    args: {
+      from: string
+      maturity: bigint
+      pt_desired: bigint
+      sy_desired: bigint
+      pt_min: bigint
+      sy_min: bigint
+    },
+    options?: MethodOptions,
+  ): Promise<AssembledTransaction<bigint>>
+  remove_liquidity(
+    args: { from: string; maturity: bigint; lp: bigint; pt_min: bigint; sy_min: bigint },
+    options?: MethodOptions,
+  ): Promise<AssembledTransaction<readonly [bigint, bigint]>>
 }
 
 const client = (): Promise<AmmClient> => getClient<AmmClient>(config.ammContractId)
@@ -81,4 +100,89 @@ export async function quoteSwap(
 export async function readLpBalance(address: string, maturity: bigint): Promise<bigint | AppError> {
   const c = await client()
   return readCall(() => c.lp_balance({ addr: address, maturity }), AMM_ERRORS)
+}
+
+/**
+ * Swap `amountIn` (stroops) for at least `minOut` of the other asset. Returns
+ * the tx hash and the amount out.
+ */
+export async function swapExactIn(
+  address: string,
+  maturity: bigint,
+  side: SwapSide,
+  amountIn: bigint,
+  minOut: bigint,
+  onPhase: OnTxPhase,
+): Promise<{ hash: string; amountOut: bigint } | AppError> {
+  const c = await client()
+  const result = await invokeWrite(
+    (options) =>
+      c.swap_exact_in(
+        { from: address, maturity, side: { tag: side }, amount_in: amountIn, min_out: minOut },
+        options,
+      ),
+    address,
+    onPhase,
+    AMM_ERRORS,
+  )
+  return 'hash' in result ? { hash: result.hash, amountOut: result.result } : result
+}
+
+/**
+ * Add liquidity: deposit up to `ptDesired`/`syDesired`, keeping the pool ratio,
+ * with `ptMin`/`syMin` as slippage floors. Returns the LP shares minted.
+ */
+export async function addLiquidity(
+  address: string,
+  maturity: bigint,
+  ptDesired: bigint,
+  syDesired: bigint,
+  ptMin: bigint,
+  syMin: bigint,
+  onPhase: OnTxPhase,
+): Promise<{ hash: string; lpMinted: bigint } | AppError> {
+  const c = await client()
+  const result = await invokeWrite(
+    (options) =>
+      c.add_liquidity(
+        {
+          from: address,
+          maturity,
+          pt_desired: ptDesired,
+          sy_desired: syDesired,
+          pt_min: ptMin,
+          sy_min: syMin,
+        },
+        options,
+      ),
+    address,
+    onPhase,
+    AMM_ERRORS,
+  )
+  return 'hash' in result ? { hash: result.hash, lpMinted: result.result } : result
+}
+
+/**
+ * Remove `lp` shares for the pro-rata reserves, guarded by `ptMin`/`syMin`.
+ * Returns the PT and SY paid out.
+ */
+export async function removeLiquidity(
+  address: string,
+  maturity: bigint,
+  lp: bigint,
+  ptMin: bigint,
+  syMin: bigint,
+  onPhase: OnTxPhase,
+): Promise<{ hash: string; ptOut: bigint; syOut: bigint } | AppError> {
+  const c = await client()
+  const result = await invokeWrite(
+    (options) =>
+      c.remove_liquidity({ from: address, maturity, lp, pt_min: ptMin, sy_min: syMin }, options),
+    address,
+    onPhase,
+    AMM_ERRORS,
+  )
+  return 'hash' in result
+    ? { hash: result.hash, ptOut: result.result[0], syOut: result.result[1] }
+    : result
 }

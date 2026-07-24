@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classifyContractError, MYT_ERRORS, SPLITTER_ERRORS } from './errors'
+import { AMM_ERRORS, classifyContractError, MYT_ERRORS, SPLITTER_ERRORS } from './errors'
 
 describe('classifyContractError', () => {
   it('maps a contract error code via the given table', () => {
@@ -7,6 +7,14 @@ describe('classifyContractError', () => {
     expect(classifyContractError(err, MYT_ERRORS).code).toBe('faucet_limit')
     // The same numeric code means something different per contract.
     expect(classifyContractError(err, SPLITTER_ERRORS).code).toBe('maturity_in_past')
+    expect(classifyContractError(err, AMM_ERRORS).code).toBe('maturity_passed')
+  })
+
+  it('maps the AMM slippage and pool errors distinctly', () => {
+    const slippage = new Error('Error(Contract, #8)')
+    expect(classifyContractError(slippage, AMM_ERRORS).code).toBe('slippage_exceeded')
+    const noPool = new Error('Error(Contract, #3)')
+    expect(classifyContractError(noPool, AMM_ERRORS).code).toBe('pool_not_found')
   })
 
   it('detects a user-rejected signature', () => {
