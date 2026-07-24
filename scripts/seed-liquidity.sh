@@ -46,15 +46,15 @@ fi
 
 COST=$(awk -v dt="$DT" -v y="$TARGET_APY" \
   'BEGIN{printf "%.12f", exp(-(dt/31536000.0)*log(1.0+y))}')
-# SY to split into PT_AMOUNT PT (rate R, +0.1% headroom for the floor) and the
-# SY pool leg at the target price. awk doubles are fine here: the error is
-# well under a whole token and the pool ratio is what matters.
+# SY to split into ~PT_AMOUNT PT (rate R, +0.1% headroom for the floor). The
+# pool's SY leg is computed AFTER the split from the PT actually minted —
+# annualization makes short maturities brutally sensitive to ratio drift
+# (0.1% price error on a 7-day maturity is ~5 points of implied APY).
 SY_SPLIT=$(awk -v pt="$PT_AMOUNT" -v r="$R" 'BEGIN{printf "%.0f", pt*1.001*1000000000000/r}')
-SY_POOL=$(awk -v pt="$PT_AMOUNT" -v c="$COST" -v r="$R" 'BEGIN{printf "%.0f", pt*c*1000000000000/r}')
-TOTAL=$(( SY_SPLIT + SY_POOL ))
+SY_POOL_EST=$(awk -v pt="$PT_AMOUNT" -v c="$COST" -v r="$R" 'BEGIN{printf "%.0f", pt*1.002*c*1000000000000/r}')
+TOTAL=$(( SY_SPLIT + SY_POOL_EST ))
 
 echo "rate=$R  dt=${DT}s  target_apy=$TARGET_APY  pt_cost=$COST"
-echo "sy_to_split=$SY_SPLIT  sy_pool_leg=$SY_POOL"
 
 echo "Funding + wrapping ${TOTAL} stroops of mUSDY..."
 invoke "$MYT" faucet --to "$ADMIN" --amount "$TOTAL" >/dev/null 2>&1
@@ -64,6 +64,10 @@ echo "Splitting for PT..."
 PT_OUT=$(invoke "$SPLITTER" split --from "$ADMIN" --maturity "$MATURITY" \
   --sy_amount "$SY_SPLIT" 2>/dev/null | tail -1 | tr -d '"')
 echo "PT minted: $PT_OUT (matching YT stays with the admin)"
+# Price the SY leg from the actual PT minted so the seeded ratio hits the
+# target APY exactly.
+SY_POOL=$(awk -v pt="$PT_OUT" -v c="$COST" -v r="$R" 'BEGIN{printf "%.0f", pt*c*1000000000000/r}')
+echo "sy_pool_leg=$SY_POOL"
 
 echo "Adding liquidity..."
 LP=$(invoke "$AMM" add_liquidity --from "$ADMIN" --maturity "$MATURITY" \
