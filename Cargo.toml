@@ -6,6 +6,7 @@ members = [
     "contracts/splitter",
     "contracts/pt-token",
     "contracts/yt-token",
+    "contracts/pt-amm",
 ]
 
 [workspace.dependencies]

@@ -1,0 +1,18 @@
+[package]
+name = "stellas-pt-amm"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+stellas-pt-token = { path = "../pt-token", features = ["testutils"] }
+
+[features]
+testutils = ["soroban-sdk/testutils"]
