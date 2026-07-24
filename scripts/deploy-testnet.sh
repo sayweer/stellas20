@@ -73,16 +73,27 @@ SPLITTER=$(stellar contract deploy \
   -- --admin "$ADMIN" --sy_vault "$SY" \
   --pt_wasm_hash "$PT_HASH" --yt_wasm_hash "$YT_HASH")
 
+echo "Deploying PT-AMM..."
+AMM=$(stellar contract deploy \
+  --wasm "$WASM_DIR/stellas_pt_amm.wasm" \
+  --source "$IDENTITY" --network "$NETWORK" --alias pt-amm \
+  -- --admin "$ADMIN" --market "$SPLITTER" --sy_token "$SY")
+
 NOW=$(date +%s)
 for offset in $MATURITY_OFFSETS; do
   MATURITY=$(( NOW + offset ))
-  echo "Creating maturity at unix $MATURITY (+${offset}s)..."
+  echo "Creating maturity at unix $MATURITY (+${offset}s) + its PT/SY pool..."
   stellar contract invoke --id "$SPLITTER" --source "$IDENTITY" --network "$NETWORK" -- \
     create_maturity --maturity "$MATURITY"
+  stellar contract invoke --id "$AMM" --source "$IDENTITY" --network "$NETWORK" -- \
+    create_pool --maturity "$MATURITY"
 done
 
+echo ""
+echo "Pools are empty — seed them with ./scripts/seed-liquidity.sh <maturity>."
 echo ""
 echo "=== Deployed. Copy these into .env / .env.example / Vercel ==="
 echo "VITE_MYT_CONTRACT_ID=$MYT"
 echo "VITE_SY_VAULT_CONTRACT_ID=$SY"
 echo "VITE_SPLITTER_CONTRACT_ID=$SPLITTER"
+echo "VITE_AMM_CONTRACT_ID=$AMM"
