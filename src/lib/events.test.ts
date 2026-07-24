@@ -9,7 +9,7 @@ const ADDR = 'GDPC4DFVPY2NPQ2GDPE7D3YCQ5NZ34S4PCC2MZALFC4JHZXCVCAQVNKA'
 function makeEvent(
   topic0: string,
   actor: string | null,
-  data: Record<string, bigint>,
+  data: Record<string, bigint | boolean>,
 ): Api.EventResponse {
   const topic = [nativeToScVal(topic0, { type: 'symbol' })]
   if (actor) topic.push(nativeToScVal(actor, { type: 'address' }))
@@ -40,6 +40,29 @@ describe('parseEvent', () => {
     const parsed = parseEvent(makeEvent('faucet', ADDR, { amount: 1_000_0000000n }))
     expect(parsed?.type).toBe('faucet')
     expect(parsed?.amount).toBe(1_000_0000000n)
+  })
+
+  it('parses a swap, choosing the output unit from the direction', () => {
+    // pt_in=false: SY went in, PT came out — the payout unit is PT.
+    const buyPt = parseEvent(
+      makeEvent('swap', ADDR, { amount_in: 1_0000000n, amount_out: 995_000n, pt_in: false }),
+    )
+    expect(buyPt?.type).toBe('swap')
+    expect(buyPt?.amount).toBe(995_000n)
+    expect(buyPt?.unit).toBe('PT')
+    // pt_in=true: PT went in, SY came out.
+    const sellPt = parseEvent(
+      makeEvent('swap', ADDR, { amount_in: 1_0000000n, amount_out: 990_000n, pt_in: true }),
+    )
+    expect(sellPt?.unit).toBe('SY')
+  })
+
+  it('parses liquidity events using the SY leg', () => {
+    const add = parseEvent(makeEvent('liquidity_added', ADDR, { sy_in: 40_0000000n, lp_minted: 6n }))
+    expect(add?.type).toBe('liquidity_added')
+    expect(add?.amount).toBe(40_0000000n)
+    const rem = parseEvent(makeEvent('liquidity_removed', ADDR, { sy_out: 4_0000000n, lp_burned: 6n }))
+    expect(rem?.amount).toBe(4_0000000n)
   })
 
   it('returns null for an unrelated event topic', () => {

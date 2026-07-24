@@ -7,7 +7,7 @@ import { chainNowMs } from '../lib/chainTime'
 import type { ProtocolEvent, ProtocolEventType } from '../lib/events'
 import { ExternalLinkIcon } from './icons'
 
-/** Display label, dot color, and amount unit per event type. */
+/** Display label, dot color, and default amount unit per event type. */
 const META: Record<ProtocolEventType, { label: string; dot: string; unit: string }> = {
   faucet: { label: 'Faucet', dot: 'bg-sky-400', unit: 'mUSDY' },
   wrap: { label: 'Wrap', dot: 'bg-indigo-400', unit: 'mUSDY' },
@@ -16,6 +16,9 @@ const META: Record<ProtocolEventType, { label: string; dot: string; unit: string
   merge: { label: 'Merge', dot: 'bg-amber-400', unit: 'SY' },
   yield_claim: { label: 'Claim', dot: 'bg-emerald-400', unit: 'SY' },
   pt_redeem: { label: 'Redeem', dot: 'bg-violet-400', unit: 'SY' },
+  swap: { label: 'Swap', dot: 'bg-teal-400', unit: 'SY' },
+  liquidity_added: { label: 'Add LP', dot: 'bg-cyan-400', unit: 'SY' },
+  liquidity_removed: { label: 'Remove LP', dot: 'bg-cyan-400', unit: 'SY' },
 }
 
 interface ActivityFeedProps {
@@ -69,7 +72,7 @@ export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
                     {formatRelativeTime(event.closedAt, nowMs)}
                   </span>
                   <span className="font-mono tabular-nums text-neutral-300">
-                    {formatAmount(event.amount)} {meta.unit}
+                    {formatAmount(event.amount)} {event.unit ?? meta.unit}
                   </span>
                   <a
                     href={explorerTxUrl(event.txHash)}

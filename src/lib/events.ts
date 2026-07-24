@@ -16,6 +16,9 @@ export type ProtocolEventType =
   | 'merge'
   | 'yield_claim'
   | 'pt_redeem'
+  | 'swap'
+  | 'liquidity_added'
+  | 'liquidity_removed'
 
 /** A parsed, display-ready protocol event. */
 export interface ProtocolEvent {
@@ -25,6 +28,11 @@ export interface ProtocolEvent {
   address: string | null
   /** A representative amount for the row (SY in/out, or token amount), in stroops. */
   amount: bigint
+  /**
+   * Display unit override when it can't be inferred from the type alone (a swap
+   * pays out PT or SY depending on direction). Falls back to the type's unit.
+   */
+  unit: string | null
   /** Maturity this event relates to, when applicable. */
   maturity: bigint | null
   ledger: number
@@ -51,7 +59,12 @@ export async function fetchProtocolEvents(cursor?: string): Promise<FetchEventsR
     const filters: Api.EventFilter[] = [
       {
         type: 'contract',
-        contractIds: [config.mytContractId, config.syVaultContractId, config.splitterContractId],
+        contractIds: [
+          config.mytContractId,
+          config.syVaultContractId,
+          config.splitterContractId,
+          config.ammContractId,
+        ],
       },
     ]
     const request: Api.GetEventsRequest = cursor
@@ -87,6 +100,9 @@ const KNOWN_TYPES = new Set<string>([
   'merge',
   'yield_claim',
   'pt_redeem',
+  'swap',
+  'liquidity_added',
+  'liquidity_removed',
 ])
 
 /**
@@ -108,6 +124,7 @@ export function parseEvent(event: Api.EventResponse): ProtocolEvent | null {
       type,
       address,
       amount: representativeAmount(type, data),
+      unit: unitOverride(type, data),
       maturity: typeof data.maturity === 'bigint' ? data.maturity : null,
       ledger: event.ledger,
       txHash: event.txHash,
@@ -119,15 +136,38 @@ export function parseEvent(event: Api.EventResponse): ProtocolEvent | null {
 }
 
 /** The single amount most meaningful to show per event type (in stroops). */
-function representativeAmount(type: ProtocolEventType, data: Record<string, bigint>): bigint {
+function representativeAmount(
+  type: ProtocolEventType,
+  data: Record<string, bigint | boolean>,
+): bigint {
+  const num = (v: bigint | boolean | undefined): bigint => (typeof v === 'bigint' ? v : 0n)
   switch (type) {
     case 'split':
-      return data.sy_in ?? 0n
+      return num(data.sy_in)
     case 'merge':
     case 'yield_claim':
     case 'pt_redeem':
-      return data.sy_out ?? 0n
+      return num(data.sy_out)
+    case 'swap':
+      return num(data.amount_out)
+    case 'liquidity_added':
+      return num(data.sy_in)
+    case 'liquidity_removed':
+      return num(data.sy_out)
     default:
-      return data.amount ?? 0n
+      return num(data.amount)
   }
+}
+
+/**
+ * A per-event display unit where the type alone is ambiguous: a swap's output
+ * is SY when PT went in, PT when SY went in (`pt_in` flag). Null lets the feed
+ * fall back to the type's fixed unit.
+ */
+function unitOverride(
+  type: ProtocolEventType,
+  data: Record<string, bigint | boolean>,
+): string | null {
+  if (type === 'swap') return data.pt_in === true ? 'SY' : 'PT'
+  return null
 }
