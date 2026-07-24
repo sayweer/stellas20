@@ -3,7 +3,7 @@
 // Amounts use the `<whole>_<7-decimal stroops>` grouping convention.
 #![allow(clippy::inconsistent_digit_grouping)]
 
-use crate::test::{fund_sy, setup, tokens, TestCtx, BASE_TS};
+use crate::test::{fund_sy, setup, setup_over_blend, setup_over_mock, tokens, TestCtx, BASE_TS};
 use crate::RATE_SCALE;
 use soroban_sdk::{
     testutils::{Address as _, Ledger},
@@ -156,7 +156,19 @@ fn test_two_users_independent_positions() {
 
 #[test]
 fn test_solvency_invariant_scripted() {
-    let ctx = setup();
+    scripted_solvency(setup_over_mock());
+}
+
+/// Every invariant the Market relies on is a property of the SY *interface*,
+/// not of the mock behind it — so the same script has to survive a real
+/// Blend-backed vault, where shares are bTokens and the rate comes from a
+/// lending pool (Phase 6 DoD).
+#[test]
+fn test_solvency_invariant_scripted_over_blend() {
+    scripted_solvency(setup_over_blend());
+}
+
+fn scripted_solvency(ctx: TestCtx) {
     let maturity = BASE_TS + 3000;
     ctx.splitter.create_maturity(&maturity);
     let alice = Address::generate(&ctx.env);
@@ -235,7 +247,10 @@ impl Rng {
 /// (over-balance, wrong phase) go through try_ and are ignored — the point
 /// is that no sequence, valid or sloppy, can break the invariants.
 fn run_harness(seed: u64, ops: usize) {
-    let ctx = setup();
+    run_harness_over(setup_over_mock(), seed, ops);
+}
+
+fn run_harness_over(ctx: TestCtx, seed: u64, ops: usize) {
     // The factory-deployed tokens execute as real wasm; lift the test budget
     // so a long randomized sequence can't spuriously run out of gas.
     ctx.env.cost_estimate().budget().reset_unlimited();
@@ -316,4 +331,46 @@ fn test_harness_seed_2() {
 #[test]
 fn test_harness_seed_3() {
     run_harness(0x5EED_0003, 200);
+}
+
+#[test]
+fn test_harness_seed_1_over_blend() {
+    run_harness_over(setup_over_blend(), 0x5EED_0001, 200);
+}
+
+#[test]
+fn test_harness_seed_2_over_blend() {
+    run_harness_over(setup_over_blend(), 0x5EED_0002, 200);
+}
+
+/// I4 over the Blend vault: yield accrual stops dead at maturity and the
+/// principal redeems at the rate the vault froze there, however long after the
+/// fact the holder shows up.
+#[test]
+fn test_maturity_rate_frozen_over_blend() {
+    let ctx = setup_over_blend();
+    let maturity = BASE_TS + 2000;
+    ctx.splitter.create_maturity(&maturity);
+    let user = Address::generate(&ctx.env);
+    fund_sy(&ctx, &user, 100_0000000);
+    ctx.splitter.split(&user, &maturity, &100_0000000);
+
+    ctx.env.ledger().set_timestamp(maturity + 10);
+    let claimable_at_maturity = ctx.splitter.preview_claimable(&user, &maturity);
+    let (pt, _) = tokens(&ctx, maturity);
+    let pt_balance = pt.balance(&user);
+
+    // Long after maturity, with the live rate far higher, nothing has moved.
+    ctx.env.ledger().set_timestamp(maturity + 500_000);
+    assert_eq!(
+        ctx.splitter.preview_claimable(&user, &maturity),
+        claimable_at_maturity,
+        "I4: YT accrual must freeze at maturity"
+    );
+    let redeemed = ctx.splitter.redeem_pt(&user, &maturity, &pt_balance);
+    let claimed = ctx.splitter.claim_yield(&user, &maturity);
+    assert_eq!(claimed, claimable_at_maturity);
+    // Everything the position was ever worth comes back, minus rounding dust.
+    assert!(redeemed + claimed <= 100_0000000);
+    assert!(100_0000000 - (redeemed + claimed) <= 2);
 }

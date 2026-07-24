@@ -1628,6 +1628,7 @@ dependencies = [
  "soroban-sdk",
  "stellas-mock-yield-token",
  "stellas-sy-vault",
+ "stellas-sy-vault-blend",
 ]
 
 [[package]]

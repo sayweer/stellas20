@@ -6,13 +6,16 @@
 // files exist (CI builds wasm first for the same reason).
 #![allow(clippy::inconsistent_digit_grouping)]
 
-use crate::{MaturityTokens, Split, Splitter, SplitterClient, SplitterError, YieldClaim};
+use crate::{
+    MaturityTokens, Split, Splitter, SplitterClient, SplitterError, SyVaultClient, YieldClaim,
+};
 use soroban_sdk::{
     testutils::{Address as _, Events, Ledger},
     token, Address, Env, Event, MuxedAddress, String,
 };
 use stellas_mock_yield_token::{MockYieldToken, MockYieldTokenClient, RATE_SCALE};
-use stellas_sy_vault::{SyVault, SyVaultClient};
+use stellas_sy_vault::SyVault;
+use stellas_sy_vault_blend::{mock_pool::MockBlendPool, SyVaultBlend, SyVaultBlendClient};
 
 /// The real PT/YT token wasm, exactly what testnet runs.
 pub mod pt_wasm {
@@ -27,47 +30,139 @@ pub const INITIAL_RATE: i128 = RATE_SCALE; // 1.0
 pub const SLOPE: i128 = 200_000_000; // +0.0002/s
 pub const T_FAR: u64 = BASE_TS + 100_000; // maturity far in the future
 
+/// Which SY vault — and therefore which yield source — the Market runs over.
+/// The Market only ever sees the SY interface, so every invariant has to hold
+/// for both (MASTERPLAN §3.7).
+pub enum Source {
+    /// `sy-vault` over the MockYieldToken: a linear, exactly-predictable rate.
+    Mock {
+        myt: MockYieldTokenClient<'static>,
+        vault: stellas_sy_vault::SyVaultClient<'static>,
+    },
+    /// `sy-vault-blend` over a Blend lending position: shares are bTokens, so
+    /// wrapping is not 1:1 and the rate is whatever the pool reports.
+    Blend {
+        minter: token::StellarAssetClient<'static>,
+        vault: SyVaultBlendClient<'static>,
+    },
+}
+
 pub struct TestCtx {
     pub env: Env,
     pub admin: Address,
-    pub myt: MockYieldTokenClient<'static>,
+    /// The vault as the Market sees it — the interface client, not a concrete
+    /// vault type, so the same assertions run against either source.
     pub sy: SyVaultClient<'static>,
     pub splitter: SplitterClient<'static>,
     pub splitter_id: Address,
+    pub source: Source,
 }
 
-pub fn setup() -> TestCtx {
-    let env = Env::default();
-    env.mock_all_auths();
-    env.ledger().set_timestamp(BASE_TS);
-
-    let admin = Address::generate(&env);
-
-    let myt_id = env.register(MockYieldToken, (admin.clone(), INITIAL_RATE, SLOPE));
-    let myt = MockYieldTokenClient::new(&env, &myt_id);
-
-    let sy_id = env.register(SyVault, (admin.clone(), myt_id.clone()));
-    let sy = SyVaultClient::new(&env, &sy_id);
-
-    let pt_hash = env.deployer().upload_contract_wasm(pt_wasm::WASM);
-    let yt_hash = env.deployer().upload_contract_wasm(yt_wasm::WASM);
-    let splitter_id = env.register(Splitter, (admin.clone(), sy_id.clone(), pt_hash, yt_hash));
-    let splitter = SplitterClient::new(&env, &splitter_id);
-
-    TestCtx {
-        env,
-        admin,
-        myt,
-        sy,
-        splitter,
-        splitter_id,
+impl TestCtx {
+    /// The underlying mock yield token. Mock-source tests only — the Blend
+    /// source has no such thing.
+    pub fn myt(&self) -> &MockYieldTokenClient<'static> {
+        match &self.source {
+            Source::Mock { myt, .. } => myt,
+            Source::Blend { .. } => panic!("myt() is only available on the mock source"),
+        }
     }
 }
 
-/// Give `who` `amount` SY: faucet the underlying, then wrap it 1:1.
+pub fn setup() -> TestCtx {
+    setup_over_mock()
+}
+
+pub fn setup_over_mock() -> TestCtx {
+    let (env, admin) = new_env();
+
+    let myt_id = env.register(MockYieldToken, (admin.clone(), INITIAL_RATE, SLOPE));
+    let sy_id = env.register(SyVault, (admin.clone(), myt_id.clone()));
+
+    let source = Source::Mock {
+        myt: MockYieldTokenClient::new(&env, &myt_id),
+        vault: stellas_sy_vault::SyVaultClient::new(&env, &sy_id),
+    };
+    finish_setup(env, admin, sy_id, source)
+}
+
+/// The same Market, over a Blend-backed vault driven by the mock pool (which
+/// reproduces Blend's exact rounding — see `sy-vault-blend/src/mock_pool.rs`).
+/// The rate curve is deliberately identical to the mock source's, so a failure
+/// here means the *vault swap* broke something, not the numbers.
+pub fn setup_over_blend() -> TestCtx {
+    let (env, admin) = new_env();
+
+    let asset = env
+        .register_stellar_asset_contract_v2(admin.clone())
+        .address();
+    let pool_id = env.register(MockBlendPool, (asset.clone(), 0u32, INITIAL_RATE, SLOPE));
+    let minter = token::StellarAssetClient::new(&env, &asset);
+    // Interest paid out beyond what was supplied comes from borrowers on a real
+    // pool; here it is pre-funded.
+    minter.mint(&pool_id, &1_000_000_0000000);
+
+    let sy_id = env.register(
+        SyVaultBlend,
+        (
+            admin.clone(),
+            pool_id,
+            asset,
+            String::from_str(&env, "Standardized Yield Blend"),
+            String::from_str(&env, "SY-bTEST"),
+        ),
+    );
+
+    let source = Source::Blend {
+        minter,
+        vault: SyVaultBlendClient::new(&env, &sy_id),
+    };
+    finish_setup(env, admin, sy_id, source)
+}
+
+fn new_env() -> (Env, Address) {
+    let env = Env::default();
+    env.mock_all_auths();
+    env.ledger().set_timestamp(BASE_TS);
+    let admin = Address::generate(&env);
+    (env, admin)
+}
+
+fn finish_setup(env: Env, admin: Address, sy_id: Address, source: Source) -> TestCtx {
+    let pt_hash = env.deployer().upload_contract_wasm(pt_wasm::WASM);
+    let yt_hash = env.deployer().upload_contract_wasm(yt_wasm::WASM);
+    let splitter_id = env.register(Splitter, (admin.clone(), sy_id.clone(), pt_hash, yt_hash));
+
+    let sy = SyVaultClient::new(&env, &sy_id);
+    let splitter = SplitterClient::new(&env, &splitter_id);
+    TestCtx {
+        env,
+        admin,
+        sy,
+        splitter,
+        splitter_id,
+        source,
+    }
+}
+
+/// Give `who` exactly `amount` SY, whichever source is behind the vault.
+///
+/// The mock wraps 1:1. Blend mints bTokens, so the deposit is grossed up by the
+/// rate — `ceil(amount · R / SCALE)` in, which mints back exactly `amount`
+/// shares for any rate at or above 1.0.
 pub fn fund_sy(ctx: &TestCtx, who: &Address, amount: i128) {
-    ctx.myt.faucet(who, &amount);
-    ctx.sy.wrap(who, &amount);
+    match &ctx.source {
+        Source::Mock { myt, vault } => {
+            myt.faucet(who, &amount);
+            vault.wrap(who, &amount);
+        }
+        Source::Blend { minter, vault } => {
+            let rate = ctx.sy.exchange_rate();
+            let deposit = (amount * RATE_SCALE + rate - 1) / rate;
+            minter.mint(who, &deposit);
+            vault.wrap(who, &deposit);
+        }
+    }
 }
 
 /// SEP-41 clients for a maturity's factory-deployed PT and YT tokens.
@@ -182,7 +277,7 @@ fn test_split_amounts_exact_at_known_rate() {
 
     // Warp to a rate of exactly 1.2 (t0 + 1000s).
     ctx.env.ledger().set_timestamp(BASE_TS + 1000);
-    assert_eq!(ctx.myt.exchange_rate(), 1_200_000_000_000);
+    assert_eq!(ctx.myt().exchange_rate(), 1_200_000_000_000);
 
     let pt_out = ctx.splitter.split(&user, &T_FAR, &100_0000000);
     // 100 SY * 1.2 = 120 PT/YT, entered at index 1.2.
