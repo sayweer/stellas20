@@ -1,8 +1,9 @@
-/** Live exchange-rate ticker with a per-minute yield estimate. */
+/** Live exchange-rate ticker with the underlying yield APY. */
 import type { ReactElement } from 'react'
 import type { RateInfo } from '../lib/contracts/mockToken'
 import { useLiveRate } from '../hooks/useLiveRate'
-import { ratePerMinutePct, rateToDecimal } from '../lib/yield'
+import { rateToDecimal } from '../lib/yield'
+import { formatPercent, underlyingApy } from '../lib/amm'
 import { TrendingUpIcon } from './icons'
 
 interface RateTickerProps {
@@ -11,7 +12,9 @@ interface RateTickerProps {
 
 export function RateTicker({ rateInfo }: RateTickerProps): ReactElement {
   const liveRate = useLiveRate(rateInfo)
-  const pctPerMin = rateInfo ? ratePerMinutePct(rateInfo.slopePerSec) : 0
+  // The underlying yield source's annualized rate (from the linear slope) — a
+  // meaningful figure, unlike a raw per-minute delta at realistic rates.
+  const apy = rateInfo && liveRate !== null ? underlyingApy(rateInfo.slopePerSec, liveRate) : null
 
   return (
     <div className="flex items-center gap-2.5 rounded-xl border border-neutral-800 bg-neutral-900/60 px-3.5 py-2.5">
@@ -20,13 +23,13 @@ export function RateTicker({ rateInfo }: RateTickerProps): ReactElement {
       </span>
       <div className="min-w-0">
         <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">
-          mUSDY exchange rate
+          Underlying yield
         </p>
         <p className="font-mono text-lg font-semibold tabular-nums text-neutral-50">
-          {liveRate === null ? '—' : rateToDecimal(liveRate).toFixed(6)}
-          {rateInfo && (
-            <span className="ml-2 text-xs font-normal text-emerald-400">
-              ≈ +{pctPerMin.toFixed(2)}%/min
+          {apy === null ? '—' : `${formatPercent(apy)} APY`}
+          {liveRate !== null && (
+            <span className="ml-2 text-xs font-normal text-neutral-400">
+              rate {rateToDecimal(liveRate).toFixed(6)}
             </span>
           )}
         </p>
