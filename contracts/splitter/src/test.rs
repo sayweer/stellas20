@@ -83,7 +83,7 @@ pub fn setup_over_mock() -> TestCtx {
         myt: MockYieldTokenClient::new(&env, &myt_id),
         vault: stellas_sy_vault::SyVaultClient::new(&env, &sy_id),
     };
-    finish_setup(env, admin, sy_id, source)
+    finish_setup(env, admin, sy_id, "mUSDY", source)
 }
 
 /// The same Market, over a Blend-backed vault driven by the mock pool (which
@@ -117,7 +117,7 @@ pub fn setup_over_blend() -> TestCtx {
         minter,
         vault: SyVaultBlendClient::new(&env, &sy_id),
     };
-    finish_setup(env, admin, sy_id, source)
+    finish_setup(env, admin, sy_id, "bTEST", source)
 }
 
 fn new_env() -> (Env, Address) {
@@ -128,10 +128,25 @@ fn new_env() -> (Env, Address) {
     (env, admin)
 }
 
-fn finish_setup(env: Env, admin: Address, sy_id: Address, source: Source) -> TestCtx {
+fn finish_setup(
+    env: Env,
+    admin: Address,
+    sy_id: Address,
+    underlying_symbol: &str,
+    source: Source,
+) -> TestCtx {
     let pt_hash = env.deployer().upload_contract_wasm(pt_wasm::WASM);
     let yt_hash = env.deployer().upload_contract_wasm(yt_wasm::WASM);
-    let splitter_id = env.register(Splitter, (admin.clone(), sy_id.clone(), pt_hash, yt_hash));
+    let splitter_id = env.register(
+        Splitter,
+        (
+            admin.clone(),
+            sy_id.clone(),
+            pt_hash,
+            yt_hash,
+            String::from_str(&env, underlying_symbol),
+        ),
+    );
 
     let sy = SyVaultClient::new(&env, &sy_id);
     let splitter = SplitterClient::new(&env, &splitter_id);
@@ -205,6 +220,43 @@ fn test_create_maturity_deploys_wired_tokens() {
     let totals = ctx.splitter.get_totals(&T_FAR);
     assert_eq!(totals.pt_supply, 0);
     assert_eq!(totals.yt_supply, 0);
+}
+
+/// A second Market over a different vault mints tokens that name *its*
+/// underlying — a Blend-backed market must not hand out "PT-mUSDY" tokens.
+#[test]
+fn test_token_symbols_name_the_market_underlying() {
+    let ctx = setup_over_blend();
+    ctx.splitter.create_maturity(&T_FAR);
+    let (pt, yt) = tokens(&ctx, T_FAR);
+
+    assert_eq!(
+        pt.symbol(),
+        String::from_str(&ctx.env, "PT-bTEST-1700100000")
+    );
+    assert_eq!(
+        yt.symbol(),
+        String::from_str(&ctx.env, "YT-bTEST-1700100000")
+    );
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #14)")]
+fn test_oversized_underlying_symbol_rejected() {
+    let (env, admin) = new_env();
+    let sy_id = Address::generate(&env);
+    let pt_hash = env.deployer().upload_contract_wasm(pt_wasm::WASM);
+    let yt_hash = env.deployer().upload_contract_wasm(yt_wasm::WASM);
+    env.register(
+        Splitter,
+        (
+            admin,
+            sy_id,
+            pt_hash,
+            yt_hash,
+            String::from_str(&env, "THIRTEEN-CHR!"),
+        ),
+    );
 }
 
 #[test]

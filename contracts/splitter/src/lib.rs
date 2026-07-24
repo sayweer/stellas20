@@ -42,8 +42,8 @@
 //! contract passes, as the direct cross-contract invoker.
 
 use soroban_sdk::{
-    contract, contractclient, contracterror, contractevent, contractimpl, contracttype, Address,
-    Bytes, BytesN, Env, String, Vec,
+    contract, contractclient, contracterror, contractevent, contractimpl, contracttype,
+    panic_with_error, Address, Bytes, BytesN, Env, String, Vec,
 };
 
 /// Exchange-rate fixed-point scale (must match the yield token's `RATE_SCALE`).
@@ -56,11 +56,17 @@ const TTL_EXTEND_TO: u32 = 30 * 24 * 60 * 12;
 /// Cap on registered maturities to keep the instance entries bounded.
 const MAX_MATURITIES: u32 = 32;
 
+/// Longest underlying symbol the PT/YT metadata buffer can hold — the same
+/// 12-character ceiling Stellar puts on asset codes.
+const MAX_SYMBOL_LEN: usize = 12;
+
 #[contracttype]
 #[derive(Clone)]
 pub enum DataKey {
     Admin,
     SyVault,
+    /// Ticker of the underlying behind this Market's vault, e.g. "mUSDY".
+    UnderlyingSymbol,
     Maturities,
     PtWasmHash,
     YtWasmHash,
@@ -130,6 +136,7 @@ pub enum SplitterError {
     NothingToClaim = 11,
     Unauthorized = 12,
     MathOverflow = 13,
+    InvalidSymbol = 14,
 }
 
 /// Cross-contract view of the SY vault the Market operates on.
@@ -219,15 +226,27 @@ impl Splitter {
     /// Constructor: runs once at deploy (no front-run). Records the admin,
     /// the SY vault, and the uploaded PT/YT token wasm hashes the factory
     /// instantiates per maturity.
+    /// `underlying_symbol` names the yield source in the PT/YT tickers
+    /// (`PT-<symbol>-<maturity>`), so a second Market over a different vault —
+    /// say a Blend-backed one — mints tokens that say what they are backed by.
+    /// Bounded to `MAX_SYMBOL_LEN` because the metadata is built in a fixed
+    /// no_std buffer.
     pub fn __constructor(
         env: Env,
         admin: Address,
         sy_vault: Address,
         pt_wasm_hash: BytesN<32>,
         yt_wasm_hash: BytesN<32>,
+        underlying_symbol: String,
     ) {
+        if underlying_symbol.is_empty() || underlying_symbol.len() as usize > MAX_SYMBOL_LEN {
+            panic_with_error!(&env, SplitterError::InvalidSymbol);
+        }
         env.storage().instance().set(&DataKey::Admin, &admin);
         env.storage().instance().set(&DataKey::SyVault, &sy_vault);
+        env.storage()
+            .instance()
+            .set(&DataKey::UnderlyingSymbol, &underlying_symbol);
         env.storage()
             .instance()
             .set(&DataKey::PtWasmHash, &pt_wasm_hash);
@@ -269,12 +288,13 @@ impl Splitter {
             .ok_or(SplitterError::NotInitialized)?;
 
         let me = env.current_contract_address();
-        let pt_meta = token_meta(&env, b"PT-mUSDY-", maturity);
+        let underlying = Self::underlying_symbol(&env)?;
+        let pt_meta = token_meta(&env, b"PT-", &underlying, maturity);
         let pt_token = env
             .deployer()
             .with_current_contract(token_salt(&env, maturity, b"pt"))
             .deploy_v2(pt_hash, (me.clone(), pt_meta.clone(), pt_meta));
-        let yt_meta = token_meta(&env, b"YT-mUSDY-", maturity);
+        let yt_meta = token_meta(&env, b"YT-", &underlying, maturity);
         let yt_token = env
             .deployer()
             .with_current_contract(token_salt(&env, maturity, b"yt"))
@@ -645,6 +665,13 @@ impl Splitter {
             .unwrap_or_else(|| Vec::new(env))
     }
 
+    fn underlying_symbol(env: &Env) -> Result<String, SplitterError> {
+        env.storage()
+            .instance()
+            .get(&DataKey::UnderlyingSymbol)
+            .ok_or(SplitterError::NotInitialized)
+    }
+
     fn require_tokens(env: &Env, maturity: u64) -> Result<MaturityTokens, SplitterError> {
         env.storage()
             .instance()
@@ -677,14 +704,20 @@ fn token_salt(env: &Env, maturity: u64, tag: &[u8; 2]) -> BytesN<32> {
     env.crypto().sha256(&b).to_bytes()
 }
 
-/// Build "PT-mUSDY-<maturity>"-style metadata (no_std decimal formatting).
-fn token_meta(env: &Env, prefix: &[u8], maturity: u64) -> String {
-    let mut buf = [0u8; 32];
+/// Build "PT-<underlying>-<maturity>" metadata (no_std decimal formatting).
+/// `underlying` is length-checked at construction, so the buffer always fits.
+fn token_meta(env: &Env, kind: &[u8], underlying: &String, maturity: u64) -> String {
+    let mut buf = [0u8; 48];
     let mut len = 0usize;
-    for &c in prefix {
+    for &c in kind {
         buf[len] = c;
         len += 1;
     }
+    let sym_len = underlying.len() as usize;
+    underlying.copy_into_slice(&mut buf[len..len + sym_len]);
+    len += sym_len;
+    buf[len] = b'-';
+    len += 1;
     let mut digits = [0u8; 20];
     let mut n = 0usize;
     let mut v = maturity;

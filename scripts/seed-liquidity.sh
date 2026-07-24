@@ -16,6 +16,13 @@
 # Defaults: target-apy 0.05, pt-amount 2000000000 (200 PT).
 # Contract IDs default to the stellar CLI aliases the deploy script created;
 # override with MYT_ID / SY_ID / SPLITTER_ID / AMM_ID env vars.
+#
+# SOURCE=mock (default) funds the admin from the mUSDY faucet and wraps 1:1.
+# SOURCE=blend seeds the Blend market instead: SY shares are bTokens, so the
+# admin wraps `ceil(sy * R / 1e12)` of the underlying (XLM — already in the
+# admin's account) to end up with the SY the pool leg needs:
+#   SOURCE=blend SY_ID=sy-vault-blend SPLITTER_ID=splitter-blend \
+#     AMM_ID=pt-amm-blend ./scripts/seed-liquidity.sh <maturity>
 
 set -euo pipefail
 
@@ -25,6 +32,7 @@ PT_AMOUNT="${3:-2000000000}"
 
 IDENTITY="${IDENTITY:-vault-admin}"
 NETWORK="${NETWORK:-testnet}"
+SOURCE="${SOURCE:-mock}"
 MYT="${MYT_ID:-mock-yield-token}"
 SY="${SY_ID:-sy-vault}"
 SPLITTER="${SPLITTER_ID:-splitter}"
@@ -36,7 +44,8 @@ invoke() {
   stellar contract invoke --id "$1" --source "$IDENTITY" --network "$NETWORK" -- "${@:2}"
 }
 
-R=$(invoke "$MYT" exchange_rate 2>/dev/null | tail -1 | tr -d '"')
+# Both vaults expose exchange_rate, so the pricing math below is source-agnostic.
+R=$(invoke "$SY" exchange_rate 2>/dev/null | tail -1 | tr -d '"')
 NOW=$(date +%s)
 DT=$(( MATURITY - NOW ))
 if [ "$DT" -le 0 ]; then
@@ -56,9 +65,16 @@ TOTAL=$(( SY_SPLIT + SY_POOL_EST ))
 
 echo "rate=$R  dt=${DT}s  target_apy=$TARGET_APY  pt_cost=$COST"
 
-echo "Funding + wrapping ${TOTAL} stroops of mUSDY..."
-invoke "$MYT" faucet --to "$ADMIN" --amount "$TOTAL" >/dev/null 2>&1
-invoke "$SY" wrap --from "$ADMIN" --amount "$TOTAL" >/dev/null 2>&1
+if [ "$SOURCE" = "blend" ]; then
+  # bToken shares: gross the deposit up by the rate to land on TOTAL SY.
+  DEPOSIT=$(awk -v sy="$TOTAL" -v r="$R" 'BEGIN{printf "%.0f", int((sy*r + 999999999999)/1000000000000)}')
+  echo "Supplying ${DEPOSIT} stroops into Blend for ~${TOTAL} SY..."
+  invoke "$SY" wrap --from "$ADMIN" --amount "$DEPOSIT" >/dev/null 2>&1
+else
+  echo "Funding + wrapping ${TOTAL} stroops of mUSDY..."
+  invoke "$MYT" faucet --to "$ADMIN" --amount "$TOTAL" >/dev/null 2>&1
+  invoke "$SY" wrap --from "$ADMIN" --amount "$TOTAL" >/dev/null 2>&1
+fi
 
 echo "Splitting for PT..."
 PT_OUT=$(invoke "$SPLITTER" split --from "$ADMIN" --maturity "$MATURITY" \
