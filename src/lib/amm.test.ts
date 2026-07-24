@@ -7,7 +7,9 @@ import {
   minOutFromSlippage,
   priceImpact,
   ptCostInAsset,
+  quoteAddLiquidity,
   quoteAmountOut,
+  quoteRemoveLiquidity,
   quoteSwap,
   underlyingApy,
 } from './amm'
@@ -126,6 +128,36 @@ describe('priceImpact', () => {
     expect(tiny).toBeGreaterThan(0)
     expect(tiny).toBeLessThan(0.01)
     expect(big).toBeGreaterThan(tiny)
+  })
+})
+
+describe('quoteAddLiquidity', () => {
+  // Pool 90 PT / 40 SY, lp_total 6e8 — the Rust seed_pool fixture.
+  const pool = { ptReserve: 90_0000000n, syReserve: 40_0000000n, lpTotal: 600_000_000n }
+
+  it('optimizes the over-supplied leg down to the ratio (matches contract)', () => {
+    // Desire 9 PT, 10 SY: SY optimizes to 4, LP = 6e7 (contract test value).
+    const q = quoteAddLiquidity(pool, 9_0000000n, 10_0000000n)
+    expect(q.ptIn).toBe(9_0000000n)
+    expect(q.syIn).toBe(4_0000000n)
+    expect(q.lpMinted).toBe(60_000_000n)
+  })
+
+  it('takes the SY leg in full when PT is the surplus', () => {
+    const q = quoteAddLiquidity(pool, 90_0000000n, 4_0000000n)
+    expect(q.syIn).toBe(4_0000000n)
+    expect(q.ptIn).toBe(9_0000000n)
+  })
+})
+
+describe('quoteRemoveLiquidity', () => {
+  it('returns the pro-rata floored reserves', () => {
+    const pool = { ptReserve: 90_0000000n, syReserve: 40_0000000n, lpTotal: 600_000_000n }
+    // Burn 6e7 of 6e8 = 10% -> 9 PT, 4 SY.
+    expect(quoteRemoveLiquidity(pool, 60_000_000n)).toEqual({
+      ptOut: 9_0000000n,
+      syOut: 4_0000000n,
+    })
   })
 })
 

@@ -183,3 +183,59 @@ export function Spinner({ className = 'h-4 w-4' }: IconProps): ReactElement {
     </svg>
   )
 }
+
+export function LockIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </Icon>
+  )
+}
+
+export function SwapIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="M8 3 4 7l4 4" />
+      <path d="M4 7h16" />
+      <path d="m16 21 4-4-4-4" />
+      <path d="M20 17H4" />
+    </Icon>
+  )
+}
+
+export function ChartBarIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="M3 3v18h18" />
+      <rect x="7" y="12" width="3" height="6" rx="0.5" />
+      <rect x="12" y="8" width="3" height="10" rx="0.5" />
+      <rect x="17" y="4" width="3" height="14" rx="0.5" />
+    </Icon>
+  )
+}
+
+export function SlidersIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <line x1="4" x2="4" y1="21" y2="14" />
+      <line x1="4" x2="4" y1="10" y2="3" />
+      <line x1="12" x2="12" y1="21" y2="12" />
+      <line x1="12" x2="12" y1="8" y2="3" />
+      <line x1="20" x2="20" y1="21" y2="16" />
+      <line x1="20" x2="20" y1="12" y2="3" />
+      <line x1="1" x2="7" y1="14" y2="14" />
+      <line x1="9" x2="15" y1="8" y2="8" />
+      <line x1="17" x2="23" y1="16" y2="16" />
+    </Icon>
+  )
+}
+
+export function ArrowRightIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </Icon>
+  )
+}

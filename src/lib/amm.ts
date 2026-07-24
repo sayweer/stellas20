@@ -132,6 +132,56 @@ export function priceImpact(reserveIn: bigint, reserveOut: bigint, amountIn: big
   return impact > 0 ? impact : 0
 }
 
+/** Full pool state needed for LP quotes. */
+export interface PoolState extends Reserves {
+  lpTotal: bigint
+}
+
+/** What an `add_liquidity` deposit actually consumes and mints. */
+export interface AddQuote {
+  ptIn: bigint
+  syIn: bigint
+  lpMinted: bigint
+}
+
+/**
+ * Mirror the contract's non-empty `add_liquidity`: one leg is taken in full,
+ * the other optimizes down to the pool ratio (floor), and LP shares are the
+ * floored min of each leg's pro-rata claim. For the (unused-in-UI) empty pool
+ * it echoes the desired amounts with 0 LP.
+ */
+export function quoteAddLiquidity(
+  pool: PoolState,
+  ptDesired: bigint,
+  syDesired: bigint,
+): AddQuote {
+  if (pool.ptReserve <= 0n || pool.syReserve <= 0n || pool.lpTotal <= 0n) {
+    return { ptIn: ptDesired, syIn: syDesired, lpMinted: 0n }
+  }
+  const syOptimal = (ptDesired * pool.syReserve) / pool.ptReserve
+  let ptIn: bigint
+  let syIn: bigint
+  if (syOptimal <= syDesired) {
+    ptIn = ptDesired
+    syIn = syOptimal
+  } else {
+    ptIn = (syDesired * pool.ptReserve) / pool.syReserve
+    syIn = syDesired
+  }
+  const lpFromPt = (ptIn * pool.lpTotal) / pool.ptReserve
+  const lpFromSy = (syIn * pool.lpTotal) / pool.syReserve
+  return { ptIn, syIn, lpMinted: lpFromPt < lpFromSy ? lpFromPt : lpFromSy }
+}
+
+/** Pro-rata (floored) PT and SY returned for burning `lp` shares. */
+export function quoteRemoveLiquidity(pool: PoolState, lp: bigint): { ptOut: bigint; syOut: bigint } {
+  if (pool.lpTotal <= 0n || lp <= 0n) return { ptOut: 0n, syOut: 0n }
+  return {
+    ptOut: (lp * pool.ptReserve) / pool.lpTotal,
+    syOut: (lp * pool.syReserve) / pool.lpTotal,
+  }
+}
+
 /** Format a rate fraction (e.g. 0.052) as a signed percent string ("5.20%"). */
 export function formatPercent(fraction: number | null, decimals = 2): string {
   if (fraction === null || !Number.isFinite(fraction)) return '—'

@@ -4,11 +4,7 @@ import type { Portfolio } from '../hooks/usePortfolio'
 import { formatAmount } from '../lib/format'
 import { claimableAt } from '../lib/yield'
 import { chainNowMs } from '../lib/chainTime'
-import { requestFaucet } from '../lib/contracts/mockToken'
-import { useTxRunner } from '../hooks/useTxRunner'
 import type { AppError } from '../types'
-import { FaucetButton, FAUCET_AMOUNT } from './FaucetButton'
-import { TxStatus } from './TxStatus'
 import { RefreshIcon, Spinner } from './icons'
 
 interface PortfolioPanelProps {
@@ -17,7 +13,6 @@ interface PortfolioPanelProps {
   loading: boolean
   error: AppError | null
   liveRate: bigint | null
-  isWrongNetwork: boolean
   onRefresh: () => void
 }
 
@@ -33,10 +28,8 @@ export function PortfolioPanel({
   loading,
   error,
   liveRate,
-  isWrongNetwork,
   onRefresh,
 }: PortfolioPanelProps): ReactElement {
-  const faucet = useTxRunner()
   const disconnected = address === null
   const totalPt = portfolio.positions.reduce((sum, p) => sum + p.position.pt, 0n)
   // Cap each position's claimable at its own maturity (mirrors the contract) so a
@@ -62,15 +55,6 @@ export function PortfolioPanel({
     },
   ]
 
-  function runFaucet(): void {
-    if (!address) return
-    void faucet.run(
-      'Faucet',
-      (onPhase) => requestFaucet(address, FAUCET_AMOUNT, onPhase),
-      onRefresh,
-    )
-  }
-
   return (
     <section
       aria-labelledby="portfolio-heading"
@@ -80,20 +64,15 @@ export function PortfolioPanel({
         <h2 id="portfolio-heading" className="text-sm font-medium text-neutral-400">
           Portfolio
         </h2>
-        <div className="flex items-center gap-2">
-          {address && (
-            <FaucetButton pending={faucet.pending} disabled={isWrongNetwork} onClick={runFaucet} />
-          )}
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={loading}
-            aria-label="Refresh portfolio"
-            className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:opacity-50"
-          >
-            {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          aria-label="Refresh portfolio"
+          className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:opacity-50"
+        >
+          {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
+        </button>
       </div>
 
       {error ? (
@@ -134,12 +113,6 @@ export function PortfolioPanel({
             </div>
           ))}
         </dl>
-      )}
-
-      {faucet.outcome && (
-        <div className="mt-4">
-          <TxStatus outcome={faucet.outcome} />
-        </div>
       )}
     </section>
   )
