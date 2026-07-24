@@ -29,6 +29,11 @@ maturity — inter-contract communication is intrinsic to the design, not bolted
    at/after maturity. `create_maturity` **factory-deploys** that maturity's token pair:
 4. **PT Token / YT Token** (`PT-mUSDY-<T>` / `YT-mUSDY-<T>`) — real, transferable SEP-41
    tokens, minted only by the Market; the YT carries the settlement hook described below.
+5. **PT-AMM** — constant-product PT/SY pools (one per maturity, 30 bps LP fee, Uniswap-V2
+   math with the first-mint MINIMUM_LIQUIDITY lock). **This is where the fixed rate becomes
+   real:** PT trades at a discount, so buying PT = locking
+   `(1/cost)^(YEAR/Δt) − 1` APY until maturity. Swaps and deposits freeze at maturity;
+   LP withdrawal always works.
 
 ```mermaid
 flowchart LR
@@ -62,7 +67,11 @@ flowchart LR
 |---|---|
 | MockYieldToken (mUSDY) | `CDQT4AHF5JLEQ2CXFXNBAGMTIJLS2UIEYCHQ6NICKBT5TFW54YI5IANU` |
 | SYVault | `CDXY2JXPIBQMSTOTK62JLWT4HULABSBX7BQCFCWOFYUKWXZY6EIVA5OJ` |
-| Splitter | `CARHO56HXKHT5FYBD7R7N2FPE5UFEMEXI3WYA4KV3ILR73PCZYBCZVNU` |
+| Splitter (the Market) | `CARHO56HXKHT5FYBD7R7N2FPE5UFEMEXI3WYA4KV3ILR73PCZYBCZVNU` |
+| PT-AMM | `CAQHWGN6XRZ2X77TE634LRIQTYNISU6BXJFDPFSKREA473NJUA5MG5J4` |
+
+Per-maturity PT/YT token addresses are factory-deployed — read them via
+`get_market(maturity)` or the `MaturityCreated` events.
 
 **Verifiable contract-call transactions** (Stellar Expert, Testnet):
 
@@ -70,6 +79,8 @@ flowchart LR
 - **YT transfer** (settlement hook: YT → Market settles both parties mid-accrual) — [`e0645064…a46c`](https://stellar.expert/explorer/testnet/tx/e0645064fd1e351092c9c9b421468421650c34c88ad38377bb20d095b640a46c)
 - **Claim yield** (the transfer's *recipient* wallet claims its own rate window) — [`aa1e505e…c089`](https://stellar.expert/explorer/testnet/tx/aa1e505ebd74a005175e2f0d079dfb4c78407622b406ea9fda3cc2c3cb1dc089)
 - **Redeem PT** (fixed principal at the frozen maturity rate) — [`76e64ced…e32a`](https://stellar.expert/explorer/testnet/tx/76e64ced07b63e4435997dee539b19d1a0095a4800c91b5804b958b07bafe32a)
+- **AMM swap SY→PT** (buying PT at a discount = locking a fixed rate; quote matched execution to the stroop) — [`04551d54…727a`](https://stellar.expert/explorer/testnet/tx/04551d54e62a51c122a10216bf7414cb0e8baeb95cf453acc3e221f02eda727a)
+- **AMM swap PT→SY** (the reverse leg on the same pool) — [`4469da59…1004`](https://stellar.expert/explorer/testnet/tx/4469da5997a0ff852a9433eb409ca6533193b667a98bb984f9a6e5d589b81004)
 
 > **Testnet resets periodically.** If a contract ID no longer resolves, redeploy with
 > `./scripts/deploy-testnet.sh` and update `.env` / Vercel env vars.
