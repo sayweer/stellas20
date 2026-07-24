@@ -84,6 +84,24 @@ export const SPLITTER_ERRORS: ErrorTable = {
   13: { code: 'math_overflow', message: 'That amount is too large to process.' },
 }
 
+/** PT-AMM (`AmmError`). */
+export const AMM_ERRORS: ErrorTable = {
+  1: { code: 'not_initialized', message: 'The AMM has not been initialized yet.' },
+  2: { code: 'invalid_amount', message: 'Enter an amount greater than 0.' },
+  3: { code: 'pool_not_found', message: 'There is no pool for that maturity yet.' },
+  4: { code: 'pool_exists', message: 'That pool already exists.' },
+  5: { code: 'maturity_not_found', message: 'That maturity does not exist.' },
+  6: { code: 'maturity_passed', message: 'This maturity has passed — trading is closed.' },
+  7: { code: 'insufficient_liquidity', message: 'The pool is too shallow for that trade.' },
+  8: {
+    code: 'slippage_exceeded',
+    message: 'The price moved beyond your slippage limit. Try again.',
+  },
+  9: { code: 'insufficient_lp', message: 'That exceeds your pool share.' },
+  10: { code: 'math_overflow', message: 'That amount is too large to process.' },
+  11: { code: 'unauthorized', message: 'Only the admin can do that.' },
+}
+
 /**
  * Splitter write paths (split/merge/claim/redeem) call SYVault.transfer, so a
  * failed sub-call can surface a `SyError` code where a `SplitterError` code is

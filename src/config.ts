@@ -18,6 +18,8 @@ export interface AppConfig {
   readonly syVaultContractId: string
   /** Deployed Splitter contract ID on Testnet. */
   readonly splitterContractId: string
+  /** Deployed PT-AMM contract ID on Testnet. */
+  readonly ammContractId: string
 }
 
 /**
@@ -42,6 +44,9 @@ export const config: AppConfig = {
   splitterContractId:
     import.meta.env.VITE_SPLITTER_CONTRACT_ID ??
     'CARHO56HXKHT5FYBD7R7N2FPE5UFEMEXI3WYA4KV3ILR73PCZYBCZVNU',
+  ammContractId:
+    import.meta.env.VITE_AMM_CONTRACT_ID ??
+    'CAQHWGN6XRZ2X77TE634LRIQTYNISU6BXJFDPFSKREA473NJUA5MG5J4',
 }
 
 /** True when all three contract IDs are configured (env fully wired). */

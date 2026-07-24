@@ -71,7 +71,10 @@ export async function invokeWrite<T>(
         },
       },
     })
-    return { hash: sent.sendTransactionResponse?.hash ?? '', result: sent.result }
+    return {
+      hash: sent.sendTransactionResponse?.hash ?? '',
+      result: unwrapSpecResult<T>(sent.result),
+    }
   } catch (e) {
     return classifyContractError(e, errorTable)
   }
@@ -84,10 +87,28 @@ export async function readCall<T>(
 ): Promise<T | AppError> {
   try {
     const tx = await call()
-    return tx.result
+    return unwrapSpecResult<T>(tx.result)
   } catch (e) {
     return classifyContractError(e, errorTable)
   }
+}
+
+/**
+ * Contract methods declared `Result<T, E>` come back from the spec-generated
+ * client as `Ok { value }` / `Err` objects with an `unwrap()`; plain-returning
+ * methods come back raw. Normalize both to `T` — an `Err` unwraps into a
+ * throw, which the callers' catch classifies into a friendly AppError.
+ */
+function unwrapSpecResult<T>(value: unknown): T {
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    'unwrap' in value &&
+    typeof (value as { unwrap: unknown }).unwrap === 'function'
+  ) {
+    return (value as { unwrap: () => T }).unwrap()
+  }
+  return value as T
 }
 
 /**
