@@ -86,10 +86,10 @@ flowchart LR
 
 | Contract | ID |
 |---|---|
-| MockYieldToken (mUSDY) | `CDQT4AHF5JLEQ2CXFXNBAGMTIJLS2UIEYCHQ6NICKBT5TFW54YI5IANU` |
-| SYVault | `CDXY2JXPIBQMSTOTK62JLWT4HULABSBX7BQCFCWOFYUKWXZY6EIVA5OJ` |
-| Splitter (the Market) | `CARHO56HXKHT5FYBD7R7N2FPE5UFEMEXI3WYA4KV3ILR73PCZYBCZVNU` |
-| PT-AMM | `CAQHWGN6XRZ2X77TE634LRIQTYNISU6BXJFDPFSKREA473NJUA5MG5J4` |
+| MockYieldToken (mUSDY) | `CDN42W36GJ2AGPWGDMEL2BUEKCGCVCQ4GRLFXUBPTQUDIEDWQQHZG3TR` |
+| SYVault | `CBPCPCDCHGAJUU7BID7DOOKBTIWTRIYYZXGL2YBMJ64KNR53YJD4ANZE` |
+| Splitter (the Market) | `CCBQ4PWTSBKL6RTSL5CFUPVX3SZMLODDJKGH6XFVRZU6UPFXAHHZBSBR` |
+| PT-AMM | `CD4B2YYEMDDRVOFH6EWIXFMP5ZX3YCLMALTYRTGSHCNXDDV3XWNIMILD` |
 
 Per-maturity PT/YT token addresses are factory-deployed — read them via
 `get_market(maturity)` or the `MaturityCreated` events.
@@ -99,23 +99,23 @@ the *XLM · Blend* toggle at the top of the app):
 
 | Contract | ID |
 |---|---|
-| SYVaultBlend (`SY-bXLM`) | `CBPRDRODB4W5NI2RBPAQ7ZFCFULQ5RCQOGSNEEXJ7GUCBKXTUIFYQZ3B` |
-| Splitter (Blend Market) | `CCAWWK3C2JNOXFTNS6AUZLQTPZARW2ETK4JQ2UOTS35UNCU2OSTYJD6O` |
-| PT-AMM (Blend pools) | `CD5PDFVVUK746ZDB72463YM7JTD3UXTZ4RN34CRJRYW3G7CEKWIZ4W2J` |
+| SYVaultBlend (`SY-bXLM`) | `CAWXCCBE7RY26LVVWN5QWWOARGDABGQKJMWAYPCM52TT5QZM2UCOGA7J` |
+| Splitter (Blend Market) | `CDRDDE3NQAY5RPQ4KN7MRAOUTJTWITWLSZQWAFP4XRIN23VG7UHE6YOU` |
+| PT-AMM (Blend pools) | `CBT5RSS37MYLQYEBOYM4GKWSY2MWKQW3RPUPRKQHUVZNKXLZ76TJED75` |
 | Blend v2 pool (external) | `CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF` |
 | XLM (native SAC, the underlying) | `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` |
 
 **Verifiable contract-call transactions** (Stellar Expert, Testnet):
 
-- **Split** (Market pulls SY cross-contract, mints PT + YT tokens) — [`325a90dd…a898`](https://stellar.expert/explorer/testnet/tx/325a90dde67dbd3848d2f3b60532396dfdc3a64b157546b537f39634e672a898)
-- **YT transfer** (settlement hook: YT → Market settles both parties mid-accrual) — [`e0645064…a46c`](https://stellar.expert/explorer/testnet/tx/e0645064fd1e351092c9c9b421468421650c34c88ad38377bb20d095b640a46c)
-- **Claim yield** (the transfer's *recipient* wallet claims its own rate window) — [`aa1e505e…c089`](https://stellar.expert/explorer/testnet/tx/aa1e505ebd74a005175e2f0d079dfb4c78407622b406ea9fda3cc2c3cb1dc089)
-- **Redeem PT** (fixed principal at the frozen maturity rate) — [`76e64ced…e32a`](https://stellar.expert/explorer/testnet/tx/76e64ced07b63e4435997dee539b19d1a0095a4800c91b5804b958b07bafe32a)
-- **AMM swap SY→PT** (buying PT at a discount = locking a fixed rate; quote matched execution to the stroop) — [`04551d54…727a`](https://stellar.expert/explorer/testnet/tx/04551d54e62a51c122a10216bf7414cb0e8baeb95cf453acc3e221f02eda727a)
-- **AMM swap PT→SY** (the reverse leg on the same pool) — [`4469da59…1004`](https://stellar.expert/explorer/testnet/tx/4469da5997a0ff852a9433eb409ca6533193b667a98bb984f9a6e5d589b81004)
-- **Blend wrap** (SYVaultBlend supplies 100 XLM into the live Blend pool, mints 61.9833196 SY-bXLM) — [`1c2381b7…acc4`](https://stellar.expert/explorer/testnet/tx/1c2381b7c6e14ec0ac39e247c9c5e19a5261ad4f4659cc7c0fa9d6d766efacc4)
-- **Blend claim** (yield paid out of *Blend's own accrual*, not a simulated rate) — [`392ab264…2466`](https://stellar.expert/explorer/testnet/tx/392ab264ad5384d465fe07013517f56fd513c08470ba0b1fee905bdd77082466)
-- **Blend unwrap** (10 SY-bXLM → 16.1334598 XLM withdrawn from the pool) — [`af3eab5c…8ce1`](https://stellar.expert/explorer/testnet/tx/af3eab5cbd0859e72753e4b420034a0d1285f96116a59e24d07e516c11b8ce1e)
+- **Split** (Market pulls SY cross-contract, mints PT + YT tokens) — [`b4b424ef…a34b`](https://stellar.expert/explorer/testnet/tx/b4b424ef7fa2a3643a4b1bc4642aca6944623502858a0d20d1ff292d68eca34b)
+- **YT transfer** (settlement hook: YT → Market settles both parties mid-accrual) — [`33086cb1…004e`](https://stellar.expert/explorer/testnet/tx/33086cb102d4a32c669864745c199f73268e4faca16025f798fc5f311b79004e)
+- **Claim yield** (23 stroops over ~140s — exactly 5% APY on 100 SY, not a simulated number) — [`e52f407e…7416`](https://stellar.expert/explorer/testnet/tx/e52f407eaec934d4866a931da76b6ca4b846e1777c7373124c8b4166dd1a7416)
+- **Redeem PT** (fixed principal at the frozen maturity rate) — [`8dd35c7e…9d49`](https://stellar.expert/explorer/testnet/tx/8dd35c7ecc09ec38aee4939402e6c03315b8b67166456e45d0dc03fd92a49d49)
+- **AMM swap SY→PT** (buying PT at a discount = locking a fixed rate; `quote_swap` returned 399418091 and execution paid 399418091 — equal to the stroop) — [`bbd9fe91…f0f2`](https://stellar.expert/explorer/testnet/tx/bbd9fe9164cb20259c1a963e9941c5761473d91c6a073cafff427f1aa614f0f2)
+- **AMM swap PT→SY** (the reverse leg: 5 SY → 3.994 PT → 4.976 SY, so a round trip pays both 30 bps fees and never profits) — [`967c365d…398d`](https://stellar.expert/explorer/testnet/tx/967c365d3df618cf6458ad3ef09dac6329628807110b5fbae592eda26376398d)
+- **Blend wrap** (SYVaultBlend supplies 50 XLM into the live Blend pool, mints 30.9125511 SY-bXLM — not 1:1, because shares are bTokens) — [`45c99fd4…f037`](https://stellar.expert/explorer/testnet/tx/45c99fd4c54a72a7b6bcf345766c3ac62530ac13a7d6e3d20871fa5ff03ff037)
+- **Blend claim** (422 stroops paid out of *Blend's own accrual*, not a simulated rate) — [`fe3f63b9…2fea`](https://stellar.expert/explorer/testnet/tx/fe3f63b963ae26b3df0b43751062c0793379a46bfca8ffa85ed2747adf452fea)
+- **Blend unwrap** (0.5 SY-bXLM → 0.8087461 XLM, paid by the pool straight to the user at `b_rate` 1.617490330657) — [`e195253d…2365`](https://stellar.expert/explorer/testnet/tx/e195253d8367de5d43e38e43ef97018c56de37e90f0068dd8831ff2495b82365)
 
 > **Testnet resets periodically.** If a contract ID no longer resolves, redeploy with
 > `./scripts/deploy-testnet.sh` and update `.env` / Vercel env vars.
@@ -377,9 +377,21 @@ layout, the Trade panel with a live quote, a green **CI run** on GitHub Actions,
 
 ## Security & notes
 
+Written up in full: **[`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md)** (assets, actors, trust
+boundaries, the complete admin-powers inventory, failure modes) and
+**[`docs/plan/audit-round-2.md`](docs/plan/audit-round-2.md)** (the adversarial review's
+findings, with the storage/TTL audit and the candidates that were dismissed on inspection).
+Operational procedures are in **[`docs/RUNBOOKS.md`](docs/RUNBOOKS.md)**.
+
 - **Testnet only**, by design — no mainnet configuration.
 - **Keys stay in your wallet.** The app never requests, stores, or logs secrets.
 - **No admin backdoor into user funds.** `withdraw`/`unwrap`/`merge`/`claim`/`redeem` only ever pay
-  the caller that authorized the call, from their own recorded balance.
+  the caller that authorized the call, from their own recorded balance. Exactly four entry points
+  in the whole workspace are admin-gated (mint and set_rate on the demo token, create_maturity,
+  create_pool); the two vaults holding real deposits have none at all.
+- **No upgrade path, no pause switch, no admin rotation** — anywhere. An upgrade key is a backdoor,
+  so there isn't one. The cost is stated plainly in the threat model: a bug cannot be patched in
+  place, and a lost admin key permanently stops *operations* while leaving every user's ability to
+  claim, redeem and exit completely intact.
 - **No secrets in the repo.** `.env` is gitignored; only non-secret `VITE_`-prefixed values ship to
   the client, and the contract IDs are public Testnet addresses.
