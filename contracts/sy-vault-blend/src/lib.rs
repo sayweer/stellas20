@@ -290,7 +290,10 @@ impl SyVaultBlend {
 
     /// The vault's bToken position in the Blend pool, as last reported by it.
     pub fn position(env: Env) -> i128 {
-        env.storage().instance().get(&DataKey::Position).unwrap_or(0)
+        env.storage()
+            .instance()
+            .get(&DataKey::Position)
+            .unwrap_or(0)
     }
 
     /// The Blend lending pool backing this vault.
@@ -313,7 +316,11 @@ impl SyVaultBlend {
     /// cannot be made monotone otherwise.
     pub fn exchange_rate(env: Env) -> Result<i128, SyBlendError> {
         let spot = Self::reserve(&env)?.data.b_rate;
-        let last: i128 = env.storage().instance().get(&DataKey::LastRate).unwrap_or(0);
+        let last: i128 = env
+            .storage()
+            .instance()
+            .get(&DataKey::LastRate)
+            .unwrap_or(0);
         if spot > last {
             env.storage().instance().set(&DataKey::LastRate, &spot);
             extend_instance(&env);

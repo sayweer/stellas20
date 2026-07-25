@@ -15,8 +15,9 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 
 ## The contracts
 
-stellas-core is three core Soroban contracts plus a factory-deployed PT/YT token pair per
-maturity — inter-contract communication is intrinsic to the design, not bolted on:
+stellas-core is five core Soroban contracts (six with the Blend vault) plus a factory-deployed
+PT/YT token pair per maturity — inter-contract communication is intrinsic to the design, not
+bolted on:
 
 1. **MockYieldToken (mUSDY)** — a demo yield-bearing token (simulating USDY / a Blend position).
    Balances are fixed; an **exchange rate grows with ledger time** (~5% APY by default),
@@ -34,6 +35,9 @@ maturity — inter-contract communication is intrinsic to the design, not bolted
    real:** PT trades at a discount, so buying PT = locking
    `(1/cost)^(YEAR/Δt) − 1` APY until maturity. Swaps and deposits freeze at maturity;
    LP withdrawal always works.
+6. **SYVaultBlend** — the same SY interface over a **real [Blend](https://blend.capital) lending
+   position** instead of the mock. See [Two markets](#two-markets-mock-and-real-yield) below: the
+   SY interface *is* the adapter boundary, so the Market and the AMM run over it unchanged.
 
 ```mermaid
 flowchart LR
@@ -74,6 +78,9 @@ flowchart LR
 | 9 | YT token → Splitter | `on_yt_transfer` — settlement **callback** with pre-change balances | every YT transfer/burn |
 | 10 | PT-AMM → PT & SY tokens | `transfer` (nested auth) | `swap`, `add_liquidity`, `remove_liquidity` |
 | 11 | PT-AMM → Splitter | `get_market` — resolve the maturity's PT token | `create_pool` |
+| 12 | SYVaultBlend → Blend pool | `submit(Supply)` — the pool pulls the underlying from the *user* (nested auth) | `wrap` |
+| 13 | SYVaultBlend → Blend pool | `submit(Withdraw)` — the pool pays the user directly; failures mapped from Blend's codes | `unwrap` |
+| 14 | SYVaultBlend → Blend pool | `get_reserve` — the live `b_rate` behind `exchange_rate` | every settle on the Blend market |
 
 ## Deployed on Testnet
 
@@ -87,6 +94,17 @@ flowchart LR
 Per-maturity PT/YT token addresses are factory-deployed — read them via
 `get_market(maturity)` or the `MaturityCreated` events.
 
+**Blend market** (a second, independent deployment over real lending yield — switch to it with
+the *XLM · Blend* toggle at the top of the app):
+
+| Contract | ID |
+|---|---|
+| SYVaultBlend (`SY-bXLM`) | `CBPRDRODB4W5NI2RBPAQ7ZFCFULQ5RCQOGSNEEXJ7GUCBKXTUIFYQZ3B` |
+| Splitter (Blend Market) | `CCAWWK3C2JNOXFTNS6AUZLQTPZARW2ETK4JQ2UOTS35UNCU2OSTYJD6O` |
+| PT-AMM (Blend pools) | `CD5PDFVVUK746ZDB72463YM7JTD3UXTZ4RN34CRJRYW3G7CEKWIZ4W2J` |
+| Blend v2 pool (external) | `CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF` |
+| XLM (native SAC, the underlying) | `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` |
+
 **Verifiable contract-call transactions** (Stellar Expert, Testnet):
 
 - **Split** (Market pulls SY cross-contract, mints PT + YT tokens) — [`325a90dd…a898`](https://stellar.expert/explorer/testnet/tx/325a90dde67dbd3848d2f3b60532396dfdc3a64b157546b537f39634e672a898)
@@ -95,9 +113,65 @@ Per-maturity PT/YT token addresses are factory-deployed — read them via
 - **Redeem PT** (fixed principal at the frozen maturity rate) — [`76e64ced…e32a`](https://stellar.expert/explorer/testnet/tx/76e64ced07b63e4435997dee539b19d1a0095a4800c91b5804b958b07bafe32a)
 - **AMM swap SY→PT** (buying PT at a discount = locking a fixed rate; quote matched execution to the stroop) — [`04551d54…727a`](https://stellar.expert/explorer/testnet/tx/04551d54e62a51c122a10216bf7414cb0e8baeb95cf453acc3e221f02eda727a)
 - **AMM swap PT→SY** (the reverse leg on the same pool) — [`4469da59…1004`](https://stellar.expert/explorer/testnet/tx/4469da5997a0ff852a9433eb409ca6533193b667a98bb984f9a6e5d589b81004)
+- **Blend wrap** (SYVaultBlend supplies 100 XLM into the live Blend pool, mints 61.9833196 SY-bXLM) — [`1c2381b7…acc4`](https://stellar.expert/explorer/testnet/tx/1c2381b7c6e14ec0ac39e247c9c5e19a5261ad4f4659cc7c0fa9d6d766efacc4)
+- **Blend claim** (yield paid out of *Blend's own accrual*, not a simulated rate) — [`392ab264…2466`](https://stellar.expert/explorer/testnet/tx/392ab264ad5384d465fe07013517f56fd513c08470ba0b1fee905bdd77082466)
+- **Blend unwrap** (10 SY-bXLM → 16.1334598 XLM withdrawn from the pool) — [`af3eab5c…8ce1`](https://stellar.expert/explorer/testnet/tx/af3eab5cbd0859e72753e4b420034a0d1285f96116a59e24d07e516c11b8ce1e)
 
 > **Testnet resets periodically.** If a contract ID no longer resolves, redeploy with
 > `./scripts/deploy-testnet.sh` and update `.env` / Vercel env vars.
+
+## Two markets: mock and real yield
+
+The app ships **two independent markets**, switchable from the toggle above the tabs. They share
+no state and no contracts — only the PT/YT wasm:
+
+| | **mUSDY** | **XLM · Blend** |
+|---|---|---|
+| Yield source | MockYieldToken, a rate that grows ~5% APY by ledger time | a live [Blend v2](https://blend.capital) lending pool on Testnet |
+| SY shares | wrapped 1:1 with the underlying | **bTokens** — wrapping mints `amount / rate` shares |
+| Getting the underlying | public faucet on the token | Friendbot (it is plain XLM) |
+| Purpose | deterministic demo, the CI baseline | proof the mechanism works on yield nobody controls |
+
+Per MASTERPLAN §3.7 there is **no adapter contract**: the SY interface *is* the adapter boundary,
+so `SYVaultBlend` simply implements the same surface the Market already consumes
+(`transfer / balance / exchange_rate / exchange_rate_at`), and the Market, the PT/YT tokens and the
+AMM run over it unchanged. Two things Blend does not provide on its own are added in the vault:
+
+- **Monotonicity.** `exchange_rate` returns Blend's live `b_rate` through a ratchet, so the rate can
+  never move backwards. MASTERPLAN §3.2 makes that binding for every SY source, and the settle math
+  depends on it.
+- **A recoverable past.** Blend keeps no rate history, but maturity settlement needs `R_T`. A past
+  timestamp **freezes at the first rate observed after it** and every later lookup returns that same
+  value — so the first post-maturity settlement pins `R_T` in the transaction that reads it, and
+  every later one agrees. Freezing *upward* is the safe direction: a lookup that came back lower
+  than the live read at that moment would make a settlement release negative and quietly shift SY
+  to PT holders. The reasoning is written up in `docs/plan/blend-notes.md`.
+
+**Exit can genuinely fail.** A fully utilized Blend reserve cannot pay a withdrawal; the vault
+catches the pool's `InvalidUtilRate` and surfaces it as its own error, so the UI says *"the Blend
+pool has no free liquidity right now"* instead of a generic failure.
+
+```mermaid
+flowchart LR
+  User(("User wallet"))
+  BP["Blend v2 pool<br/>(external, Testnet)"]
+  BSY["SYVaultBlend<br/>(SY-bXLM, SEP-41)"]
+  SP2["Splitter<br/>(Blend Market)"]
+  AMM2["PT-AMM<br/>(Blend PT/SY pools)"]
+
+  User -->|wrap / unwrap| BSY
+  User -->|split / merge / claim / redeem| SP2
+  User -->|swap / add / remove LP| AMM2
+  BSY -->|submit Supply / Withdraw| BP
+  BSY -->|get_reserve → b_rate| BP
+  SP2 -->|transfer, exchange_rate_at| BSY
+  AMM2 -->|transfer| BSY
+```
+
+`blend-contract-sdk` is deliberately **not** a dependency: its latest release pins `soroban-sdk 25`
+against this workspace's `27`, and two SDK majors cannot share an `Env`. The pool client is
+hand-written from the deployed spec, and tests run against a mock pool that reproduces Blend's exact
+rounding — which also keeps CI free of network calls.
 
 ## Protocol mechanics
 
@@ -136,8 +210,8 @@ asserts exactly this after every operation in a scripted lifecycle.
 ## Tech stack
 
 - **Contracts:** Rust + [`soroban-sdk`](https://crates.io/crates/soroban-sdk) `27.0.0`, built &
-  deployed with the `stellar` CLI `27.0.0`. A Cargo workspace of six crates under `contracts/`
-  (`mock-yield-token`, `sy-vault`, `splitter`, `pt-token`, `yt-token`, `pt-amm`).
+  deployed with the `stellar` CLI `27.0.0`. A Cargo workspace of seven crates under `contracts/`
+  (`mock-yield-token`, `sy-vault`, `sy-vault-blend`, `splitter`, `pt-token`, `yt-token`, `pt-amm`).
 - **Frontend:** [Vite](https://vite.dev/) + React 19 + TypeScript (strict), [Tailwind CSS](https://tailwindcss.com/).
   A five-tab product SPA (Markets · Trade · Pool · Portfolio · Advanced); all money math is pure,
   tested `bigint` in `src/lib/`.
@@ -146,8 +220,8 @@ asserts exactly this after every operation in a scripted lifecycle.
 - **Chain:** [`@stellar/stellar-sdk`](https://github.com/stellar/js-stellar-sdk) — the official
   `contract` Client/AssembledTransaction pipeline (build → simulate → sign → send → poll), plus
   `/rpc` `getEvents` for the live activity feed.
-- **Tests:** Rust unit + integration + a randomized invariant harness (98), [Vitest](https://vitest.dev/)
-  for the frontend (60).
+- **Tests:** Rust unit + integration + a randomized invariant harness (120, run over *both* yield
+  sources), [Vitest](https://vitest.dev/) for the frontend (66).
 - **CI:** GitHub Actions (`.github/workflows/ci.yml`), on a pinned Rust toolchain.
 
 ## Setup / run locally
@@ -175,7 +249,7 @@ npm run dev            # http://localhost:5173
 
 ## Testing
 
-- **Contracts — 98 Rust tests.** `cargo test --workspace` (run `stellar contract build` first —
+- **Contracts — 120 Rust tests.** `cargo test --workspace` (run `stellar contract build` first —
   the Market's factory tests import the real PT/YT WASM).
   - `mock-yield-token` (18): SEP-41 behavior, auth-gated admin ops, faucet cap, linear rate growth,
     checkpoint history, burn, and allowance expiration.
@@ -183,17 +257,25 @@ npm run dev            # http://localhost:5173
     1:1 wrap/unwrap with cross-contract token moves, rate delegation.
   - `pt-token` (9) / `yt-token` (10): the PT/YT SEP-41 tokens; the YT suite asserts the settlement
     hook's ordering and pre-change-balance arguments, hook-free `mint`/`market_burn`, and dual-auth.
-  - `splitter` (32): split/merge/claim/redeem against the **factory-deployed real tokens**, with
+  - `sy-vault-blend` (18): wrap/unwrap against a mock Blend pool built from Blend's own rounding
+    functions, a scale fixture pinned to real on-chain numbers, the monotonicity ratchet, the
+    frozen-rate cache, and the illiquid-pool error mapping (including a check that *other* pool
+    failures do not borrow the liquidity wording).
+  - `splitter` (38): split/merge/claim/redeem against the **factory-deployed real tokens**, with
     hand-computed exact values, event/auth-negative/edge cases, the headline YT-transfer-settles-both
-    integration test, and a **randomized op-sequence harness** (seeded, 3×200 ops) asserting the
-    solvency and `PT_supply == YT_supply` invariants after *every* operation.
+    integration test, and a **randomized op-sequence harness** (seeded, 5×200 ops) asserting the
+    solvency and `PT_supply == YT_supply` invariants after *every* operation. The scripted solvency
+    script, two of the seeds and a maturity-freeze test **run over the Blend-backed vault too** —
+    the invariants are properties of the SY interface, not of the mock behind it.
   - `pt-amm` (14): the hand-derived swap fixture (quote == execution to the stroop), pro-rata LP
     math, maturity freeze, exact `isqrt`, and a randomized harness asserting `k` never decreases
     and reserves match token balances.
-- **Frontend — 60 Vitest tests.** `npm run test` — the AMM quote/APY math (the swap fixture matches
+- **Frontend — 66 Vitest tests.** `npm run test` — the AMM quote/APY math (the swap fixture matches
   the Rust one byte-for-byte; a p=0.988/90d → ~5% APY sanity check), amount parsing/validation in
   `bigint`, the client-side yield math mirroring the contract, chain-time anchoring, per-contract
-  error mapping, and event parsing (both swap directions) from ScVal fixtures.
+  error mapping (including the Blend liquidity error and the market-specific wrap message), event
+  parsing for both vaults' wrap shapes and both swap directions, and the market switch itself
+  (no contract address may leak across it).
 
 ## CI/CD
 
@@ -212,16 +294,23 @@ local `stellar keys` store, never in CI secrets.
 
 ```bash
 stellar keys generate vault-admin --network testnet --fund
-./scripts/deploy-testnet.sh
+./scripts/deploy-testnet.sh                # mUSDY market
+./scripts/deploy-testnet.sh --with-blend   # ...plus a second market over a real Blend pool
 # prints VITE_MYT_ / VITE_SY_VAULT_ / VITE_SPLITTER_ / VITE_AMM_CONTRACT_ID
+#     (+ VITE_BLEND_* with --with-blend)
 ./scripts/seed-liquidity.sh <maturity-unix> [target-apy]   # seed a pool at a fixed APY
+# Blend pools: SOURCE=blend SY_ID=sy-vault-blend SPLITTER_ID=splitter-blend \
+#              AMM_ID=pt-amm-blend ./scripts/seed-liquidity.sh <maturity-unix>
 ```
 
 `deploy-testnet.sh` builds everything, uploads the PT/YT token WASM, deploys the four core
 contracts in dependency order (constructor-initialized, so nothing can be front-run), then creates
 the demo maturities and their empty PT/SY pools. `seed-liquidity.sh` derives the fair PT price for
-a target implied APY and seeds a pool. Paste the printed IDs into `.env`, `.env.example`, and your
-Vercel project's environment variables.
+a target implied APY and seeds a pool. `--with-blend` additionally deploys `sy-vault-blend` over the
+Blend pool named in the script (a constructor argument, never hardcoded in a contract) plus its own
+Market and AMM. Paste the printed IDs into `.env`, `.env.example`, and your Vercel project's
+environment variables; leaving the `VITE_BLEND_*` values empty ships a mock-only build and the
+market switcher hides itself.
 
 ## Error handling
 

@@ -15,12 +15,13 @@
 //! * an illiquid reserve panics with `InvalidUtilRate = 1207`.
 //!
 //! What is *not* copied is the interest-rate model: `b_rate` grows linearly
-//! from a configured slope so tests stay deterministic. `test::rate_fixture_*`
-//! pins the conversions against real on-chain numbers.
+//! from a configured slope so tests stay deterministic.
+//! `test::test_b_rate_scale_fixture` pins the conversions against the real
+//! on-chain numbers recorded during the spike.
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, panic_with_error, token, Address, Env, Map, MuxedAddress,
-    Vec,
+    contract, contracterror, contractimpl, panic_with_error, token, Address, Env, Map,
+    MuxedAddress, Vec,
 };
 
 use crate::blend::{Positions, Request, Reserve, ReserveConfig, ReserveData, REQUEST_SUPPLY};

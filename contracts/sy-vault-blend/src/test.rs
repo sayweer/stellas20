@@ -190,7 +190,10 @@ fn test_roundtrip_never_returns_more_than_deposited() {
     ctx.vault.unwrap(&user, &sy);
 
     assert!(ctx.token.balance(&user) <= 100_0000000);
-    assert!(100_0000000 - ctx.token.balance(&user) <= 2, "dust is bounded");
+    assert!(
+        100_0000000 - ctx.token.balance(&user) <= 2,
+        "dust is bounded"
+    );
     assert_eq!(ctx.vault.total_supply(), 0);
     assert_backed(&ctx);
 }
@@ -333,11 +336,14 @@ fn test_transfer_and_allowance_flow() {
     assert_eq!(ctx.vault.balance(&alice), 40_0000000);
     assert_eq!(ctx.vault.balance(&bob), 10_0000000);
 
-    ctx.vault
-        .approve(&alice, &spender, &5_0000000, &(ctx.env.ledger().sequence() + 100));
+    ctx.vault.approve(
+        &alice,
+        &spender,
+        &5_0000000,
+        &(ctx.env.ledger().sequence() + 100),
+    );
     assert_eq!(ctx.vault.allowance(&alice, &spender), 5_0000000);
-    ctx.vault
-        .transfer_from(&spender, &alice, &bob, &5_0000000);
+    ctx.vault.transfer_from(&spender, &alice, &bob, &5_0000000);
     assert_eq!(ctx.vault.balance(&bob), 15_0000000);
     assert_eq!(ctx.vault.allowance(&alice, &spender), 0);
 }
@@ -346,10 +352,7 @@ fn test_transfer_and_allowance_flow() {
 fn test_metadata_comes_from_the_constructor() {
     let ctx = setup();
     assert_eq!(ctx.vault.decimals(), 7);
-    assert_eq!(
-        ctx.vault.symbol(),
-        String::from_str(&ctx.env, "SY-bXLM")
-    );
+    assert_eq!(ctx.vault.symbol(), String::from_str(&ctx.env, "SY-bXLM"));
     assert_eq!(ctx.vault.underlying(), ctx.asset);
 }
 
