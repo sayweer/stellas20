@@ -40,6 +40,15 @@ test_snapshots/
 CLAUDE.md
 ROADMAP.md
 
-# Product-first planning docs (kept local/private, not part of the public submission)
+# Product-first planning docs (kept local/private, not part of the public submission).
+# Note the `docs/*` form: git cannot re-include a file whose parent directory is
+# itself excluded, so the exceptions below only work against the contents glob.
 MASTERPLAN.md
-docs/
+docs/*
+docs/plan/*
+!docs/plan/
+
+# ...except the security story, which is public on purpose (Phase 7).
+!docs/THREAT_MODEL.md
+!docs/RUNBOOKS.md
+!docs/plan/audit-round-2.md
