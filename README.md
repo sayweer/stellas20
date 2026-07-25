@@ -220,7 +220,7 @@ asserts exactly this after every operation in a scripted lifecycle.
 - **Chain:** [`@stellar/stellar-sdk`](https://github.com/stellar/js-stellar-sdk) — the official
   `contract` Client/AssembledTransaction pipeline (build → simulate → sign → send → poll), plus
   `/rpc` `getEvents` for the live activity feed.
-- **Tests:** Rust unit + integration + a randomized invariant harness (120, run over *both* yield
+- **Tests:** Rust unit + integration + a randomized invariant harness (122, run over *both* yield
   sources), [Vitest](https://vitest.dev/) for the frontend (66).
 - **CI:** GitHub Actions (`.github/workflows/ci.yml`), on a pinned Rust toolchain.
 
@@ -249,7 +249,7 @@ npm run dev            # http://localhost:5173
 
 ## Testing
 
-- **Contracts — 120 Rust tests.** `cargo test --workspace` (run `stellar contract build` first —
+- **Contracts — 122 Rust tests.** `cargo test --workspace` (run `stellar contract build` first —
   the Market's factory tests import the real PT/YT WASM).
   - `mock-yield-token` (18): SEP-41 behavior, auth-gated admin ops, faucet cap, linear rate growth,
     checkpoint history, burn, and allowance expiration.
