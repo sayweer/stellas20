@@ -1,8 +1,9 @@
-/** Soroban event polling for the protocol's live activity feed across all three contracts. */
+/** Soroban event polling for the active market's live activity feed. */
 import { scValToNative } from '@stellar/stellar-sdk'
 import { Api, Server } from '@stellar/stellar-sdk/rpc'
 import { config } from '../config'
 import { noteChainTime } from './chainTime'
+import { activeMarket } from './market'
 import type { AppError } from '../types'
 
 const server = new Server(config.sorobanRpcUrl)
@@ -53,17 +54,18 @@ export interface FetchEventsResult {
  */
 const LOOKBACK_LEDGERS = 2000
 
-/** Fetch recent protocol events from all three contracts (fresh window or from a cursor). */
+/** Fetch recent protocol events from the active market's contracts (fresh window or from a cursor). */
 export async function fetchProtocolEvents(cursor?: string): Promise<FetchEventsResult | AppError> {
   try {
+    const market = activeMarket()
     const filters: Api.EventFilter[] = [
       {
         type: 'contract',
         contractIds: [
-          config.mytContractId,
-          config.syVaultContractId,
-          config.splitterContractId,
-          config.ammContractId,
+          market.underlyingContractId,
+          market.syVaultContractId,
+          market.splitterContractId,
+          market.ammContractId,
         ],
       },
     ]
@@ -154,6 +156,13 @@ function representativeAmount(
       return num(data.sy_in)
     case 'liquidity_removed':
       return num(data.sy_out)
+    // The mock vault wraps 1:1 and emits a single `amount`; the Blend vault
+    // mints bTokens, so its event carries both legs — show the one the user
+    // typed in each direction.
+    case 'wrap':
+      return num(data.amount ?? data.asset_in)
+    case 'unwrap':
+      return num(data.amount ?? data.sy_in)
     default:
       return num(data.amount)
   }

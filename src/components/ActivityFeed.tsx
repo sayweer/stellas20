@@ -4,13 +4,18 @@ import type { ReactElement } from 'react'
 import { explorerTxUrl } from '../config'
 import { formatAmount, formatRelativeTime, truncateAddress } from '../lib/format'
 import { chainNowMs } from '../lib/chainTime'
+import { activeMarket } from '../lib/market'
 import type { ProtocolEvent, ProtocolEventType } from '../lib/events'
 import { ExternalLinkIcon } from './icons'
 
-/** Display label, dot color, and default amount unit per event type. */
-const META: Record<ProtocolEventType, { label: string; dot: string; unit: string }> = {
-  faucet: { label: 'Faucet', dot: 'bg-sky-400', unit: 'mUSDY' },
-  wrap: { label: 'Wrap', dot: 'bg-indigo-400', unit: 'mUSDY' },
+/**
+ * Display label, dot color, and default amount unit per event type. A null
+ * unit means the amount is denominated in the market's underlying, whose
+ * ticker depends on which market is active.
+ */
+const META: Record<ProtocolEventType, { label: string; dot: string; unit: string | null }> = {
+  faucet: { label: 'Faucet', dot: 'bg-sky-400', unit: null },
+  wrap: { label: 'Wrap', dot: 'bg-indigo-400', unit: null },
   unwrap: { label: 'Unwrap', dot: 'bg-indigo-400', unit: 'SY' },
   split: { label: 'Split', dot: 'bg-emerald-400', unit: 'SY' },
   merge: { label: 'Merge', dot: 'bg-amber-400', unit: 'SY' },
@@ -26,6 +31,7 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
+  const underlyingSymbol = activeMarket().underlyingSymbol
   // Tick every 30s so relative timestamps stay fresh between event polls. Use
   // chain time (not the local clock) since event timestamps are ledger times.
   const [nowMs, setNowMs] = useState(() => chainNowMs())
@@ -72,7 +78,7 @@ export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
                     {formatRelativeTime(event.closedAt, nowMs)}
                   </span>
                   <span className="font-mono tabular-nums text-neutral-300">
-                    {formatAmount(event.amount)} {event.unit ?? meta.unit}
+                    {formatAmount(event.amount)} {event.unit ?? meta.unit ?? underlyingSymbol}
                   </span>
                   <a
                     href={explorerTxUrl(event.txHash)}

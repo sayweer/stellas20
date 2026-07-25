@@ -3,8 +3,8 @@
  * flows arrive with the product UI (MASTERPLAN Phase 4).
  */
 import type { AssembledTransaction, MethodOptions } from '@stellar/stellar-sdk/contract'
-import { config } from '../../config'
 import type { AppError } from '../../types'
+import { activeMarket } from '../market'
 import { getClient, invokeWrite, readCall, type OnTxPhase } from './base'
 import { AMM_ERRORS } from './errors'
 
@@ -66,7 +66,7 @@ interface AmmClient {
   ): Promise<AssembledTransaction<readonly [bigint, bigint]>>
 }
 
-const client = (): Promise<AmmClient> => getClient<AmmClient>(config.ammContractId)
+const client = (): Promise<AmmClient> => getClient<AmmClient>(activeMarket().ammContractId)
 
 /** Read the pool state for `maturity`. */
 export async function readPool(maturity: bigint): Promise<PoolView | AppError> {

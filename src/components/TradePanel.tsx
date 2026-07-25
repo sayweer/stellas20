@@ -5,6 +5,7 @@ import type { MaturityPool } from '../hooks/usePools'
 import { useNow } from '../hooks/useNow'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { stroopsToXlm } from '../lib/amounts'
+import { activeMarket } from '../lib/market'
 import { formatAmount, formatMaturity } from '../lib/format'
 import { isValidTokenAmount } from '../lib/validation'
 import { maturityCountdown, RATE_SCALE } from '../lib/yield'
@@ -233,7 +234,8 @@ function LockRateForm({
 
       {syBalance === 0n && (
         <p className="text-xs text-neutral-400">
-          You have no SY yet — wrap mUSDY into SY in the <span className="text-neutral-200">Advanced</span> tab first.
+          You have no SY yet — wrap {activeMarket().underlyingSymbol} into SY in the{' '}
+          <span className="text-neutral-200">Advanced</span> tab first.
         </p>
       )}
 

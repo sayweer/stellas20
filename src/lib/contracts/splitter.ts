@@ -1,7 +1,7 @@
 /** Splitter service: maturity/position reads and split/merge/claim/redeem writes. */
 import type { AssembledTransaction, MethodOptions } from '@stellar/stellar-sdk/contract'
-import { config } from '../../config'
 import type { AppError } from '../../types'
+import { activeMarket } from '../market'
 import { getClient, invokeWrite, readCall, type OnTxPhase } from './base'
 import { SPLITTER_ERRORS, SPLITTER_WRITE_ERRORS } from './errors'
 
@@ -59,7 +59,8 @@ interface SplitterClient {
   ): Promise<AssembledTransaction<bigint>>
 }
 
-const client = (): Promise<SplitterClient> => getClient<SplitterClient>(config.splitterContractId)
+const client = (): Promise<SplitterClient> =>
+  getClient<SplitterClient>(activeMarket().splitterContractId)
 
 /** Read the list of registered maturity timestamps (unix seconds). */
 export async function readMaturities(): Promise<bigint[] | AppError> {

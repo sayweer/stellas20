@@ -1,6 +1,6 @@
 /** Hook that batch-reads the connected account's full protocol portfolio. */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { readMytBalance, readRateInfo, type RateInfo } from '../lib/contracts/mockToken'
+import { readUnderlyingBalance, readRateInfo, type RateInfo } from '../lib/contracts/underlying'
 import { readSyBalance } from '../lib/contracts/syVault'
 import { readAccount, readMaturities, type AccountView } from '../lib/contracts/splitter'
 import { isAppError, type AppError } from '../types'
@@ -12,8 +12,8 @@ export interface MaturityPosition {
 }
 
 export interface Portfolio {
-  /** mUSDY balance (0 while disconnected). */
-  myt: bigint
+  /** Underlying-asset balance for the active market (0 while disconnected). */
+  underlying: bigint
   /** SY balance (0 while disconnected). */
   sy: bigint
   /** Current rate checkpoint (public; available while disconnected). */
@@ -34,14 +34,14 @@ export interface UsePortfolioResult {
   refreshSilent: () => void
 }
 
-const EMPTY: Portfolio = { myt: 0n, sy: 0n, rateInfo: null, maturities: [], positions: [] }
+const EMPTY: Portfolio = { underlying: 0n, sy: 0n, rateInfo: null, maturities: [], positions: [] }
 
 /** Refetch every minute so a quiet chain still recovers a transient read error. */
 const PERIODIC_MS = 60_000
 
 /**
  * Read maturities + rate info (public) and, when connected, the account's
- * mUSDY/SY balances and per-maturity positions — all in parallel. Refetches on
+ * underlying/SY balances and per-maturity positions — all in parallel. Refetches on
  * address change, on demand, and every minute; stale responses are ignored. A
  * failed balance read surfaces as `error` rather than silently reading zero.
  */
@@ -68,21 +68,21 @@ export function usePortfolio(address: string | null): UsePortfolioResult {
       const rateInfo = isAppError(rateRes) ? null : rateRes
 
       if (!address) {
-        setPortfolio({ myt: 0n, sy: 0n, rateInfo, maturities: maturitiesRes, positions: [] })
+        setPortfolio({ underlying: 0n, sy: 0n, rateInfo, maturities: maturitiesRes, positions: [] })
         setLoading(false)
         return
       }
 
-      const [mytRes, syRes, ...positionResults] = await Promise.all([
-        readMytBalance(address),
+      const [underlyingRes, syRes, ...positionResults] = await Promise.all([
+        readUnderlyingBalance(address),
         readSyBalance(address),
         ...maturitiesRes.map((m) => readAccount(address, m)),
       ])
       if (id !== requestId.current) return
 
       // A failed core balance read must not read as "you have zero".
-      if (isAppError(mytRes) || isAppError(syRes)) {
-        setError(isAppError(mytRes) ? mytRes : (syRes as AppError))
+      if (isAppError(underlyingRes) || isAppError(syRes)) {
+        setError(isAppError(underlyingRes) ? underlyingRes : (syRes as AppError))
         setLoading(false)
         return
       }
@@ -93,7 +93,7 @@ export function usePortfolio(address: string | null): UsePortfolioResult {
         if (!isAppError(pos)) positions.push({ maturity, position: pos })
       })
 
-      setPortfolio({ myt: mytRes, sy: syRes, rateInfo, maturities: maturitiesRes, positions })
+      setPortfolio({ underlying: underlyingRes, sy: syRes, rateInfo, maturities: maturitiesRes, positions })
       setLoading(false)
     },
     [address],

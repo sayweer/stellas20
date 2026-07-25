@@ -46,14 +46,18 @@ export const MYT_ERRORS: ErrorTable = {
   5: { code: 'insufficient_allowance', message: 'The spender allowance is too low.' },
   6: {
     code: 'faucet_limit',
-    message: 'The faucet is capped at 10,000 mUSDY per request.',
+    message: 'The faucet is capped at 10,000 tokens per request.',
   },
   7: { code: 'unauthorized', message: 'Only the admin can do that.' },
   8: { code: 'math_overflow', message: 'That amount is too large to process.' },
   9: { code: 'allowance_expired', message: 'That allowance has expired.' },
 }
 
-/** SYVault (`SyError`). */
+/**
+ * SYVault (`SyError`) — and the Blend-backed vault, whose `SyBlendError` keeps
+ * codes 1–7 identical on purpose so this table is shared. 8–10 only ever come
+ * from the Blend vault; on the mock vault they are unreachable.
+ */
 export const SY_ERRORS: ErrorTable = {
   1: { code: 'already_initialized', message: 'The vault is already initialized.' },
   2: { code: 'not_initialized', message: 'The vault has not been initialized yet.' },
@@ -62,6 +66,13 @@ export const SY_ERRORS: ErrorTable = {
   5: { code: 'math_overflow', message: 'That amount is too large to process.' },
   6: { code: 'insufficient_allowance', message: 'The spender allowance is too low.' },
   7: { code: 'allowance_expired', message: 'That allowance has expired.' },
+  8: {
+    code: 'liquidity_unavailable',
+    message:
+      'The Blend pool has no free liquidity right now — everything is lent out. Try a smaller amount or come back shortly.',
+  },
+  9: { code: 'pool_rejected', message: 'The Blend pool rejected this request.' },
+  10: { code: 'invalid_rate', message: 'The Blend pool reported an unusable exchange rate.' },
 }
 
 /** Splitter (`SplitterError`). */
@@ -120,12 +131,19 @@ export const SPLITTER_WRITE_ERRORS: ErrorTable = {
 }
 
 /**
- * SYVault.wrap pulls the underlying via MockYieldToken.transfer, so an
- * insufficient-underlying failure surfaces as `TokenError::InsufficientBalance` #4.
- * Wrap mints SY (never debits it), so SyError #4 is unreachable here — a #4 means
- * insufficient mUSDY, not SY.
+ * Wrapping pulls the underlying through its own token contract, so an
+ * insufficient-underlying failure surfaces as that token's
+ * `InsufficientBalance` #4. Wrap mints SY (never debits it), so SyError #4 is
+ * unreachable here — a #4 means not enough of the underlying, not of SY. The
+ * message names the active market's asset, so "not enough XLM" never reads as
+ * "not enough mUSDY".
  */
-export const WRAP_ERRORS: ErrorTable = {
-  ...SY_ERRORS,
-  4: { code: 'insufficient_myt', message: 'You don’t have enough mUSDY for that.' },
+export function wrapErrors(underlyingSymbol: string): ErrorTable {
+  return {
+    ...SY_ERRORS,
+    4: {
+      code: 'insufficient_underlying',
+      message: `You don’t have enough ${underlyingSymbol} for that.`,
+    },
+  }
 }

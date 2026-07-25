@@ -1,5 +1,6 @@
 /** Advanced tab: the raw protocol console — wrap/unwrap and split/merge. */
 import type { ReactElement } from 'react'
+import { activeMarket } from '../lib/market'
 import type { Portfolio } from '../hooks/usePortfolio'
 import { OnboardingSteps } from './OnboardingSteps'
 import { WrapCard } from './WrapCard'
@@ -27,13 +28,13 @@ export function AdvancedPanel({
   return (
     <div id="panel-advanced" role="tabpanel" aria-labelledby="tab-advanced" className="space-y-6">
       <p className="text-sm text-neutral-400">
-        The raw protocol primitives. Wrap mUSDY into SY, then split SY into PT + YT — the building
-        blocks the Markets and Trade tabs sit on top of.
+        The raw protocol primitives. Wrap {activeMarket().underlyingSymbol} into SY, then split SY
+        into PT + YT — the building blocks the Markets and Trade tabs sit on top of.
       </p>
 
       {!hasSplit && (
         <OnboardingSteps
-          gotTokens={portfolio.myt > 0n || portfolio.sy > 0n || hasSplit}
+          gotTokens={portfolio.underlying > 0n || portfolio.sy > 0n || hasSplit}
           wrapped={portfolio.sy > 0n || hasSplit}
           split={hasSplit}
         />
@@ -42,8 +43,9 @@ export function AdvancedPanel({
       <div className="grid gap-6 lg:grid-cols-2">
         <WrapCard
           address={address}
-          mytBalance={portfolio.myt}
+          underlyingBalance={portfolio.underlying}
           syBalance={portfolio.sy}
+          liveRate={liveRate}
           loading={loading}
           isWrongNetwork={isWrongNetwork}
           onSuccess={onSuccess}

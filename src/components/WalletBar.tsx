@@ -1,7 +1,8 @@
-/** Persistent balances strip: mUSDY / SY at a glance, plus the faucet. */
+/** Persistent balances strip: underlying / SY at a glance, plus the faucet. */
 import type { ReactElement } from 'react'
 import { formatAmount } from '../lib/format'
-import { requestFaucet } from '../lib/contracts/mockToken'
+import { activeMarket } from '../lib/market'
+import { requestFaucet } from '../lib/contracts/underlying'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { FaucetButton, FAUCET_AMOUNT } from './FaucetButton'
 import { TxStatus } from './TxStatus'
@@ -9,7 +10,7 @@ import { RefreshIcon, Spinner } from './icons'
 
 interface WalletBarProps {
   address: string
-  myt: bigint
+  underlying: bigint
   sy: bigint
   loading: boolean
   isWrongNetwork: boolean
@@ -23,13 +24,14 @@ interface WalletBarProps {
  */
 export function WalletBar({
   address,
-  myt,
+  underlying,
   sy,
   loading,
   isWrongNetwork,
   onRefresh,
 }: WalletBarProps): ReactElement {
   const faucet = useTxRunner()
+  const market = activeMarket()
 
   function runFaucet(): void {
     void faucet.run('Faucet', (onPhase) => requestFaucet(address, FAUCET_AMOUNT, onPhase), onRefresh)
@@ -39,11 +41,17 @@ export function WalletBar({
     <div>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-neutral-800 bg-neutral-900/60 px-4 py-3">
         <div className="flex items-center gap-6">
-          <Balance label="mUSDY" value={myt} loading={loading} />
+          <Balance label={market.underlyingSymbol} value={underlying} loading={loading} />
           <Balance label="SY" value={sy} loading={loading} />
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <FaucetButton pending={faucet.pending} disabled={isWrongNetwork} onClick={runFaucet} />
+          {market.source === 'mock' ? (
+            <FaucetButton pending={faucet.pending} disabled={isWrongNetwork} onClick={runFaucet} />
+          ) : (
+            market.fundingHint && (
+              <p className="max-w-xs text-xs text-neutral-400">{market.fundingHint}</p>
+            )
+          )}
           <button
             type="button"
             onClick={onRefresh}

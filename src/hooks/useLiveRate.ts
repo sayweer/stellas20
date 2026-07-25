@@ -1,6 +1,6 @@
 /** Hook that ticks the exchange rate client-side, with zero RPC load. */
 import { useEffect, useRef, useState } from 'react'
-import type { RateInfo } from '../lib/contracts/mockToken'
+import type { RateInfo } from '../lib/contracts/underlying'
 import { chainNowMs } from '../lib/chainTime'
 import { rateAt, type RateCheckpoint } from '../lib/yield'
 

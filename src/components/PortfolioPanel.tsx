@@ -1,6 +1,7 @@
-/** Top-level portfolio balances: mUSDY, SY, total PT, and live claimable yield. */
+/** Top-level portfolio balances: underlying, SY, total PT, and live claimable yield. */
 import type { ReactElement } from 'react'
 import type { Portfolio } from '../hooks/usePortfolio'
+import { activeMarket } from '../lib/market'
 import { formatAmount } from '../lib/format'
 import { claimableAt } from '../lib/yield'
 import { chainNowMs } from '../lib/chainTime'
@@ -45,7 +46,10 @@ export function PortfolioPanel({
         )
 
   const stats: Stat[] = [
-    { label: 'mUSDY', value: disconnected ? '—' : formatAmount(portfolio.myt) },
+    {
+      label: activeMarket().underlyingSymbol,
+      value: disconnected ? '—' : formatAmount(portfolio.underlying),
+    },
     { label: 'SY', value: disconnected ? '—' : formatAmount(portfolio.sy) },
     { label: 'PT (all maturities)', value: disconnected ? '—' : formatAmount(totalPt) },
     {

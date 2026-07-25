@@ -42,6 +42,17 @@ describe('parseEvent', () => {
     expect(parsed?.amount).toBe(1_000_0000000n)
   })
 
+  it('reads the wrap amount from either vault’s event shape', () => {
+    // The mock vault wraps 1:1 and emits one amount...
+    expect(parseEvent(makeEvent('wrap', ADDR, { amount: 50_0000000n }))?.amount).toBe(50_0000000n)
+    // ...the Blend vault mints bTokens, so it reports both legs; the feed shows
+    // what the user put in.
+    const blend = parseEvent(makeEvent('wrap', ADDR, { asset_in: 100_0000000n, sy_out: 61_9870358n }))
+    expect(blend?.amount).toBe(100_0000000n)
+    const unwrap = parseEvent(makeEvent('unwrap', ADDR, { sy_in: 10_0000000n, asset_out: 16_1334598n }))
+    expect(unwrap?.amount).toBe(10_0000000n)
+  })
+
   it('parses a swap, choosing the output unit from the direction', () => {
     // pt_in=false: SY went in, PT came out — the payout unit is PT.
     const buyPt = parseEvent(

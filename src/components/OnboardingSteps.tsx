@@ -1,5 +1,6 @@
 /** Three-step getting-started guide shown until the user opens their first position. */
 import type { ReactElement } from 'react'
+import { activeMarket } from '../lib/market'
 import { CheckIcon } from './icons'
 
 interface OnboardingStepsProps {
@@ -16,9 +17,20 @@ interface Step {
 }
 
 export function OnboardingSteps({ gotTokens, wrapped, split }: OnboardingStepsProps): ReactElement {
+  const market = activeMarket()
   const steps: Step[] = [
-    { n: 1, title: 'Get mUSDY', detail: 'Use the faucet for demo yield tokens.', done: gotTokens },
-    { n: 2, title: 'Wrap into SY', detail: 'Standardize mUSDY into SY shares.', done: wrapped },
+    {
+      n: 1,
+      title: `Get ${market.underlyingSymbol}`,
+      detail: market.source === 'mock' ? 'Use the faucet for demo yield tokens.' : 'Fund the account with Friendbot.',
+      done: gotTokens,
+    },
+    {
+      n: 2,
+      title: 'Wrap into SY',
+      detail: `Standardize ${market.underlyingSymbol} into SY shares.`,
+      done: wrapped,
+    },
     { n: 3, title: 'Split SY', detail: 'Mint PT (principal) + YT (yield).', done: split },
   ]
 

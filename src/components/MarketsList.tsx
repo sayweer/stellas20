@@ -5,7 +5,7 @@ import { useNow } from '../hooks/useNow'
 import { formatAmount, formatMaturity } from '../lib/format'
 import { maturityCountdown } from '../lib/yield'
 import { formatPercent, impliedFixedApy, underlyingApy } from '../lib/amm'
-import type { RateInfo } from '../lib/contracts/mockToken'
+import type { RateInfo } from '../lib/contracts/underlying'
 import { ArrowRightIcon, ChartBarIcon, ClockIcon } from './icons'
 
 interface MarketsListProps {

@@ -1,13 +1,24 @@
 /**
- * Shared plumbing for the three contract service modules, built on the
- * official `@stellar/stellar-sdk/contract` Client/AssembledTransaction
- * pipeline. Reads run as free simulate-only calls; writes go build → simulate
- * → sign (via the connected wallet) → submit → poll.
+ * Shared plumbing for the contract service modules, built on the official
+ * `@stellar/stellar-sdk/contract` Client/AssembledTransaction pipeline. Reads
+ * run as free simulate-only calls; writes go build → simulate → sign (via the
+ * connected wallet) → submit → poll.
  */
+import {
+  Account,
+  Address,
+  BASE_FEE,
+  Contract,
+  TransactionBuilder,
+  scValToNative,
+  type xdr,
+} from '@stellar/stellar-sdk'
+import { Api, Server } from '@stellar/stellar-sdk/rpc'
 import {
   type AssembledTransaction,
   Client as ContractClient,
   type MethodOptions,
+  NULL_ACCOUNT,
   type SignTransaction,
 } from '@stellar/stellar-sdk/contract'
 import { config } from '../../config'
@@ -36,6 +47,49 @@ export function getClient<T>(contractId: string): Promise<T> {
     clientCache.set(contractId, cached)
   }
   return cached as Promise<T>
+}
+
+const server = new Server(config.sorobanRpcUrl)
+
+/**
+ * Simulate a read against a contract without fetching its spec first.
+ *
+ * The spec-based `Client` cannot be built for a Stellar Asset Contract: a SAC
+ * is implemented by the host, so it has no wasm to download and the client's
+ * spec fetch throws. Since the underlying asset of a market may well be a SAC
+ * (the Blend market supplies plain XLM), reads against it go through this
+ * hand-rolled path instead.
+ */
+export async function simulateRead<T>(
+  contractId: string,
+  method: string,
+  args: xdr.ScVal[],
+  errorTable: ErrorTable,
+): Promise<T | AppError> {
+  try {
+    // Simulation never checks that the source exists or that its sequence is
+    // right, so the SDK's null account keeps reads working while disconnected.
+    const tx = new TransactionBuilder(new Account(NULL_ACCOUNT, '0'), {
+      fee: BASE_FEE,
+      networkPassphrase: config.networkPassphrase,
+    })
+      .addOperation(new Contract(contractId).call(method, ...args))
+      .setTimeout(30)
+      .build()
+
+    const sim = await server.simulateTransaction(tx)
+    if (!Api.isSimulationSuccess(sim) || !sim.result) {
+      throw new Error(Api.isSimulationError(sim) ? sim.error : 'Simulation returned no result.')
+    }
+    return scValToNative(sim.result.retval) as T
+  } catch (e) {
+    return classifyContractError(e, errorTable)
+  }
+}
+
+/** Build an `Address` ScVal argument for `simulateRead`. */
+export function addressArg(address: string): xdr.ScVal {
+  return new Address(address).toScVal()
 }
 
 /** Phase callback fired as a write call progresses through the tx lifecycle. */
