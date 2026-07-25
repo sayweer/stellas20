@@ -15,7 +15,10 @@ use soroban_sdk::{
 };
 use stellas_mock_yield_token::{MockYieldToken, MockYieldTokenClient, RATE_SCALE};
 use stellas_sy_vault::SyVault;
-use stellas_sy_vault_blend::{mock_pool::MockBlendPool, SyVaultBlend, SyVaultBlendClient};
+use stellas_sy_vault_blend::{
+    mock_pool::{MockBlendPool, MockBlendPoolClient},
+    SyVaultBlend, SyVaultBlendClient,
+};
 
 /// The real PT/YT token wasm, exactly what testnet runs.
 pub mod pt_wasm {
@@ -44,6 +47,7 @@ pub enum Source {
     Blend {
         minter: token::StellarAssetClient<'static>,
         vault: SyVaultBlendClient<'static>,
+        pool: MockBlendPoolClient<'static>,
     },
 }
 
@@ -65,6 +69,31 @@ impl TestCtx {
         match &self.source {
             Source::Mock { myt, .. } => myt,
             Source::Blend { .. } => panic!("myt() is only available on the mock source"),
+        }
+    }
+
+    /// Re-base the yield curve mid-run, whichever source is behind the vault.
+    /// `slope` is in rate-units per second; `rate_bps` re-bases the Blend pool's
+    /// `b_rate` to that percentage of the vault's current rate.
+    ///
+    /// The two sources differ on purpose. The mock token only accepts a new
+    /// slope and preserves continuity, so its rate is monotone by construction.
+    /// The Blend pool will happily be re-based *downwards*, which a real pool
+    /// will not do — that is exactly the case the vault's monotonicity ratchet
+    /// exists for, so the harness gets to fire it.
+    /// A refused re-base is tolerated, like every other op in the harness: the
+    /// mock token caps its checkpoint history at 100 entries and then rejects
+    /// further changes for good, which a long run will hit.
+    pub fn rebase_rate(&self, slope: i128, rate_bps: u64) {
+        match &self.source {
+            Source::Mock { myt, .. } => {
+                let _ = myt.try_set_rate(&slope);
+            }
+            Source::Blend { pool, .. } => {
+                let current = self.sy.exchange_rate();
+                let rebased = current * (rate_bps as i128) / 10_000;
+                pool.set_rate(&rebased.max(1), &slope);
+            }
         }
     }
 }
@@ -106,7 +135,7 @@ pub fn setup_over_blend() -> TestCtx {
         SyVaultBlend,
         (
             admin.clone(),
-            pool_id,
+            pool_id.clone(),
             asset,
             String::from_str(&env, "Standardized Yield Blend"),
             String::from_str(&env, "SY-bTEST"),
@@ -116,6 +145,7 @@ pub fn setup_over_blend() -> TestCtx {
     let source = Source::Blend {
         minter,
         vault: SyVaultBlendClient::new(&env, &sy_id),
+        pool: MockBlendPoolClient::new(&env, &pool_id),
     };
     finish_setup(env, admin, sy_id, "bTEST", source)
 }
@@ -171,7 +201,7 @@ pub fn fund_sy(ctx: &TestCtx, who: &Address, amount: i128) {
             myt.faucet(who, &amount);
             vault.wrap(who, &amount);
         }
-        Source::Blend { minter, vault } => {
+        Source::Blend { minter, vault, .. } => {
             let rate = ctx.sy.exchange_rate();
             let deposit = (amount * RATE_SCALE + rate - 1) / rate;
             minter.mint(who, &deposit);

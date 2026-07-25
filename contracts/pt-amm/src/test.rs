@@ -362,12 +362,72 @@ impl Rng {
         }
         1 + (self.below(max as u64)) as i128
     }
+
+    /// As `amount`, but biased towards the values that break rounding: a few
+    /// stroops of dust, and the exact balance. A uniform draw over a 50-token
+    /// range picks 1 stroop with probability ~2e-9.
+    fn biased_amount(&mut self, max: i128, dust_every: u64) -> i128 {
+        if max <= 0 {
+            return 0;
+        }
+        if dust_every > 0 {
+            match self.below(dust_every) {
+                0 => return (1 + self.below(3) as i128).min(max),
+                1 => return max,
+                _ => {}
+            }
+        }
+        self.amount(max)
+    }
+}
+
+/// Knobs for the AMM harness — see `HarnessCfg` in the Market's harness for the
+/// same idea. `fast()` is CI; `slow()` is the `#[ignore]`d deep tier.
+struct AmmCfg {
+    ops: usize,
+    /// 1-in-N chance an amount is dust or an exact balance. 0 disables.
+    dust_every: u64,
+    /// 1-in-N chance a swap demands a `min_out` derived from the live quote,
+    /// so `SlippageExceeded` is actually reachable. 0 disables.
+    slippage_every: u64,
+    /// 1-in-N chance the clock advances. 0 keeps the pool permanently
+    /// pre-maturity, which is how this harness used to run.
+    time_every: u64,
+}
+
+impl AmmCfg {
+    fn fast() -> Self {
+        Self {
+            ops: 200,
+            dust_every: 0,
+            slippage_every: 0,
+            time_every: 0,
+        }
+    }
+
+    fn adversarial() -> Self {
+        Self {
+            ops: 200,
+            dust_every: 3,
+            slippage_every: 4,
+            time_every: 25,
+        }
+    }
+
+    fn slow() -> Self {
+        Self {
+            ops: 5000,
+            dust_every: 3,
+            slippage_every: 4,
+            time_every: 40,
+        }
+    }
 }
 
 /// Random swaps (both directions), adds and removes; after every op assert:
 /// internal reserves == actual token balances (no leakage), k non-decreasing
 /// across swaps, and lp_total == Σ user shares + MINIMUM_LIQUIDITY.
-fn run_harness(seed: u64, ops: usize) {
+fn run_harness(seed: u64, cfg: AmmCfg) {
     let ctx = setup();
     let lp0 = Address::generate(&ctx.env);
     seed_pool(&ctx, &lp0);
@@ -381,70 +441,139 @@ fn run_harness(seed: u64, ops: usize) {
     }
     let mut rng = Rng(seed);
 
-    for _ in 0..ops {
+    for op_index in 0..cfg.ops {
         let actor = &users[rng.below(3) as usize];
         let pool_before = ctx.amm.get_pool(&MATURITY);
         let k_before = pool_before.pt_reserve * pool_before.sy_reserve;
         let mut swapped = false;
 
-        match rng.below(4) {
+        match rng.below(5) {
             0 => {
-                let amt = rng.amount(ctx.pt.balance(actor).min(50_0000000));
+                let amt = rng.biased_amount(ctx.pt.balance(actor).min(50_0000000), cfg.dust_every);
                 if amt > 0 {
+                    let min_out = quote_floor(&ctx, SwapSide::PtToSy, amt, &mut rng, &cfg);
                     swapped = ctx
                         .amm
-                        .try_swap_exact_in(actor, &MATURITY, &SwapSide::PtToSy, &amt, &0)
+                        .try_swap_exact_in(actor, &MATURITY, &SwapSide::PtToSy, &amt, &min_out)
                         .is_ok();
                 }
             }
             1 => {
-                let amt = rng.amount(ctx.sy.balance(actor).min(50_0000000));
+                let amt = rng.biased_amount(ctx.sy.balance(actor).min(50_0000000), cfg.dust_every);
                 if amt > 0 {
+                    let min_out = quote_floor(&ctx, SwapSide::SyToPt, amt, &mut rng, &cfg);
                     swapped = ctx
                         .amm
-                        .try_swap_exact_in(actor, &MATURITY, &SwapSide::SyToPt, &amt, &0)
+                        .try_swap_exact_in(actor, &MATURITY, &SwapSide::SyToPt, &amt, &min_out)
                         .is_ok();
                 }
             }
             2 => {
-                let pt = rng.amount(ctx.pt.balance(actor).min(50_0000000));
-                let sy = rng.amount(ctx.sy.balance(actor).min(50_0000000));
+                let pt = rng.biased_amount(ctx.pt.balance(actor).min(50_0000000), cfg.dust_every);
+                let sy = rng.biased_amount(ctx.sy.balance(actor).min(50_0000000), cfg.dust_every);
                 if pt > 0 && sy > 0 {
                     let _ = ctx
                         .amm
                         .try_add_liquidity(actor, &MATURITY, &pt, &sy, &0, &0);
                 }
             }
-            _ => {
-                let amt = rng.amount(ctx.amm.lp_balance(actor, &MATURITY));
+            3 => {
+                let amt = rng.biased_amount(ctx.amm.lp_balance(actor, &MATURITY), cfg.dust_every);
                 if amt > 0 {
                     let _ = ctx.amm.try_remove_liquidity(actor, &MATURITY, &amt, &0, &0);
+                }
+            }
+            _ => {
+                // Crossing maturity mid-run is the only way the harness reaches
+                // the frozen pool: swaps and adds must start failing while
+                // remove_liquidity keeps working, so LPs can always exit.
+                if cfg.time_every > 0 && rng.below(cfg.time_every) == 0 {
+                    let now = ctx.env.ledger().timestamp();
+                    ctx.env
+                        .ledger()
+                        .set_timestamp(now + 60 * (1 + rng.below(400)));
                 }
             }
         }
 
         let pool = ctx.amm.get_pool(&MATURITY);
         // Internal accounting matches reality exactly.
-        assert_eq!(ctx.pt.balance(&ctx.amm_id), pool.pt_reserve);
-        assert_eq!(ctx.sy.balance(&ctx.amm_id), pool.sy_reserve);
+        assert_eq!(
+            ctx.pt.balance(&ctx.amm_id),
+            pool.pt_reserve,
+            "PT reserve drift [seed {seed:#x} op {op_index}]"
+        );
+        assert_eq!(
+            ctx.sy.balance(&ctx.amm_id),
+            pool.sy_reserve,
+            "SY reserve drift [seed {seed:#x} op {op_index}]"
+        );
         // I5: swaps never shrink k.
         if swapped {
-            assert!(pool.pt_reserve * pool.sy_reserve >= k_before, "k decreased");
+            assert!(
+                pool.pt_reserve * pool.sy_reserve >= k_before,
+                "k decreased [seed {seed:#x} op {op_index}]"
+            );
         }
         // Share conservation.
         let user_shares: i128 = users.iter().map(|u| ctx.amm.lp_balance(u, &MATURITY)).sum();
-        assert_eq!(pool.lp_total, user_shares + MINIMUM_LIQUIDITY);
+        assert_eq!(
+            pool.lp_total,
+            user_shares + MINIMUM_LIQUIDITY,
+            "share conservation [seed {seed:#x} op {op_index}]"
+        );
     }
 }
 
+/// A `min_out` that is sometimes exactly the live quote and sometimes one
+/// stroop above it — the second case must always revert, which is what makes
+/// `SlippageExceeded` reachable from the randomized sequence at all.
+fn quote_floor(
+    ctx: &TestCtx,
+    side: SwapSide,
+    amount_in: i128,
+    rng: &mut Rng,
+    cfg: &AmmCfg,
+) -> i128 {
+    if cfg.slippage_every == 0 || rng.below(cfg.slippage_every) != 0 {
+        return 0;
+    }
+    match ctx.amm.try_quote_swap(&MATURITY, &side, &amount_in) {
+        Ok(Ok(quote)) => quote + (rng.below(2) as i128),
+        _ => 0,
+    }
+}
+
+// -- fast tier: runs in CI on every push --
+
 #[test]
 fn test_harness_seed_1() {
-    run_harness(0x000A_1414_0001, 200);
+    run_harness(0x000A_1414_0001, AmmCfg::fast());
 }
 
 #[test]
 fn test_harness_seed_2() {
-    run_harness(0x000A_1414_0002, 200);
+    run_harness(0x000A_1414_0002, AmmCfg::fast());
+}
+
+#[test]
+fn test_harness_adversarial() {
+    run_harness(0x000A_1414_00A1, AmmCfg::adversarial());
+}
+
+// -- slow tier: `cargo test --release -- --ignored` (see README) --
+
+#[test]
+#[ignore = "slow tier: cargo test --release -- --ignored"]
+fn test_harness_deep() {
+    for seed in [
+        0x000A_1414_1001u64,
+        0x000A_1414_1002,
+        0x000A_1414_1003,
+        0x000A_1414_1004,
+    ] {
+        run_harness(seed, AmmCfg::slow());
+    }
 }
 
 /// Audit round 2, F-1. Other traders' swaps extend the pool, never the ledger

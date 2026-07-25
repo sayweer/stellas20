@@ -9,22 +9,44 @@ use soroban_sdk::{
     testutils::{Address as _, Ledger},
     Address, MuxedAddress,
 };
+use std::vec::Vec;
 
 /// Invariant I1, asserted as what users could actually extract right now:
 /// the Market's SY holdings must cover every current claim plus the full
 /// principal at the effective (maturity-frozen) rate.
 /// `held >= Σ preview_claimable(u) + floor(pt_supply·S/R_eff)`.
 fn assert_solvent(ctx: &TestCtx, maturity: u64, users: &[&Address]) {
+    assert_solvent_across(ctx, &[maturity], users, 0, 0);
+}
+
+/// The same check across several maturities at once. The Market holds **one**
+/// SY pot for all of them, so with more than one maturity live the liability
+/// has to be summed before comparing — checking each maturity against the whole
+/// balance would pass even while the pot is double-counted.
+/// `seed`/`op_index` are echoed in the failure message so a red run in the slow
+/// tier can be replayed directly instead of re-instrumented.
+fn assert_solvent_across(
+    ctx: &TestCtx,
+    maturities: &[u64],
+    users: &[&Address],
+    seed: u64,
+    op_index: usize,
+) {
     let held = ctx.sy.balance(&ctx.splitter_id);
     let mut owed: i128 = 0;
-    for u in users {
-        owed += ctx.splitter.preview_claimable(u, &maturity);
+    for &maturity in maturities {
+        for u in users {
+            owed += ctx.splitter.preview_claimable(u, &maturity);
+        }
+        let totals = ctx.splitter.get_totals(&maturity);
+        let t_eff = ctx.env.ledger().timestamp().min(maturity);
+        let r_eff = ctx.sy.exchange_rate_at(&t_eff);
+        owed += totals.pt_supply * RATE_SCALE / r_eff;
     }
-    let totals = ctx.splitter.get_totals(&maturity);
-    let t_eff = ctx.env.ledger().timestamp().min(maturity);
-    let r_eff = ctx.sy.exchange_rate_at(&t_eff);
-    owed += totals.pt_supply * RATE_SCALE / r_eff;
-    assert!(held >= owed, "insolvent: held {held} < owed {owed}");
+    assert!(
+        held >= owed,
+        "insolvent [seed {seed:#x} op {op_index}]: held {held} < owed {owed}"
+    );
 }
 
 #[test]
@@ -239,6 +261,86 @@ impl Rng {
         }
         1 + (self.below(max as u64)) as i128
     }
+
+    /// As `amount`, but with a deliberate bias towards the values that actually
+    /// break rounding: a few stroops of dust, and the exact balance. A uniform
+    /// draw over a 100-SY range picks 1 stroop with probability ~1e-9, so
+    /// without this the harness never visits the interesting end of the range.
+    fn biased_amount(&mut self, max: i128, dust_every: u64) -> i128 {
+        if max <= 0 {
+            return 0;
+        }
+        if dust_every > 0 {
+            match self.below(dust_every) {
+                0 => return (1 + self.below(3) as i128).min(max),
+                1 => return max,
+                _ => {}
+            }
+        }
+        self.amount(max)
+    }
+}
+
+/// Knobs for the randomized harness.
+///
+/// `fast()` is what CI runs on every push; `adversarial()` turns on the levers
+/// that make sequences nasty at a size CI can still afford; `slow()` is the
+/// `#[ignore]`d deep tier (`cargo test --release -- --ignored`).
+pub struct HarnessCfg {
+    pub ops: usize,
+    pub users: usize,
+    pub maturities: usize,
+    /// Cap on a single split, in stroops.
+    pub split_cap: i128,
+    /// 1-in-N chance an amount is dust or an exact balance. 0 disables.
+    pub dust_every: u64,
+    /// Upper bound on how many 60s ticks a time warp advances.
+    pub max_step_ticks: u64,
+    /// 1-in-N chance a warp lands exactly on `T-1`, `T` or `T+1`. 0 disables.
+    pub boundary_every: u64,
+    /// 1-in-N chance the yield curve is re-based mid-sequence. 0 disables.
+    pub rate_change_every: u64,
+}
+
+impl HarnessCfg {
+    fn fast() -> Self {
+        Self {
+            ops: 200,
+            users: 3,
+            maturities: 1,
+            split_cap: 100_0000000,
+            dust_every: 0,
+            max_step_ticks: 30,
+            boundary_every: 0,
+            rate_change_every: 0,
+        }
+    }
+
+    fn adversarial() -> Self {
+        Self {
+            ops: 150,
+            users: 3,
+            maturities: 2,
+            split_cap: 100_0000000,
+            dust_every: 3,
+            max_step_ticks: 30,
+            boundary_every: 5,
+            rate_change_every: 11,
+        }
+    }
+
+    fn slow() -> Self {
+        Self {
+            ops: 4000,
+            users: 5,
+            maturities: 3,
+            split_cap: 100_0000000,
+            dust_every: 3,
+            max_step_ticks: 40,
+            boundary_every: 7,
+            rate_change_every: 13,
+        }
+    }
 }
 
 /// Random ops (split / merge / claim / YT transfer / redeem / time warp)
@@ -246,40 +348,59 @@ impl Rng {
 /// (I1) and, pre-maturity, PT/YT supply equality (I2). Expected-failure ops
 /// (over-balance, wrong phase) go through try_ and are ignored — the point
 /// is that no sequence, valid or sloppy, can break the invariants.
-fn run_harness(seed: u64, ops: usize) {
-    run_harness_over(setup_over_mock(), seed, ops);
+fn run_harness(seed: u64, cfg: HarnessCfg) {
+    run_harness_over(setup_over_mock(), seed, cfg);
 }
 
-fn run_harness_over(ctx: TestCtx, seed: u64, ops: usize) {
+fn run_harness_over(ctx: TestCtx, seed: u64, cfg: HarnessCfg) {
     // The factory-deployed tokens execute as real wasm; lift the test budget
     // so a long randomized sequence can't spuriously run out of gas.
     ctx.env.cost_estimate().budget().reset_unlimited();
 
-    let maturity = BASE_TS + 10_000;
-    ctx.splitter.create_maturity(&maturity);
-    let users: [Address; 3] = [
-        Address::generate(&ctx.env),
-        Address::generate(&ctx.env),
-        Address::generate(&ctx.env),
-    ];
+    // Staggered maturities so a single run spans "all live", "some settled"
+    // and "all settled" without needing a separate test for each phase.
+    let maturities: Vec<u64> = (0..cfg.maturities)
+        .map(|i| BASE_TS + 10_000 + (i as u64) * 7_000)
+        .collect();
+    for m in &maturities {
+        ctx.splitter.create_maturity(m);
+    }
+
+    let users: Vec<Address> = (0..cfg.users)
+        .map(|_| Address::generate(&ctx.env))
+        .collect();
     for u in &users {
         fund_sy(&ctx, u, 500_0000000);
     }
-    let user_refs: [&Address; 3] = [&users[0], &users[1], &users[2]];
-    let (pt, yt) = tokens(&ctx, maturity);
-    let mut rng = Rng(seed);
+    let user_refs: Vec<&Address> = users.iter().collect();
+    let markets: Vec<(u64, _, _)> = maturities
+        .iter()
+        .map(|&m| {
+            let (pt, yt) = tokens(&ctx, m);
+            (m, pt, yt)
+        })
+        .collect();
 
-    for _ in 0..ops {
-        let actor = &users[rng.below(3) as usize];
-        match rng.below(6) {
+    let mut rng = Rng(seed);
+    let n_users = cfg.users as u64;
+    let n_markets = markets.len() as u64;
+
+    for op_index in 0..cfg.ops {
+        let actor = &users[rng.below(n_users) as usize];
+        let (maturity, pt, yt) = &markets[rng.below(n_markets) as usize];
+        let maturity = *maturity;
+
+        match rng.below(7) {
             0 => {
-                let amt = rng.amount(ctx.sy.balance(actor).min(100_0000000));
+                let max = ctx.sy.balance(actor).min(cfg.split_cap);
+                let amt = rng.biased_amount(max, cfg.dust_every);
                 if amt > 0 {
                     let _ = ctx.splitter.try_split(actor, &maturity, &amt);
                 }
             }
             1 => {
-                let amt = rng.amount(pt.balance(actor).min(yt.balance(actor)));
+                let max = pt.balance(actor).min(yt.balance(actor));
+                let amt = rng.biased_amount(max, cfg.dust_every);
                 if amt > 0 {
                     let _ = ctx.splitter.try_merge(actor, &maturity, &amt);
                 }
@@ -288,59 +409,127 @@ fn run_harness_over(ctx: TestCtx, seed: u64, ops: usize) {
                 let _ = ctx.splitter.try_claim_yield(actor, &maturity);
             }
             3 => {
-                let to = &users[rng.below(3) as usize];
-                let amt = rng.amount(yt.balance(actor));
+                let to = &users[rng.below(n_users) as usize];
+                let amt = rng.biased_amount(yt.balance(actor), cfg.dust_every);
                 if amt > 0 && to != actor {
                     let _ = yt.try_transfer(actor, MuxedAddress::from(to), &amt);
                 }
             }
             4 => {
-                let amt = rng.amount(pt.balance(actor));
+                let amt = rng.biased_amount(pt.balance(actor), cfg.dust_every);
                 if amt > 0 {
                     let _ = ctx.splitter.try_redeem_pt(actor, &maturity, &amt);
                 }
             }
+            5 => {
+                // PT moves between holders too. The Market has no hook on PT
+                // (only YT carries the yield stream), so this must be a pure
+                // balance move that changes nothing about solvency.
+                let to = &users[rng.below(n_users) as usize];
+                let amt = rng.biased_amount(pt.balance(actor), cfg.dust_every);
+                if amt > 0 && to != actor {
+                    let _ = pt.try_transfer(actor, MuxedAddress::from(to), &amt);
+                }
+            }
             _ => {
                 let now = ctx.env.ledger().timestamp();
-                ctx.env
-                    .ledger()
-                    .set_timestamp(now + 60 * (1 + rng.below(30)));
+                let land_on_boundary = cfg.boundary_every > 0 && rng.below(cfg.boundary_every) == 0;
+                if land_on_boundary {
+                    // Every ordinary warp is a multiple of 60s from BASE_TS, so
+                    // the plain path can never land on a maturity: with
+                    // T - BASE_TS = 10_000 and 10_000 % 60 == 40, the exact
+                    // `now == T` branch would otherwise be dead code.
+                    let target = maturities[rng.below(n_markets) as usize];
+                    let offset = rng.below(3);
+                    let ts = target + offset - 1;
+                    if ts > now {
+                        ctx.env.ledger().set_timestamp(ts);
+                    }
+                } else {
+                    ctx.env
+                        .ledger()
+                        .set_timestamp(now + 60 * (1 + rng.below(cfg.max_step_ticks)));
+                }
             }
         }
 
-        // I1 after every single op.
-        assert_solvent(&ctx, maturity, &user_refs);
+        // Re-base the yield curve occasionally: a constant slope for a whole
+        // run never exercises a rate that changes gradient mid-position, and on
+        // the Blend source it never fires the monotonicity ratchet.
+        if cfg.rate_change_every > 0 && rng.below(cfg.rate_change_every) == 0 {
+            let slope = (rng.below(4) as i128) * 100_000_000;
+            let bps = 9_500 + rng.below(1_500);
+            ctx.rebase_rate(slope, bps);
+        }
+
+        // I1 after every single op, summed over every live maturity.
+        assert_solvent_across(&ctx, &maturities, &user_refs, seed, op_index);
         // I2 pre-maturity: split/merge always move PT and YT together.
-        if ctx.env.ledger().timestamp() < maturity {
-            let totals = ctx.splitter.get_totals(&maturity);
-            assert_eq!(totals.pt_supply, totals.yt_supply, "I2 broken");
+        for (m, _, _) in &markets {
+            if ctx.env.ledger().timestamp() < *m {
+                let totals = ctx.splitter.get_totals(m);
+                assert_eq!(
+                    totals.pt_supply, totals.yt_supply,
+                    "I2 broken [seed {seed:#x} op {op_index}]"
+                );
+            }
         }
     }
 }
 
+// -- fast tier: runs in CI on every push --
+
 #[test]
 fn test_harness_seed_1() {
-    run_harness(0x5EED_0001, 200);
+    run_harness(0x5EED_0001, HarnessCfg::fast());
 }
 
 #[test]
 fn test_harness_seed_2() {
-    run_harness(0x5EED_0002, 200);
+    run_harness(0x5EED_0002, HarnessCfg::fast());
 }
 
 #[test]
 fn test_harness_seed_3() {
-    run_harness(0x5EED_0003, 200);
+    run_harness(0x5EED_0003, HarnessCfg::fast());
 }
 
 #[test]
 fn test_harness_seed_1_over_blend() {
-    run_harness_over(setup_over_blend(), 0x5EED_0001, 200);
+    run_harness_over(setup_over_blend(), 0x5EED_0001, HarnessCfg::fast());
 }
 
 #[test]
 fn test_harness_seed_2_over_blend() {
-    run_harness_over(setup_over_blend(), 0x5EED_0002, 200);
+    run_harness_over(setup_over_blend(), 0x5EED_0002, HarnessCfg::fast());
+}
+
+#[test]
+fn test_harness_adversarial_mock() {
+    run_harness(0x5EED_00A1, HarnessCfg::adversarial());
+}
+
+#[test]
+fn test_harness_adversarial_over_blend() {
+    run_harness_over(setup_over_blend(), 0x5EED_00A2, HarnessCfg::adversarial());
+}
+
+// -- slow tier: `cargo test --release -- --ignored` (see README) --
+
+#[test]
+#[ignore = "slow tier: cargo test --release -- --ignored"]
+fn test_harness_deep_mock() {
+    for seed in [0x5EED_1001u64, 0x5EED_1002, 0x5EED_1003, 0x5EED_1004] {
+        run_harness(seed, HarnessCfg::slow());
+    }
+}
+
+#[test]
+#[ignore = "slow tier: cargo test --release -- --ignored"]
+fn test_harness_deep_over_blend() {
+    for seed in [0x5EED_2001u64, 0x5EED_2002] {
+        run_harness_over(setup_over_blend(), seed, HarnessCfg::slow());
+    }
 }
 
 /// I4 over the Blend vault: yield accrual stops dead at maturity and the

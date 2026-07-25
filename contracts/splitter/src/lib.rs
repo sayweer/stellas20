@@ -779,6 +779,11 @@ fn extend_instance(env: &Env) {
         .extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
 }
 
+// The randomized harness sizes its user/maturity sets at runtime, so the test
+// build (and only the test build) needs an allocator-backed Vec.
+#[cfg(test)]
+extern crate std;
+
 #[cfg(test)]
 mod test;
 #[cfg(test)]
