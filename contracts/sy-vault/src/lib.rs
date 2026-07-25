@@ -188,14 +188,21 @@ impl SyVault {
     }
 
     /// Current exchange rate — delegated to the underlying yield token.
+    ///
+    /// Extends the instance entry holding `YieldToken`: the Market reaches this
+    /// on every settlement, but a cross-contract read cannot refresh the
+    /// callee's storage, so nothing else would keep it alive on a
+    /// settlement-only market.
     pub fn exchange_rate(env: Env) -> Result<i128, SyError> {
         let yield_token = Self::require_yield_token(&env)?;
+        extend_instance(&env);
         Ok(YieldRateClient::new(&env, &yield_token).exchange_rate())
     }
 
     /// Exchange rate at `ts` — delegated to the underlying yield token.
     pub fn exchange_rate_at(env: Env, ts: u64) -> Result<i128, SyError> {
         let yield_token = Self::require_yield_token(&env)?;
+        extend_instance(&env);
         Ok(YieldRateClient::new(&env, &yield_token).exchange_rate_at(&ts))
     }
 
@@ -363,9 +370,7 @@ fn credit(env: &Env, to: &Address, amount: i128) -> Result<i128, SyError> {
     let balance: i128 = env.storage().persistent().get(&key).unwrap_or(0);
     let new_balance = balance.checked_add(amount).ok_or(SyError::MathOverflow)?;
     env.storage().persistent().set(&key, &new_balance);
-    env.storage()
-        .persistent()
-        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+    extend_position(env, &key);
     Ok(new_balance)
 }
 
@@ -377,9 +382,7 @@ fn debit(env: &Env, from: &Address, amount: i128) -> Result<i128, SyError> {
     }
     let new_balance = balance - amount;
     env.storage().persistent().set(&key, &new_balance);
-    env.storage()
-        .persistent()
-        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+    extend_position(env, &key);
     Ok(new_balance)
 }
 
@@ -401,6 +404,17 @@ fn sub_supply(env: &Env, amount: i128) -> Result<i128, SyError> {
         .set(&DataKey::TotalSupply, &new_supply);
     extend_instance(env);
     Ok(new_supply)
+}
+
+/// SY balances are topped up to the network maximum, not to the 30-day window
+/// used for config: a holder may sit on a position untouched until a maturity
+/// months away, and only their own transfers would otherwise refresh it. The
+/// 14-day threshold keeps the top-up rare rather than per-operation.
+fn extend_position(env: &Env, key: &DataKey) {
+    let max = env.storage().max_ttl();
+    env.storage()
+        .persistent()
+        .extend_ttl(key, TTL_THRESHOLD, max);
 }
 
 fn extend_instance(env: &Env) {

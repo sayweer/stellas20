@@ -10,7 +10,7 @@ use crate::{
     MaturityTokens, Split, Splitter, SplitterClient, SplitterError, SyVaultClient, YieldClaim,
 };
 use soroban_sdk::{
-    testutils::{Address as _, Events, Ledger},
+    testutils::{storage::Persistent as _, Address as _, Events, Ledger},
     token, Address, Env, Event, MuxedAddress, String,
 };
 use stellas_mock_yield_token::{MockYieldToken, MockYieldTokenClient, RATE_SCALE};
@@ -645,4 +645,32 @@ fn test_hook_from_unregistered_address_rejected() {
         .splitter
         .try_on_yt_transfer(&impostor, &user, &None, &100_0000000, &0);
     assert_eq!(result, Err(Ok(SplitterError::Unauthorized)));
+}
+
+/// Audit round 2, F-1. A YT holder waiting to claim, or a PT holder holding to
+/// maturity, touches nothing in the meantime — and only their own activity
+/// refreshes their `UserYield` entry. With maturities months out, the 30-day
+/// window used for config would archive the position first, forcing a restore
+/// before the user could redeem.
+#[test]
+fn test_user_yield_ttl_outlives_the_config_window() {
+    let ctx = setup();
+    let maturity = BASE_TS + 10_000;
+    ctx.splitter.create_maturity(&maturity);
+    let user = Address::generate(&ctx.env);
+    fund_sy(&ctx, &user, 100_0000000);
+    ctx.splitter.split(&user, &maturity, &100_0000000);
+
+    let ttl = ctx.env.as_contract(&ctx.splitter_id, || {
+        ctx.env
+            .storage()
+            .persistent()
+            .get_ttl(&crate::DataKey::UserYield(user.clone(), maturity))
+    });
+    let max = ctx
+        .env
+        .as_contract(&ctx.splitter_id, || ctx.env.storage().max_ttl());
+
+    assert_eq!(ttl, max, "UserYield should be extended to the maximum");
+    assert!(ttl > crate::TTL_EXTEND_TO);
 }

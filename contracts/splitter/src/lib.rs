@@ -532,6 +532,16 @@ impl Splitter {
         Self::load_maturities(&env)
     }
 
+    /// The SY vault this Market settles against. Exposed so peripheral
+    /// contracts can verify at deploy time that they are trading the same SY
+    /// the Market values positions in (see `pt-amm`'s constructor).
+    pub fn sy_vault(env: Env) -> Result<Address, SplitterError> {
+        env.storage()
+            .instance()
+            .get(&DataKey::SyVault)
+            .ok_or(SplitterError::NotInitialized)
+    }
+
     /// The factory-deployed PT/YT token addresses for `maturity`.
     pub fn get_market(env: Env, maturity: u64) -> Result<MaturityTokens, SplitterError> {
         Self::require_tokens(&env, maturity)
@@ -650,9 +660,13 @@ impl Splitter {
     fn save_user_yield(env: &Env, addr: &Address, maturity: u64, uy: &UserYield) {
         let key = DataKey::UserYield(addr.clone(), maturity);
         env.storage().persistent().set(&key, uy);
+        // Topped up to the network maximum rather than the 30-day config
+        // window: a maturity months away outlives that window, and only this
+        // user's own activity refreshes their entry.
+        let max = env.storage().max_ttl();
         env.storage()
             .persistent()
-            .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+            .extend_ttl(&key, TTL_THRESHOLD, max);
         // Every mutating op settles someone, so this keeps the instance entry
         // (admin/vault/token registry) alive on all hot paths.
         extend_instance(env);

@@ -18,8 +18,8 @@
 //! pay more than the pro-rata share.
 
 use soroban_sdk::{
-    contract, contractclient, contracterror, contractevent, contractimpl, contracttype, token,
-    Address, Env, MuxedAddress,
+    contract, contractclient, contracterror, contractevent, contractimpl, contracttype,
+    panic_with_error, token, Address, Env, MuxedAddress,
 };
 
 /// TTL management (~5s per ledger on testnet): extend below ~14 days, up to ~30 days.
@@ -69,6 +69,7 @@ pub enum SwapSide {
 #[contractclient(name = "MarketClient")]
 pub trait MarketInterface {
     fn get_market(env: Env, maturity: u64) -> MaturityTokens;
+    fn sy_vault(env: Env) -> Address;
 }
 
 /// Mirror of the Market's per-maturity token pair (decoded structurally).
@@ -94,6 +95,7 @@ pub enum AmmError {
     InsufficientLpBalance = 9,
     MathOverflow = 10,
     Unauthorized = 11,
+    SyTokenMismatch = 12,
 }
 
 #[contractevent]
@@ -144,7 +146,16 @@ pub struct PtAmm;
 impl PtAmm {
     /// Constructor: runs once at deploy. `market` resolves each maturity's PT
     /// token; `sy_token` is the SY vault every pool trades against.
+    ///
+    /// The two halves of every pool come from two different sources of truth —
+    /// PT from the Market, SY from this argument — so the pairing is verified
+    /// here, once. A pool trading real PT against an SY the Market does not
+    /// settle in would let the deployer drain every LP, and there is no upgrade
+    /// path to correct it afterwards.
     pub fn __constructor(env: Env, admin: Address, market: Address, sy_token: Address) {
+        if MarketClient::new(&env, &market).sy_vault() != sy_token {
+            panic_with_error!(&env, AmmError::SyTokenMismatch);
+        }
         env.storage().instance().set(&DataKey::Admin, &admin);
         env.storage().instance().set(&DataKey::Market, &market);
         env.storage().instance().set(&DataKey::SyToken, &sy_token);
@@ -503,14 +514,23 @@ impl PtAmm {
             .ok_or(AmmError::NotInitialized)
     }
 
+    /// LP shares are topped up to the network maximum, not to the 30-day window
+    /// used for config: an LP who seeds a pool and walks away is refreshed by
+    /// nothing else — other traders' swaps extend the pool, never the ledger of
+    /// who owns it. The 14-day threshold keeps the top-up rare.
+    fn extend_position(env: &Env, key: &DataKey) {
+        let max = env.storage().max_ttl();
+        env.storage()
+            .persistent()
+            .extend_ttl(key, TTL_THRESHOLD, max);
+    }
+
     fn credit_lp(env: &Env, addr: &Address, maturity: u64, amount: i128) -> Result<(), AmmError> {
         let key = DataKey::LpBalance(addr.clone(), maturity);
         let balance: i128 = env.storage().persistent().get(&key).unwrap_or(0);
         let new_balance = balance.checked_add(amount).ok_or(AmmError::MathOverflow)?;
         env.storage().persistent().set(&key, &new_balance);
-        env.storage()
-            .persistent()
-            .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+        Self::extend_position(env, &key);
         Ok(())
     }
 
@@ -521,9 +541,7 @@ impl PtAmm {
             return Err(AmmError::InsufficientLpBalance);
         }
         env.storage().persistent().set(&key, &(balance - amount));
-        env.storage()
-            .persistent()
-            .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+        Self::extend_position(env, &key);
         Ok(())
     }
 }

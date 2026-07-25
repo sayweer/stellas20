@@ -1,9 +1,9 @@
 // Amounts use the `<whole>_<7-decimal stroops>` grouping convention.
 #![allow(clippy::inconsistent_digit_grouping)]
 
-use crate::{PtError, PtToken, PtTokenClient};
+use crate::{DataKey, PtError, PtToken, PtTokenClient, TTL_EXTEND_TO};
 use soroban_sdk::{
-    testutils::{Address as _, Events, Ledger},
+    testutils::{storage::Persistent as _, Address as _, Events, Ledger},
     token, Address, Env, Event, MuxedAddress, String,
 };
 
@@ -166,4 +166,34 @@ fn test_burn_reduces_supply() {
     );
     assert_eq!(ctx.token.balance(&user), 30_0000000);
     assert_eq!(ctx.client.total_supply(), 30_0000000);
+}
+
+/// Audit round 2, F-1. Holding PT untouched until maturity is the product's
+/// headline use case, and only the holder's own transfers refresh their entry.
+/// A maturity months out therefore outlives the 30-day window that config
+/// entries use, so balances are topped up to the network maximum instead.
+#[test]
+fn test_balance_ttl_outlives_the_config_window() {
+    let ctx = setup();
+    let user = Address::generate(&ctx.env);
+    ctx.client.mint(&user, &50_0000000);
+
+    let ttl = ctx.env.as_contract(&ctx.contract_id, || {
+        ctx.env
+            .storage()
+            .persistent()
+            .get_ttl(&DataKey::Balance(user.clone()))
+    });
+    let max = ctx
+        .env
+        .as_contract(&ctx.contract_id, || ctx.env.storage().max_ttl());
+
+    assert_eq!(
+        ttl, max,
+        "balance should be extended to the network maximum"
+    );
+    assert!(
+        ttl > TTL_EXTEND_TO,
+        "a 30-day balance TTL cannot survive a multi-month maturity"
+    );
 }

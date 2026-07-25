@@ -4,7 +4,7 @@
 
 use crate::{MockYieldToken, MockYieldTokenClient, RateCheckpoint, TokenError, RATE_SCALE};
 use soroban_sdk::{
-    testutils::{Address as _, Events, Ledger},
+    testutils::{Address as _, Deployer as _, Events, Ledger},
     token, Address, Env, Event, MuxedAddress,
 };
 
@@ -264,4 +264,39 @@ fn test_repeated_faucet_accumulates_under_cap() {
     ctx.client.faucet(&user, &1_000_0000000);
     ctx.client.faucet(&user, &2_000_0000000);
     assert_eq!(ctx.token.balance(&user), 3_000_0000000);
+}
+
+/// Audit round 2, F-2. The Market reaches this contract on every settlement,
+/// but only through `exchange_rate` — and a cross-contract *read* cannot
+/// refresh the callee's storage. Without the extend below, a settlement-only
+/// market would let the checkpoint history archive while looking healthy, and
+/// once it does, every split, merge, claim and redemption halts.
+#[test]
+fn test_exchange_rate_keeps_the_checkpoint_history_alive() {
+    let ctx = setup();
+    // Decay the instance entry past the extend threshold with no token traffic.
+    let seq = ctx.env.ledger().sequence();
+    ctx.env
+        .ledger()
+        .with_mut(|li| li.sequence_number = seq + crate::TTL_EXTEND_TO - crate::TTL_THRESHOLD + 1);
+    let before = ctx
+        .env
+        .deployer()
+        .get_contract_instance_ttl(&ctx.contract_id);
+    assert!(
+        before < crate::TTL_THRESHOLD,
+        "precondition: entry must be below the threshold"
+    );
+
+    ctx.client.exchange_rate();
+
+    let after = ctx
+        .env
+        .deployer()
+        .get_contract_instance_ttl(&ctx.contract_id);
+    assert_eq!(
+        after,
+        crate::TTL_EXTEND_TO,
+        "a rate read must extend the entry it depends on"
+    );
 }

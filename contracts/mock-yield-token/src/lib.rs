@@ -196,13 +196,21 @@ impl MockYieldToken {
     }
 
     /// Current exchange rate (scaled by `RATE_SCALE`).
+    ///
+    /// Extends the instance entry it reads from. A cross-contract *read* cannot
+    /// refresh the callee's storage, so on a settlement-only market nothing else
+    /// would keep the checkpoint history alive — and once that archives, every
+    /// split, merge, claim and redemption in the protocol halts until someone
+    /// restores this contract's footprint.
     pub fn exchange_rate(env: Env) -> i128 {
+        extend_instance(&env);
         rate_at(&env, env.ledger().timestamp())
     }
 
     /// Exchange rate at an arbitrary past-or-future timestamp, computed from
     /// the checkpoint history — this is what makes maturity settlement exact.
     pub fn exchange_rate_at(env: Env, ts: u64) -> i128 {
+        extend_instance(&env);
         rate_at(&env, ts)
     }
 
@@ -406,9 +414,7 @@ fn credit(env: &Env, to: &Address, amount: i128) -> Result<(), TokenError> {
         .checked_add(amount)
         .ok_or(TokenError::MathOverflow)?;
     env.storage().persistent().set(&key, &new_balance);
-    env.storage()
-        .persistent()
-        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+    extend_position(env, &key);
 
     let supply = MockYieldToken::total_supply(env.clone());
     let new_supply = supply.checked_add(amount).ok_or(TokenError::MathOverflow)?;
@@ -432,9 +438,7 @@ fn debit(env: &Env, from: &Address, amount: i128) {
         .checked_sub(amount)
         .unwrap_or_else(|| panic_with_error!(env, TokenError::MathOverflow));
     env.storage().persistent().set(&key, &new_balance);
-    env.storage()
-        .persistent()
-        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+    extend_position(env, &key);
 
     let supply = MockYieldToken::total_supply(env.clone());
     let new_supply = supply
@@ -479,6 +483,17 @@ fn extend_instance(env: &Env) {
     env.storage()
         .instance()
         .extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
+}
+
+/// Balances are topped up to the network maximum, not to the 30-day window
+/// used for config: a holder may sit on a position untouched until a maturity
+/// months away, and only their own transfers would otherwise refresh it. The
+/// 14-day threshold keeps the top-up rare rather than per-operation.
+fn extend_position(env: &Env, key: &DataKey) {
+    let max = env.storage().max_ttl();
+    env.storage()
+        .persistent()
+        .extend_ttl(key, TTL_THRESHOLD, max);
 }
 
 #[cfg(test)]

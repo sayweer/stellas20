@@ -1,20 +1,25 @@
 // Amounts use the `<whole>_<7-decimal stroops>` grouping convention.
 #![allow(clippy::inconsistent_digit_grouping)]
 
-use crate::{AmmError, MaturityTokens, PtAmm, PtAmmClient, SwapSide, MINIMUM_LIQUIDITY};
+use crate::{
+    AmmError, DataKey, MaturityTokens, PtAmm, PtAmmClient, SwapSide, MINIMUM_LIQUIDITY,
+    TTL_EXTEND_TO,
+};
 use soroban_sdk::{
     contract, contractimpl,
-    testutils::{Address as _, Ledger},
+    testutils::{storage::Persistent as _, Address as _, Ledger},
     token, Address, Env,
 };
 use stellas_pt_token::{PtToken, PtTokenClient};
 
-/// A stub Market exposing only `get_market` — the single view the AMM
-/// consumes. Unknown maturities panic, exactly like the real Market's trap,
+/// A stub Market exposing the two views the AMM consumes: `get_market` and
+/// `sy_vault`. Unknown maturities panic, exactly like the real Market's trap,
 /// so the AMM's try_-mapping is exercised. (The real-stack integration is
 /// proven on testnet in the phase's deploy smoke.)
 #[contract]
 pub struct MockMarket;
+
+const SY_VAULT_KEY: soroban_sdk::Symbol = soroban_sdk::symbol_short!("syvault");
 
 #[contractimpl]
 impl MockMarket {
@@ -24,8 +29,16 @@ impl MockMarket {
             .set(&maturity, &MaturityTokens { pt, yt });
     }
 
+    pub fn set_sy_vault(env: Env, sy: Address) {
+        env.storage().instance().set(&SY_VAULT_KEY, &sy);
+    }
+
     pub fn get_market(env: Env, maturity: u64) -> MaturityTokens {
         env.storage().instance().get(&maturity).unwrap()
+    }
+
+    pub fn sy_vault(env: Env) -> Address {
+        env.storage().instance().get(&SY_VAULT_KEY).unwrap()
     }
 }
 
@@ -61,7 +74,9 @@ fn setup() -> TestCtx {
     let yt_id = Address::generate(&env); // unused by the AMM
 
     let market_id = env.register(MockMarket, ());
-    MockMarketClient::new(&env, &market_id).set_market(&MATURITY, &pt_id, &yt_id);
+    let market = MockMarketClient::new(&env, &market_id);
+    market.set_market(&MATURITY, &pt_id, &yt_id);
+    market.set_sy_vault(&sy_id);
 
     let amm_id = env.register(PtAmm, (admin.clone(), market_id, sy_id.clone()));
     let amm = PtAmmClient::new(&env, &amm_id);
@@ -430,4 +445,57 @@ fn test_harness_seed_1() {
 #[test]
 fn test_harness_seed_2() {
     run_harness(0x000A_1414_0002, 200);
+}
+
+/// Audit round 2, F-1. Other traders' swaps extend the pool, never the ledger
+/// of who owns it — an LP who seeds a pool and walks away is refreshed by
+/// nothing at all, so LP shares are topped up to the network maximum.
+#[test]
+fn test_lp_balance_ttl_outlives_the_config_window() {
+    let ctx = setup();
+    let lp = Address::generate(&ctx.env);
+    seed_pool(&ctx, &lp);
+
+    let ttl = ctx.env.as_contract(&ctx.amm_id, || {
+        ctx.env
+            .storage()
+            .persistent()
+            .get_ttl(&DataKey::LpBalance(lp.clone(), MATURITY))
+    });
+    let max = ctx
+        .env
+        .as_contract(&ctx.amm_id, || ctx.env.storage().max_ttl());
+
+    assert_eq!(ttl, max, "LP shares should be extended to the maximum");
+    assert!(ttl > TTL_EXTEND_TO);
+}
+
+/// Audit round 2, F-3. The two halves of a pool come from two sources of truth:
+/// PT from the Market, SY from a constructor argument. A pool trading real PT
+/// against an SY the Market does not settle in would let the deployer drain
+/// every LP, and there is no upgrade path to fix it afterwards — so the pairing
+/// is rejected at construction.
+#[test]
+#[should_panic(expected = "Error(Contract, #12)")]
+fn test_constructor_rejects_sy_the_market_does_not_settle_in() {
+    let env = Env::default();
+    env.mock_all_auths();
+    env.ledger().set_timestamp(BASE_TS);
+    let admin = Address::generate(&env);
+    let minter = Address::generate(&env);
+
+    let mk = |sym: &str| {
+        let name = soroban_sdk::String::from_str(&env, sym);
+        env.register(PtToken, (minter.clone(), name.clone(), name))
+    };
+    let pt_id = mk("PT-TEST");
+    let real_sy = mk("SY-TEST");
+    let impostor_sy = mk("SY-FAKE");
+
+    let market_id = env.register(MockMarket, ());
+    let market = MockMarketClient::new(&env, &market_id);
+    market.set_market(&MATURITY, &pt_id, &Address::generate(&env));
+    market.set_sy_vault(&real_sy);
+
+    env.register(PtAmm, (admin, market_id, impostor_sy));
 }

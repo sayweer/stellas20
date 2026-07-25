@@ -375,9 +375,7 @@ fn credit(env: &Env, to: &Address, amount: i128) -> Result<i128, YtError> {
     let balance: i128 = env.storage().persistent().get(&key).unwrap_or(0);
     let new_balance = balance.checked_add(amount).ok_or(YtError::MathOverflow)?;
     env.storage().persistent().set(&key, &new_balance);
-    env.storage()
-        .persistent()
-        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+    extend_position(env, &key);
     Ok(new_balance)
 }
 
@@ -389,9 +387,7 @@ fn debit(env: &Env, from: &Address, amount: i128) -> Result<i128, YtError> {
     }
     let new_balance = balance - amount;
     env.storage().persistent().set(&key, &new_balance);
-    env.storage()
-        .persistent()
-        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+    extend_position(env, &key);
     Ok(new_balance)
 }
 
@@ -413,6 +409,17 @@ fn sub_supply(env: &Env, amount: i128) -> Result<(), YtError> {
         .set(&DataKey::TotalSupply, &new_supply);
     extend_instance(env);
     Ok(())
+}
+
+/// YT balances are topped up to the network maximum, not to the 30-day window
+/// used for config: a YT holder waiting to claim accrued yield touches nothing
+/// until they do, and only their own transfers would otherwise refresh the
+/// entry. The 14-day threshold keeps the top-up rare rather than per-operation.
+fn extend_position(env: &Env, key: &DataKey) {
+    let max = env.storage().max_ttl();
+    env.storage()
+        .persistent()
+        .extend_ttl(key, TTL_THRESHOLD, max);
 }
 
 fn extend_instance(env: &Env) {
