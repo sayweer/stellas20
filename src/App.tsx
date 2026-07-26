@@ -63,7 +63,7 @@ function App(): ReactElement {
 
       <footer className="border-t border-neutral-800/60 py-6">
         <p className="mx-auto max-w-5xl px-4 text-center text-xs text-neutral-400">
-          stellas-core · Testnet only · Never share your secret key.
+          stellas20 · Testnet only · Never share your secret key.
         </p>
       </footer>
 
@@ -117,7 +117,7 @@ function MarketContent(): ReactElement {
             Lock a fixed yield on Stellar
           </h1>
           <p className="mt-1 text-sm text-neutral-400">
-            stellas-core — split yield into principal &amp; yield tokens, then trade a fixed rate.
+            stellas20 — split yield into principal &amp; yield tokens, then trade a fixed rate.
             Testnet.
           </p>
         </div>

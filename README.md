@@ -1,6 +1,6 @@
-# stellas-core — PT/YT Yield Splitting on Stellar
+# stellas20 — PT/YT Yield Splitting on Stellar
 
-**The missing fixed-income primitive for Stellar's RWA boom.** stellas-core splits a
+**The missing fixed-income primitive for Stellar's RWA boom.** stellas20 splits a
 yield-bearing token into two tradable parts — a **Principal Token (PT)**, redeemable 1:1 for the
 underlying at maturity (a zero-coupon bond / fixed rate), and a **Yield Token (YT)**, which
 receives all the yield until maturity (pure yield exposure). On Ethereum, Pendle turned this into
@@ -15,7 +15,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 
 ## The contracts
 
-stellas-core is five core Soroban contracts (six with the Blend vault) plus a factory-deployed
+stellas20 is five core Soroban contracts (six with the Blend vault) plus a factory-deployed
 PT/YT token pair per maturity — inter-contract communication is intrinsic to the design, not
 bolted on:
 

@@ -1,4 +1,4 @@
-# Runbooks — stellas-core operations
+# Runbooks — stellas20 operations
 
 Operational procedures for the Testnet deployment. Every command here is the real one; §1 was
 executed end to end on 2026-07-25 and the transcript excerpts are from that run.

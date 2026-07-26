@@ -1,6 +1,6 @@
 {
-  "name": "stellas-core — PT/YT Yield Splitting on Stellar",
-  "short_name": "stellas-core",
+  "name": "stellas20 — PT/YT Yield Splitting on Stellar",
+  "short_name": "stellas20",
   "description": "Split a yield-bearing token into Principal (PT) and Yield (YT), then trade a fixed rate until maturity.",
   "start_url": "/",
   "display": "standalone",

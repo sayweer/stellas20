@@ -10,7 +10,7 @@ export function Header(): ReactElement {
         <div className="flex min-w-0 items-center gap-2.5">
           <BrandMark className="h-7 w-7 shrink-0 text-neutral-50" />
           <div className="flex min-w-0 flex-col leading-none">
-            <span className="truncate text-sm font-semibold text-neutral-100">stellas-core</span>
+            <span className="truncate text-sm font-semibold text-neutral-100">stellas20</span>
             <span className="mt-1 hidden text-[11px] font-medium uppercase tracking-wider text-neutral-500 sm:block">
               PT/YT · Testnet
             </span>
