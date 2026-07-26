@@ -18,11 +18,11 @@ export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): React
   const current = markets.find((m) => m.key === active) ?? markets[0]
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <div className="flex min-w-0 items-center gap-3">
       <div
         role="radiogroup"
         aria-label="Yield source"
-        className="inline-flex rounded-xl border border-neutral-800 bg-neutral-900 p-1"
+        className="inline-flex shrink-0 rounded-xl border border-neutral-800 bg-neutral-900 p-1"
       >
         {markets.map((market) => {
           const selected = market.key === active
@@ -35,7 +35,7 @@ export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): React
               onClick={() => {
                 onChange(market.key)
               }}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 ${
+              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 ${
                 selected
                   ? 'bg-neutral-800 text-neutral-50'
                   : 'text-neutral-400 hover:text-neutral-200'
@@ -46,7 +46,7 @@ export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): React
           )
         })}
       </div>
-      <p className="text-xs text-neutral-400">{current.yieldSource}</p>
+      <p className="hidden truncate text-xs text-neutral-400 xl:block">{current.yieldSource}</p>
     </div>
   )
 }

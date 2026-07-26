@@ -135,17 +135,22 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 -mx-4 flex items-center gap-3 border-b border-neutral-800 bg-neutral-950/90 px-4 py-3 backdrop-blur lg:mx-0 lg:px-0">
+          {/* Wraps rather than shrinks: the market switcher and the wallet control
+              are both fixed-width, and on a phone they overlapped when forced
+              onto one line. Below sm the switcher drops to its own row. */}
+          <header className="sticky top-0 z-20 -mx-4 flex flex-wrap items-center gap-3 border-b border-neutral-800 bg-neutral-950/90 px-4 py-3 backdrop-blur lg:mx-0 lg:px-0">
             <Link
               to="/"
               aria-label="stellas20 home"
-              className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:hidden"
+              className="order-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:hidden"
             >
               <BrandMark className="h-6 w-6 text-neutral-50" />
             </Link>
-            <MarketSwitcher active={marketKey} onChange={onSwitchMarket} />
-            <div className="ml-auto">
+            <div className="order-2 ml-auto sm:order-3">
               <WalletButton />
+            </div>
+            <div className="order-3 w-full sm:order-2 sm:ml-0 sm:w-auto">
+              <MarketSwitcher active={marketKey} onChange={onSwitchMarket} />
             </div>
           </header>
 

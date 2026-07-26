@@ -52,15 +52,15 @@ export function WalletButton(): ReactElement {
             void handleCopy()
           }}
           aria-label={copied ? 'Address copied' : `Copy address ${address}`}
-          className="inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-sm text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+          className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-sm text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
         >
           <span
             aria-hidden="true"
-            className="h-2 w-2 rounded-full bg-accent-400 shadow-[0_0_8px] shadow-accent-400/60"
+            className="h-2 w-2 shrink-0 rounded-full bg-positive-400"
           />
           <span className="tabular-nums">{truncate(address)}</span>
           {copied ? (
-            <CheckIcon className="h-4 w-4 text-accent-400" />
+            <CheckIcon className="h-4 w-4 text-positive-400" />
           ) : (
             <CopyIcon className="h-4 w-4 text-neutral-500" />
           )}
@@ -69,7 +69,7 @@ export function WalletButton(): ReactElement {
           type="button"
           onClick={disconnect}
           aria-label="Disconnect wallet"
-          className="grid h-9 w-9 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 sm:h-auto sm:w-auto sm:px-3 sm:py-2 sm:text-sm sm:font-medium"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 sm:h-auto sm:w-auto sm:px-3 sm:py-2 sm:text-sm sm:font-medium"
         >
           <span className="sm:hidden">
             <XIcon className="h-4 w-4" />

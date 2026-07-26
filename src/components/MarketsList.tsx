@@ -144,8 +144,11 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
         : 'text-positive-300'
 
   return (
-    <li className="flex flex-wrap items-center gap-x-8 gap-y-4 py-5">
-      <div className="min-w-[8rem]">
+    // Wrapping a flex row on a phone put the four figures at ragged offsets. A
+    // two-column grid below sm keeps the labels aligned; from sm it goes back to
+    // a single row.
+    <li className="grid grid-cols-2 gap-x-6 gap-y-5 py-5 sm:flex sm:flex-wrap sm:items-center sm:gap-x-8 sm:gap-y-4">
+      <div className="col-span-2 sm:col-span-1 sm:min-w-[8rem]">
         <Label>Maturity</Label>
         <p className="mt-1 text-sm font-medium text-neutral-100">{formatMaturity(maturity)}</p>
         {countdown.matured ? (
@@ -161,35 +164,35 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
         )}
       </div>
 
-      <div className="min-w-[6.5rem]">
+      <div className="sm:min-w-[6.5rem]">
         <Label>Fixed APY</Label>
         <p className={`mt-1 text-2xl font-medium tabular-nums tracking-[-0.03em] ${apyTone}`}>
           {fixedApy === null ? '—' : formatPercent(fixedApy)}
         </p>
       </div>
 
-      <div className="min-w-[5.5rem]">
+      <div className="sm:min-w-[5.5rem]">
         <Label>Underlying</Label>
         <p className="mt-1 text-sm tabular-nums text-neutral-300">
           {underApy === null ? '—' : formatPercent(underApy)}
         </p>
       </div>
 
-      <div className="min-w-[6rem]">
+      <div className="sm:min-w-[6rem]">
         <Label>Liquidity</Label>
         <p className="mt-1 text-sm tabular-nums text-neutral-300">
           {pool === null ? 'No pool' : `${formatAmount(pool.syReserve)} SY`}
         </p>
       </div>
 
-      <div className="ml-auto">
+      <div className="col-span-2 sm:col-span-1 sm:ml-auto">
         <button
           type="button"
           onClick={() => {
             onTrade(maturity)
           }}
           disabled={!hasLiquidity || countdown.matured}
-          className="inline-flex items-center gap-1.5 rounded-full bg-accent-500 px-4 py-2 text-sm font-medium text-neutral-950 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-600"
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-accent-500 px-4 py-2.5 sm:w-auto sm:py-2 text-sm font-medium text-neutral-950 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-600"
         >
           Lock rate
           <ArrowRightIcon className="h-3.5 w-3.5" />
