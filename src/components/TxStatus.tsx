@@ -3,7 +3,14 @@ import { useState } from 'react'
 import type { ReactElement } from 'react'
 import { explorerTxUrl } from '../config'
 import type { AppError } from '../types'
-import { CheckCircleIcon, CheckIcon, CopyIcon, ExternalLinkIcon, Spinner, XCircleIcon } from './icons'
+import {
+  CheckCircleIcon,
+  CheckIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+  Spinner,
+  XCircleIcon,
+} from './icons'
 
 export type TxOutcome =
   | { status: 'pending'; label: string; hash: string | null }
@@ -35,7 +42,9 @@ export function TxStatus({ outcome }: { outcome: TxOutcome | null }): ReactEleme
           <Spinner className="h-5 w-5 shrink-0 text-warning-400" />
           <div className="min-w-0 flex-1 text-sm">
             <p className="font-semibold text-warning-100">{outcome.label} pending…</p>
-            <p className="mt-0.5 text-warning-200/70">Waiting for the network to confirm your transaction.</p>
+            <p className="mt-0.5 text-warning-200/70">
+              Waiting for the network to confirm your transaction.
+            </p>
             {outcome.hash && (
               <code
                 aria-hidden="true"
@@ -73,39 +82,46 @@ export function TxStatus({ outcome }: { outcome: TxOutcome | null }): ReactEleme
           <p className="font-semibold text-positive-100">{label} sent</p>
           <p className="mt-0.5 text-positive-200/70">Your transaction was confirmed on Testnet.</p>
 
-          <div className="mt-3">
-            <span className="text-xs font-medium uppercase tracking-wide text-positive-200/60">
-              Transaction hash
-            </span>
-            <div className="mt-1 flex items-start gap-2">
-              <code
-                aria-hidden="true"
-                className="min-w-0 flex-1 break-all rounded-md bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-positive-100"
-              >
-                {hash}
-              </code>
-              <button
-                type="button"
-                onClick={() => {
-                  void copyHash()
-                }}
-                aria-label={copied ? 'Hash copied' : 'Copy transaction hash'}
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-positive-500/30 text-positive-300 transition-colors hover:bg-positive-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-500/60"
-              >
-                {copied ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
+          {/* invokeWrite falls back to an empty hash when the RPC response
+              carries none. Rendering it anyway produced an empty code block and
+              an explorer link that goes nowhere. */}
+          {hash !== '' && (
+            <>
+              <div className="mt-3">
+                <span className="text-xs font-medium uppercase tracking-wide text-positive-200/60">
+                  Transaction hash
+                </span>
+                <div className="mt-1 flex items-start gap-2">
+                  <code
+                    aria-hidden="true"
+                    className="min-w-0 flex-1 break-all rounded-md bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-positive-100"
+                  >
+                    {hash}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void copyHash()
+                    }}
+                    aria-label={copied ? 'Hash copied' : 'Copy transaction hash'}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-positive-500/30 text-positive-300 transition-colors hover:bg-positive-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-500/60"
+                  >
+                    {copied ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
 
-          <a
-            href={explorerUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 rounded font-medium text-positive-300 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-500/60"
-          >
-            View on Stellar Expert
-            <ExternalLinkIcon className="h-3.5 w-3.5" />
-          </a>
+              <a
+                href={explorerUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 rounded font-medium text-positive-300 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-500/60"
+              >
+                View on Stellar Expert
+                <ExternalLinkIcon className="h-3.5 w-3.5" />
+              </a>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -43,6 +43,14 @@ export function getClient<T>(contractId: string): Promise<T> {
       contractId,
       networkPassphrase: config.networkPassphrase,
       rpcUrl: config.sorobanRpcUrl,
+    }).catch((e: unknown) => {
+      // Evict a failed spec fetch. Caching the rejected promise made one
+      // dropped request permanent: this is the only way any service reaches a
+      // contract, so every later read and write replayed the same rejection
+      // until the page was reloaded — including the periodic refetches whose
+      // whole job is to recover from a transient RPC failure.
+      clientCache.delete(contractId)
+      throw e
     })
     clientCache.set(contractId, cached)
   }
