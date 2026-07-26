@@ -62,7 +62,7 @@ export function BalanceCard({
           onClick={onRefresh}
           disabled={loading}
           aria-label="Refresh balance"
-          className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:opacity-50"
+          className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 disabled:opacity-50"
         >
           {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
         </button>
@@ -79,7 +79,7 @@ export function BalanceCard({
             <button
               type="button"
               onClick={onRefresh}
-              className="rounded-lg border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+              className="rounded-lg border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
             >
               Try again
             </button>
@@ -104,7 +104,7 @@ export function BalanceCard({
               }}
               disabled={funding}
               aria-busy={funding}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {funding ? (
                 <>

@@ -174,13 +174,13 @@ export function SplitCard({
               (tab === 'split' ? (
                 <>
                   You’ll receive ≈{' '}
-                  <span className="font-mono text-emerald-300">{formatAmount(preview)}</span> PT and the
+                  <span className="font-mono text-accent-300">{formatAmount(preview)}</span> PT and the
                   same amount of YT.
                 </>
               ) : (
                 <>
                   You’ll receive ≈{' '}
-                  <span className="font-mono text-emerald-300">{formatAmount(preview)}</span> SY.
+                  <span className="font-mono text-accent-300">{formatAmount(preview)}</span> SY.
                 </>
               ))}
           </p>
@@ -196,13 +196,13 @@ export function SplitCard({
           </ActionButton>
 
           {selectedMatured ? (
-            <p className="mt-3 text-center text-xs text-amber-300">
+            <p className="mt-3 text-center text-xs text-warning-300">
               This maturity has passed — split and merge are closed. Claim or redeem it under “Your
               positions”.
             </p>
           ) : (
             isWrongNetwork && (
-              <p className="mt-3 text-center text-xs text-amber-300">
+              <p className="mt-3 text-center text-xs text-warning-300">
                 Switch your wallet to Testnet to continue.
               </p>
             )

@@ -26,7 +26,7 @@ export function Landing(): ReactElement {
               not decoration bolted on. Hidden on small screens where it would
               crowd the headline instead of framing it. */}
           <BrandMark
-            className="pointer-events-none absolute -right-24 top-1/2 hidden h-[42rem] w-[42rem] -translate-y-1/2 text-neutral-950/[0.045] lg:block"
+            className="pointer-events-none absolute -right-28 top-1/2 hidden h-[34rem] w-[34rem] -translate-y-1/2 text-neutral-950/[0.035] lg:block"
           />
 
           <div className="mx-auto w-full max-w-6xl px-6 py-24 sm:py-32 lg:py-40">
@@ -47,14 +47,14 @@ export function Landing(): ReactElement {
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <Link
                 to="/app"
-                className="group inline-flex items-center gap-2 rounded-full bg-neutral-950 px-6 py-3.5 text-sm font-medium text-neutral-50 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
+                className="group inline-flex items-center gap-2 rounded-full bg-accent-500 px-6 py-3.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
               >
                 Launch App
                 <ArrowRightIcon className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Link>
               <a
                 href="#how"
-                className="inline-flex items-center rounded-full border border-neutral-950/15 px-6 py-3.5 text-sm font-medium transition-colors hover:border-neutral-950/30 hover:bg-neutral-950/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
+                className="inline-flex items-center rounded-full border border-neutral-950/15 px-6 py-3.5 text-sm font-medium transition-colors hover:border-neutral-950/30 hover:bg-neutral-950/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
               >
                 How it works
               </a>
@@ -117,7 +117,7 @@ export function Landing(): ReactElement {
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <Link
                 to="/app"
-                className="group inline-flex items-center gap-2 rounded-full bg-neutral-950 px-6 py-3.5 text-sm font-medium text-neutral-50 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
+                className="group inline-flex items-center gap-2 rounded-full bg-accent-500 px-6 py-3.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
               >
                 Launch App
                 <ArrowRightIcon className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -156,7 +156,7 @@ function SiteHeader(): ReactElement {
         </Link>
         <Link
           to="/app"
-          className="inline-flex items-center rounded-full bg-neutral-950 px-5 py-2.5 text-sm font-medium text-neutral-50 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
+          className="inline-flex items-center rounded-full bg-accent-500 px-5 py-2.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
         >
           Launch App
         </Link>

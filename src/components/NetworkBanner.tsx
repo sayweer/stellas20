@@ -8,9 +8,9 @@ export function NetworkBanner(): ReactElement | null {
   if (!isWrongNetwork && !networkUnknown) return null
 
   return (
-    <div role="alert" className="border-b border-amber-500/30 bg-amber-500/10">
-      <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3 text-sm text-amber-100">
-        <AlertTriangleIcon className="h-5 w-5 shrink-0 text-amber-400" />
+    <div role="alert" className="border-b border-warning-500/30 bg-warning-500/10">
+      <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3 text-sm text-warning-100">
+        <AlertTriangleIcon className="h-5 w-5 shrink-0 text-warning-400" />
         {isWrongNetwork ? (
           <p>
             <span className="font-semibold">Wrong network{network ? ` (${network})` : ''}.</span>{' '}

@@ -139,7 +139,7 @@ export function WrapCard({
       </ActionButton>
 
       {isWrongNetwork && (
-        <p className="mt-3 text-center text-xs text-amber-300">Switch your wallet to Testnet to continue.</p>
+        <p className="mt-3 text-center text-xs text-warning-300">Switch your wallet to Testnet to continue.</p>
       )}
 
       {outcome && (

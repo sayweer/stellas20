@@ -52,15 +52,15 @@ export function WalletButton(): ReactElement {
             void handleCopy()
           }}
           aria-label={copied ? 'Address copied' : `Copy address ${address}`}
-          className="inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-sm text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+          className="inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-sm text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
         >
           <span
             aria-hidden="true"
-            className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px] shadow-emerald-400/60"
+            className="h-2 w-2 rounded-full bg-accent-400 shadow-[0_0_8px] shadow-accent-400/60"
           />
           <span className="tabular-nums">{truncate(address)}</span>
           {copied ? (
-            <CheckIcon className="h-4 w-4 text-emerald-400" />
+            <CheckIcon className="h-4 w-4 text-accent-400" />
           ) : (
             <CopyIcon className="h-4 w-4 text-neutral-500" />
           )}
@@ -69,7 +69,7 @@ export function WalletButton(): ReactElement {
           type="button"
           onClick={disconnect}
           aria-label="Disconnect wallet"
-          className="grid h-9 w-9 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 sm:h-auto sm:w-auto sm:px-3 sm:py-2 sm:text-sm sm:font-medium"
+          className="grid h-9 w-9 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 sm:h-auto sm:w-auto sm:px-3 sm:py-2 sm:text-sm sm:font-medium"
         >
           <span className="sm:hidden">
             <XIcon className="h-4 w-4" />
@@ -89,7 +89,7 @@ export function WalletButton(): ReactElement {
         }}
         disabled={connecting}
         aria-busy={connecting}
-        className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {connecting ? (
           <>
@@ -107,7 +107,7 @@ export function WalletButton(): ReactElement {
             href="https://www.freighter.app/"
             target="_blank"
             rel="noreferrer"
-            className="rounded font-medium text-emerald-400 underline underline-offset-2 hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+            className="rounded font-medium text-accent-400 underline underline-offset-2 hover:text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
           >
             Freighter
           </a>{' '}

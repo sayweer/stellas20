@@ -212,7 +212,7 @@ function AddForm({
       )}
 
       {syIn > 0n && !enoughPt && (
-        <p className="text-xs text-amber-300">
+        <p className="text-xs text-warning-300">
           You need {formatAmount(ptNeeded)} PT to pair with that SY — split more SY (Advanced) or
           reduce the amount.
         </p>
@@ -228,7 +228,7 @@ function AddForm({
       </ActionButton>
 
       {isWrongNetwork && (
-        <p className="text-center text-xs text-amber-300">Switch your wallet to Testnet to continue.</p>
+        <p className="text-center text-xs text-warning-300">Switch your wallet to Testnet to continue.</p>
       )}
       {outcome && <TxStatus outcome={outcome} />}
     </div>
@@ -317,7 +317,7 @@ function RemoveForm({
       </ActionButton>
 
       {isWrongNetwork && (
-        <p className="text-center text-xs text-amber-300">Switch your wallet to Testnet to continue.</p>
+        <p className="text-center text-xs text-warning-300">Switch your wallet to Testnet to continue.</p>
       )}
       {outcome && <TxStatus outcome={outcome} />}
     </div>

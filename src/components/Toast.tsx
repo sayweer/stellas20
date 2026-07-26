@@ -14,15 +14,15 @@ interface VariantStyle {
 
 const VARIANTS: Record<ToastVariant, VariantStyle> = {
   success: {
-    border: 'border-emerald-500/30',
-    icon: 'text-emerald-400',
+    border: 'border-positive-500/30',
+    icon: 'text-positive-400',
     role: 'status',
     live: 'polite',
     Icon: CheckCircleIcon,
   },
   error: {
-    border: 'border-rose-500/30',
-    icon: 'text-rose-400',
+    border: 'border-negative-500/30',
+    icon: 'text-negative-400',
     role: 'alert',
     live: 'assertive',
     Icon: AlertTriangleIcon,
@@ -60,7 +60,7 @@ export function Toast(): ReactElement | null {
                 dismiss(toast.id)
               }}
               aria-label="Dismiss notification"
-              className="-m-1.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+              className="-m-1.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
             >
               <XIcon className="h-4 w-4" />
             </button>

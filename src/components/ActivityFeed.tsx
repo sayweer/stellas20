@@ -9,21 +9,29 @@ import type { ProtocolEvent, ProtocolEventType } from '../lib/events'
 import { ExternalLinkIcon } from './icons'
 
 /**
- * Display label, dot color, and default amount unit per event type. A null
+ * Display label, dot colour, and default amount unit per event type. A null
  * unit means the amount is denominated in the market's underlying, whose
  * ticker depends on which market is active.
+ *
+ * The dot encodes direction, not event identity: value entering a position is
+ * light, value leaving it is dark, and claimed yield is the one genuinely
+ * positive outcome. Ten distinct hues made the feed read as decoration and
+ * spent the accent — which belongs to interactive elements — on data.
  */
+const IN = 'bg-neutral-300'
+const OUT = 'bg-neutral-600'
+
 const META: Record<ProtocolEventType, { label: string; dot: string; unit: string | null }> = {
-  faucet: { label: 'Faucet', dot: 'bg-sky-400', unit: null },
-  wrap: { label: 'Wrap', dot: 'bg-indigo-400', unit: null },
-  unwrap: { label: 'Unwrap', dot: 'bg-indigo-400', unit: 'SY' },
-  split: { label: 'Split', dot: 'bg-emerald-400', unit: 'SY' },
-  merge: { label: 'Merge', dot: 'bg-amber-400', unit: 'SY' },
-  yield_claim: { label: 'Claim', dot: 'bg-emerald-400', unit: 'SY' },
-  pt_redeem: { label: 'Redeem', dot: 'bg-violet-400', unit: 'SY' },
-  swap: { label: 'Swap', dot: 'bg-teal-400', unit: 'SY' },
-  liquidity_added: { label: 'Add LP', dot: 'bg-cyan-400', unit: 'SY' },
-  liquidity_removed: { label: 'Remove LP', dot: 'bg-cyan-400', unit: 'SY' },
+  faucet: { label: 'Faucet', dot: IN, unit: null },
+  wrap: { label: 'Wrap', dot: IN, unit: null },
+  unwrap: { label: 'Unwrap', dot: OUT, unit: 'SY' },
+  split: { label: 'Split', dot: IN, unit: 'SY' },
+  merge: { label: 'Merge', dot: OUT, unit: 'SY' },
+  yield_claim: { label: 'Claim', dot: 'bg-positive-400', unit: 'SY' },
+  pt_redeem: { label: 'Redeem', dot: OUT, unit: 'SY' },
+  swap: { label: 'Swap', dot: IN, unit: 'SY' },
+  liquidity_added: { label: 'Add LP', dot: IN, unit: 'SY' },
+  liquidity_removed: { label: 'Remove LP', dot: OUT, unit: 'SY' },
 }
 
 interface ActivityFeedProps {
@@ -85,7 +93,7 @@ export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
                     target="_blank"
                     rel="noreferrer"
                     aria-label="View transaction on Stellar Expert"
-                    className="-m-2 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-neutral-400 transition-colors hover:text-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                    className="-m-2 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-neutral-400 transition-colors hover:text-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
                   >
                     <ExternalLinkIcon className="h-3.5 w-3.5" />
                   </a>

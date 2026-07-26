@@ -73,7 +73,7 @@ export function PortfolioPanel({
           onClick={onRefresh}
           disabled={loading}
           aria-label="Refresh portfolio"
-          className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:opacity-50"
+          className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 disabled:opacity-50"
         >
           {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
         </button>
@@ -85,7 +85,7 @@ export function PortfolioPanel({
           <button
             type="button"
             onClick={onRefresh}
-            className="rounded-lg border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+            className="rounded-lg border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
           >
             Try again
           </button>
@@ -108,7 +108,7 @@ export function PortfolioPanel({
               ) : (
                 <dd
                   className={`mt-1 truncate font-mono text-base font-semibold tabular-nums sm:text-lg ${
-                    stat.accent ? 'text-emerald-300' : 'text-neutral-50'
+                    stat.accent ? 'text-accent-300' : 'text-neutral-50'
                   }`}
                 >
                   {stat.value}

@@ -26,7 +26,7 @@ export function MaturitySelect({ options, value, onChange }: MaturitySelectProps
         onChange={(e) => {
           onChange(BigInt(e.target.value))
         }}
-        className="w-full rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100 transition-colors focus:border-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30"
+        className="w-full rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100 transition-colors focus:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/30"
       >
         {options.map((opt) => (
           <option key={opt.maturity.toString()} value={opt.maturity.toString()}>

@@ -117,7 +117,7 @@ function MaturityCard({
           {formatMaturity(maturity)}
         </span>
         {countdown.matured ? (
-          <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+          <span className="shrink-0 rounded-full bg-warning-500/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-warning-300">
             Matured
           </span>
         ) : (
@@ -141,10 +141,10 @@ function MaturityCard({
         </div>
       </dl>
 
-      <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
-        <CoinsIcon className="h-4 w-4 text-emerald-400" />
+      <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-accent-500/20 bg-accent-500/5 px-3 py-2">
+        <CoinsIcon className="h-4 w-4 text-accent-400" />
         <span className="text-xs text-neutral-300">Claimable now</span>
-        <span className="ml-auto font-mono text-sm font-semibold tabular-nums text-emerald-300">
+        <span className="ml-auto font-mono text-sm font-semibold tabular-nums text-accent-300">
           {claimable === null ? '—' : `${formatAmount(claimable, 6)} SY`}
         </span>
       </div>
@@ -186,7 +186,7 @@ function MaturityCard({
             </p>
           )}
           {isWrongNetwork && (
-            <p className="mt-2 text-center text-[11px] text-amber-300">
+            <p className="mt-2 text-center text-[11px] text-warning-300">
               Switch your wallet to Testnet to act.
             </p>
           )}

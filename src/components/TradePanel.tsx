@@ -151,7 +151,7 @@ function SummaryRow({
     <div className="flex items-center justify-between text-sm">
       <span className="text-neutral-400">{label}</span>
       <span
-        className={`font-mono tabular-nums ${accent ? 'font-semibold text-emerald-300' : 'text-neutral-200'}`}
+        className={`font-mono tabular-nums ${accent ? 'font-semibold text-accent-300' : 'text-neutral-200'}`}
       >
         {children}
       </span>
@@ -209,14 +209,14 @@ function LockRateForm({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
+      <div className="rounded-xl border border-accent-500/20 bg-accent-500/5 px-4 py-3">
         <div className="flex items-center gap-2">
-          <LockIcon className="h-4 w-4 text-emerald-400" />
-          <span className="text-sm font-medium text-emerald-200">
+          <LockIcon className="h-4 w-4 text-accent-400" />
+          <span className="text-sm font-medium text-accent-200">
             {lockedApy === null ? 'Lock a fixed rate' : `Lock ${formatPercent(lockedApy)} APY`}
           </span>
         </div>
-        <p className="mt-1 text-xs text-emerald-200/70">
+        <p className="mt-1 text-xs text-accent-200/70">
           until {formatMaturity(maturity)} · {countdown.days}d {countdown.hours}h left
         </p>
       </div>
@@ -267,7 +267,7 @@ function LockRateForm({
       </p>
 
       {isWrongNetwork && (
-        <p className="text-center text-xs text-amber-300">Switch your wallet to Testnet to continue.</p>
+        <p className="text-center text-xs text-warning-300">Switch your wallet to Testnet to continue.</p>
       )}
       {outcome && (
         <div>
@@ -413,7 +413,7 @@ function LongYieldForm({
       )}
 
       {isWrongNetwork && (
-        <p className="text-center text-xs text-amber-300">Switch your wallet to Testnet to continue.</p>
+        <p className="text-center text-xs text-warning-300">Switch your wallet to Testnet to continue.</p>
       )}
       {split.outcome && <TxStatus outcome={split.outcome} />}
       {sell.outcome && <TxStatus outcome={sell.outcome} />}
@@ -436,7 +436,7 @@ function StageChip({
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-medium ${
         done
-          ? 'bg-emerald-500/15 text-emerald-300'
+          ? 'bg-accent-500/15 text-accent-300'
           : active
             ? 'bg-neutral-800 text-neutral-100'
             : 'text-neutral-500'
@@ -444,7 +444,7 @@ function StageChip({
     >
       <span
         className={`grid h-4 w-4 place-items-center rounded-full text-[10px] ${
-          done ? 'bg-emerald-500 text-neutral-950' : active ? 'bg-neutral-700 text-neutral-100' : 'bg-neutral-800 text-neutral-500'
+          done ? 'bg-accent-500 text-neutral-950' : active ? 'bg-neutral-700 text-neutral-100' : 'bg-neutral-800 text-neutral-500'
         }`}
       >
         {done ? '✓' : n}

@@ -21,9 +21,9 @@ export function FaucetButton({ pending, disabled, onClick }: FaucetButtonProps):
       onClick={onClick}
       disabled={pending || disabled}
       aria-busy={pending}
-      className="inline-flex items-center gap-2 rounded-lg border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 disabled:cursor-not-allowed disabled:opacity-50"
+      className="inline-flex items-center gap-2 rounded-lg border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 disabled:cursor-not-allowed disabled:opacity-50"
     >
-      {pending ? <Spinner className="h-4 w-4" /> : <DropletIcon className="h-4 w-4 text-emerald-400" />}
+      {pending ? <Spinner className="h-4 w-4" /> : <DropletIcon className="h-4 w-4 text-accent-400" />}
       Get 1,000 {activeMarket().underlyingSymbol}
     </button>
   )
