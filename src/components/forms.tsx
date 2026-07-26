@@ -147,11 +147,11 @@ export function ActionButton({
   className = '',
 }: ActionButtonProps): ReactElement {
   const base =
-    'inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed disabled:opacity-50'
+    'inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed'
   const styles =
     variant === 'primary'
-      ? 'bg-accent-500 text-neutral-950 hover:bg-accent-400 focus-visible:ring-accent-400 active:bg-accent-600'
-      : 'border border-neutral-700 text-neutral-200 hover:bg-neutral-800 focus-visible:ring-accent-500/60'
+      ? 'bg-accent-500 text-neutral-950 hover:bg-accent-400 focus-visible:ring-accent-400 active:bg-accent-600 disabled:bg-neutral-800 disabled:text-neutral-600'
+      : 'border border-neutral-700 text-neutral-200 hover:bg-neutral-800 focus-visible:ring-accent-500/60 disabled:border-neutral-800 disabled:text-neutral-600'
   return (
     <button
       type="button"

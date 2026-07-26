@@ -174,13 +174,13 @@ export function SplitCard({
               (tab === 'split' ? (
                 <>
                   You’ll receive ≈{' '}
-                  <span className="font-mono text-accent-300">{formatAmount(preview)}</span> PT and the
+                  <span className="font-mono text-neutral-100">{formatAmount(preview)}</span> PT and the
                   same amount of YT.
                 </>
               ) : (
                 <>
                   You’ll receive ≈{' '}
-                  <span className="font-mono text-accent-300">{formatAmount(preview)}</span> SY.
+                  <span className="font-mono text-neutral-100">{formatAmount(preview)}</span> SY.
                 </>
               ))}
           </p>

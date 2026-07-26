@@ -27,10 +27,13 @@ export function AdvancedPanel({
 
   return (
     <div id="panel-advanced" role="tabpanel" aria-labelledby="tab-advanced" className="space-y-6">
-      <p className="text-sm text-neutral-400">
-        The raw protocol primitives. Wrap {activeMarket().underlyingSymbol} into SY, then split SY
-        into PT + YT — the building blocks the Markets and Trade tabs sit on top of.
-      </p>
+      <header>
+        <h2 className="text-lg font-medium tracking-[-0.02em] text-neutral-100">Advanced</h2>
+        <p className="mt-1 text-sm text-neutral-400">
+          The raw protocol primitives. Wrap {activeMarket().underlyingSymbol} into SY, then split SY
+          into PT + YT — the building blocks the Markets and Trade tabs sit on top of.
+        </p>
+      </header>
 
       {!hasSplit && (
         <OnboardingSteps

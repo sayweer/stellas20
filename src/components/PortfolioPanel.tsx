@@ -1,7 +1,6 @@
-/** Top-level portfolio balances: underlying, SY, total PT, and live claimable yield. */
+/** Position summary: total PT, open maturities, and live claimable yield. */
 import type { ReactElement } from 'react'
 import type { Portfolio } from '../hooks/usePortfolio'
-import { activeMarket } from '../lib/market'
 import { formatAmount } from '../lib/format'
 import { claimableAt } from '../lib/yield'
 import { chainNowMs } from '../lib/chainTime'
@@ -46,12 +45,8 @@ export function PortfolioPanel({
         )
 
   const stats: Stat[] = [
-    {
-      label: activeMarket().underlyingSymbol,
-      value: disconnected ? '—' : formatAmount(portfolio.underlying),
-    },
-    { label: 'SY', value: disconnected ? '—' : formatAmount(portfolio.sy) },
     { label: 'PT (all maturities)', value: disconnected ? '—' : formatAmount(totalPt) },
+    { label: 'Open maturities', value: disconnected ? '—' : String(portfolio.positions.length) },
     {
       label: 'Claimable yield',
       value: disconnected || totalClaimable === null ? '—' : formatAmount(totalClaimable, 6),
@@ -62,10 +57,9 @@ export function PortfolioPanel({
   return (
     <section
       aria-labelledby="portfolio-heading"
-      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="portfolio-heading" className="text-sm font-medium text-neutral-400">
+        <h2 id="portfolio-heading" className="text-lg font-medium tracking-[-0.02em] text-neutral-100">
           Portfolio
         </h2>
         <button
@@ -91,7 +85,7 @@ export function PortfolioPanel({
           </button>
         </div>
       ) : (
-        <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {stats.map((stat) => (
             <div
               key={stat.label}
@@ -108,7 +102,7 @@ export function PortfolioPanel({
               ) : (
                 <dd
                   className={`mt-1 truncate font-mono text-base font-semibold tabular-nums sm:text-lg ${
-                    stat.accent ? 'text-accent-300' : 'text-neutral-50'
+                    stat.accent ? 'text-positive-300' : 'text-neutral-50'
                   }`}
                 >
                   {stat.value}

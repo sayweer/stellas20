@@ -37,9 +37,9 @@ export function OnboardingSteps({ gotTokens, wrapped, split }: OnboardingStepsPr
   return (
     <section
       aria-label="Getting started"
-      className="rounded-2xl border border-accent-500/20 bg-accent-500/[0.04] p-5 sm:p-6"
+      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6"
     >
-      <h2 className="text-sm font-medium text-accent-200/80">Get started in 3 steps</h2>
+      <h2 className="text-sm font-medium text-neutral-300">Get started in 3 steps</h2>
       <ol className="mt-4 grid gap-3 sm:grid-cols-3">
         {steps.map((step) => (
           <li
@@ -50,7 +50,7 @@ export function OnboardingSteps({ gotTokens, wrapped, split }: OnboardingStepsPr
               aria-hidden="true"
               className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-semibold ${
                 step.done
-                  ? 'bg-accent-500 text-neutral-950'
+                  ? 'bg-positive-400 text-neutral-950'
                   : 'border border-neutral-700 text-neutral-400'
               }`}
             >

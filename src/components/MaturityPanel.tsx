@@ -141,10 +141,10 @@ function MaturityCard({
         </div>
       </dl>
 
-      <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-accent-500/20 bg-accent-500/5 px-3 py-2">
-        <CoinsIcon className="h-4 w-4 text-accent-400" />
+      <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-neutral-800 bg-neutral-950/60 px-3 py-2">
+        <CoinsIcon className="h-4 w-4 text-positive-400" />
         <span className="text-xs text-neutral-300">Claimable now</span>
-        <span className="ml-auto font-mono text-sm font-semibold tabular-nums text-accent-300">
+        <span className="ml-auto font-mono text-sm font-semibold tabular-nums text-positive-300">
           {claimable === null ? '—' : `${formatAmount(claimable, 6)} SY`}
         </span>
       </div>
