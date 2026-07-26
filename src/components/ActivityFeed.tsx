@@ -54,12 +54,14 @@ export function ActivityFeed({ events }: ActivityFeedProps): ReactElement {
 
   return (
     <section
-      aria-labelledby="activity-feed-heading"
-      className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 sm:p-6"
+      id="panel-activity"
+      role="tabpanel"
+      aria-labelledby="tab-activity"
     >
-      <h2 id="activity-feed-heading" className="text-sm font-medium text-neutral-400">
-        Activity
-      </h2>
+      <h2 className="text-lg font-medium tracking-[-0.02em] text-neutral-100">Activity</h2>
+      <p className="mt-1 text-sm text-neutral-400">
+        Live protocol events, polled from the contracts.
+      </p>
 
       {events.length === 0 ? (
         <p className="mt-4 text-sm text-neutral-400">No protocol activity yet.</p>

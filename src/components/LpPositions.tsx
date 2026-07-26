@@ -17,7 +17,7 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
   return (
     <section
       aria-labelledby="lp-heading"
-      className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 sm:p-6"
+      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6"
     >
       <div className="flex items-center gap-2">
         <LayersIcon className="h-4 w-4 text-neutral-400" />

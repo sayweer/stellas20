@@ -62,7 +62,7 @@ export function PortfolioPanel({
   return (
     <section
       aria-labelledby="portfolio-heading"
-      className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 sm:p-6"
+      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="portfolio-heading" className="text-sm font-medium text-neutral-400">

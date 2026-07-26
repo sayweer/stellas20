@@ -2,14 +2,31 @@
 import type { ReactElement } from 'react'
 import { WalletIcon } from './icons'
 
-export function ConnectPrompt({ message }: { message: string }): ReactElement {
+interface ConnectPromptProps {
+  message: string
+  /**
+   * The tab this stands in for. It has to carry the panel's identity: while
+   * disconnected this *is* the panel, and without it the selected tab's
+   * `aria-controls` points at an element that does not exist.
+   */
+  tab: string
+}
+
+export function ConnectPrompt({ message, tab }: ConnectPromptProps): ReactElement {
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-8 text-center">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-500/10 text-accent-400 ring-1 ring-inset ring-accent-500/20">
-        <WalletIcon className="h-7 w-7" />
+    <section
+      id={`panel-${tab}`}
+      role="tabpanel"
+      aria-labelledby={`tab-${tab}`}
+      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-10 text-center"
+    >
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-850 text-neutral-400">
+        <WalletIcon className="h-6 w-6" />
       </div>
-      <h2 className="mt-5 text-lg font-semibold tracking-tight text-neutral-50">Connect to start</h2>
+      <h2 className="mt-5 text-lg font-medium tracking-[-0.02em] text-neutral-50">
+        Connect to start
+      </h2>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-neutral-400">{message}</p>
-    </div>
+    </section>
   )
 }

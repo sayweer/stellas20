@@ -43,7 +43,7 @@ export function MaturityPanel({
   return (
     <section
       aria-labelledby="positions-heading"
-      className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 sm:p-6"
+      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6"
     >
       <h2 id="positions-heading" className="text-sm font-medium text-neutral-400">
         Your positions
@@ -150,7 +150,7 @@ function MaturityCard({
       </div>
 
       {settled ? (
-        <p className="mt-3 rounded-lg border border-neutral-800 bg-neutral-900/60 px-3 py-2 text-center text-xs font-medium text-neutral-400">
+        <p className="mt-3 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-center text-xs font-medium text-neutral-400">
           Settled — principal redeemed and yield claimed.
         </p>
       ) : (

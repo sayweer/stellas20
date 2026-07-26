@@ -39,7 +39,7 @@ export function WalletBar({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-neutral-800 bg-neutral-900/60 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3">
         <div className="flex items-center gap-6">
           <Balance label={market.underlyingSymbol} value={underlying} loading={loading} />
           <Balance label="SY" value={sy} loading={loading} />

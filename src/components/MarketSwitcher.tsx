@@ -22,7 +22,7 @@ export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): React
       <div
         role="radiogroup"
         aria-label="Yield source"
-        className="inline-flex rounded-xl border border-neutral-800 bg-neutral-900/60 p-1"
+        className="inline-flex rounded-xl border border-neutral-800 bg-neutral-900 p-1"
       >
         {markets.map((market) => {
           const selected = market.key === active

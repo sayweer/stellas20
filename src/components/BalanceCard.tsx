@@ -51,7 +51,7 @@ export function BalanceCard({
   return (
     <section
       aria-labelledby="balance-heading"
-      className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 sm:p-6"
+      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6"
     >
       <div className="flex items-center justify-between">
         <h2 id="balance-heading" className="text-sm font-medium text-neutral-400">

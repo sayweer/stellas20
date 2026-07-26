@@ -195,7 +195,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                   onSuccess={refreshAll}
                 />
               ) : (
-                <ConnectPrompt message="Connect a Testnet wallet to lock a fixed rate or go long yield." />
+                <ConnectPrompt tab="trade" message="Connect a Testnet wallet to lock a fixed rate or go long yield." />
               ))}
 
             {tab === 'pool' &&
@@ -210,7 +210,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                   onSuccess={refreshAll}
                 />
               ) : (
-                <ConnectPrompt message="Connect a Testnet wallet to provide liquidity and earn swap fees." />
+                <ConnectPrompt tab="pool" message="Connect a Testnet wallet to provide liquidity and earn swap fees." />
               ))}
 
             {tab === 'portfolio' &&
@@ -227,7 +227,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                   onManagePool={goPool}
                 />
               ) : (
-                <ConnectPrompt message="Connect a Testnet wallet to see your positions and claimable yield." />
+                <ConnectPrompt tab="portfolio" message="Connect a Testnet wallet to see your positions and claimable yield." />
               ))}
 
             {tab === 'activity' && <ActivityFeed events={events} />}
@@ -243,7 +243,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                   onSuccess={refreshAll}
                 />
               ) : (
-                <ConnectPrompt message="Connect a Testnet wallet to wrap the underlying and split SY into PT + YT." />
+                <ConnectPrompt tab="advanced" message="Connect a Testnet wallet to wrap the underlying and split SY into PT + YT." />
               ))}
           </main>
         </div>

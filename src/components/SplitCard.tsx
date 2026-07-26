@@ -106,7 +106,7 @@ export function SplitCard({
   }
 
   return (
-    <section className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 sm:p-6">
+    <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <SplitIcon className="h-4 w-4 text-neutral-400" />
         <h2 className="text-sm font-medium text-neutral-400">Split / Merge</h2>
