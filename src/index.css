@@ -1,18 +1,40 @@
+@import '@fontsource-variable/space-grotesk';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    color-scheme: dark;
+  html {
+    @apply font-sans antialiased;
   }
 
-  html {
-    @apply bg-neutral-950 font-sans text-neutral-100 antialiased;
+  /* The colour scheme is per-surface, not global: the marketing route paints
+     itself light, the app route dark. Each sets `color-scheme` so form
+     controls, scrollbars and focus rings match the surface they sit on. */
+  .surface-app {
+    color-scheme: dark;
+    @apply bg-neutral-950 text-neutral-100;
+  }
+
+  .surface-site {
+    color-scheme: light;
+    @apply bg-neutral-50 text-neutral-950;
   }
 
   body {
     @apply min-h-screen;
+  }
+}
+
+@layer components {
+  /* Faint ruled grid behind the marketing hero. Two hairline gradients rather
+     than an image so it stays crisp at any zoom and costs nothing to load. */
+  .grid-rule {
+    background-image:
+      linear-gradient(to right, rgb(14 18 22 / 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(14 18 22 / 0.055) 1px, transparent 1px);
+    background-size: 7.5rem 7.5rem;
   }
 }
 

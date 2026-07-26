@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ReactElement } from 'react'
 import { useWallet } from './context/WalletContext'
+import { useSurface } from './hooks/useSurface'
 import { useBalance } from './hooks/useBalance'
 import { usePortfolio } from './hooks/usePortfolio'
 import { usePools } from './hooks/usePools'
@@ -26,6 +27,7 @@ import { Toast } from './components/Toast'
 import { AlertTriangleIcon } from './components/icons'
 
 function App(): ReactElement {
+  useSurface('app')
   const [marketKey, setMarketKey] = useState<MarketKey>(markets[0].key)
   const configured = isContractsConfigured()
 
