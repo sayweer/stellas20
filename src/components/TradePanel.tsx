@@ -34,6 +34,8 @@ interface TradePanelProps {
   /** A maturity to preselect (e.g. clicked from Markets). */
   initialMaturity: bigint | null
   onSuccess: () => void
+  /** Jump to the Advanced tab — the only place SY can be minted. */
+  onGoAdvanced: () => void
 }
 
 type Mode = 'lock' | 'long'
@@ -46,6 +48,7 @@ export function TradePanel({
   liveRate,
   initialMaturity,
   onSuccess,
+  onGoAdvanced,
 }: TradePanelProps): ReactElement {
   const now = useNow()
   const [mode, setMode] = useState<Mode>('lock')
@@ -117,6 +120,7 @@ export function TradePanel({
                   liveRate={liveRate}
                   nowMs={now}
                   onSuccess={onSuccess}
+                  onGoAdvanced={onGoAdvanced}
                 />
               ) : (
                 <LongYieldForm
@@ -169,6 +173,7 @@ interface LockFormProps {
   liveRate: bigint | null
   nowMs: number
   onSuccess: () => void
+  onGoAdvanced: () => void
 }
 
 /** Lock a fixed rate: swap SY → PT at a discount, redeem 1:1 at maturity. */
@@ -181,6 +186,7 @@ function LockRateForm({
   liveRate,
   nowMs,
   onSuccess,
+  onGoAdvanced,
 }: LockFormProps): ReactElement {
   const [amount, setAmount] = useState('')
   const [slippageBps, setSlippageBps] = useState(50)
@@ -235,8 +241,14 @@ function LockRateForm({
 
       {syBalance === 0n && (
         <p className="text-xs text-neutral-400">
-          You have no SY yet — wrap {activeMarket().underlyingSymbol} into SY in the{' '}
-          <span className="text-neutral-200">Advanced</span> tab first.
+          You have no SY yet — wrap {activeMarket().underlyingSymbol} into SY first.{' '}
+          <button
+            type="button"
+            onClick={onGoAdvanced}
+            className="rounded font-medium text-neutral-100 underline underline-offset-2 transition-colors hover:text-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+          >
+            Go to Advanced
+          </button>
         </p>
       )}
 

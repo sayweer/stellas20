@@ -4,19 +4,48 @@ import { Link } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
 import { useSurface } from '../hooks/useSurface'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useNow } from '../hooks/useNow'
+import { usePools } from '../hooks/usePools'
+import { usePortfolio } from '../hooks/usePortfolio'
+import { maturityCountdown } from '../lib/yield'
+import { formatAmount } from '../lib/format'
 import { ArrowRightIcon } from '../components/icons'
-
-/** A claim we can point at on-chain — no projections, no TVL theatre. */
-const FACTS = [
-  { value: '7', label: 'Soroban contracts', note: 'LIVE ON TESTNET' },
-  { value: '0.30%', label: 'AMM swap fee', note: 'CPMM' },
-  { value: '~5s', label: 'Settlement', note: 'STELLAR' },
-  { value: '100%', label: 'Non-custodial', note: 'YOUR KEYS' },
-]
 
 export function Landing(): ReactElement {
   useSurface('site')
   useDocumentTitle('stellas20 — lock a fixed yield on Stellar')
+
+  // Read the same contracts the app reads. Passing a null address keeps this to
+  // the public reads (maturities and pool state) — no wallet needed. Two of the
+  // four figures below are therefore actual chain state rather than a claim.
+  const { portfolio } = usePortfolio(null)
+  const pools = usePools(null, portfolio.maturities)
+  const now = useNow(30_000)
+
+  const tradeable = pools.pools.filter(
+    (mp) =>
+      !maturityCountdown(mp.maturity, now).matured &&
+      mp.pool !== null &&
+      mp.pool.ptReserve > 0n &&
+      mp.pool.syReserve > 0n,
+  )
+  const totalLiquidity = pools.pools.reduce((sum, mp) => sum + (mp.pool?.syReserve ?? 0n), 0n)
+  const chainKnown = pools.pools.length > 0
+
+  const facts = [
+    {
+      value: chainKnown ? String(tradeable.length) : '—',
+      label: tradeable.length === 1 ? 'Tradeable market' : 'Tradeable markets',
+      note: 'LIVE ON TESTNET',
+    },
+    {
+      value: chainKnown ? `${formatAmount(totalLiquidity, 0)} SY` : '—',
+      label: 'Pool liquidity',
+      note: 'ON CHAIN',
+    },
+    { value: '0.30%', label: 'AMM swap fee', note: 'CPMM' },
+    { value: '7', label: 'Soroban contracts', note: 'OPEN SOURCE' },
+  ]
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -66,7 +95,7 @@ export function Landing(): ReactElement {
 
         <section aria-label="At a glance" className="border-b border-neutral-950/10">
           <dl className="mx-auto grid w-full max-w-6xl grid-cols-2 divide-neutral-950/10 sm:divide-x lg:grid-cols-4">
-            {FACTS.map((fact) => (
+            {facts.map((fact) => (
               <div key={fact.label} className="px-6 py-8 sm:py-10">
                 <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600">
                   {fact.note}

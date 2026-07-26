@@ -198,6 +198,15 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
             onTrade(maturity)
           }}
           disabled={!hasLiquidity || countdown.matured}
+          // A greyed-out button with no stated reason leaves people clicking at
+          // it; say which of the two conditions is blocking.
+          title={
+            countdown.matured
+              ? 'This maturity has passed — trading is closed'
+              : !hasLiquidity
+                ? 'This maturity has no liquidity yet'
+                : undefined
+          }
           className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-accent-500 px-4 py-2.5 sm:w-auto sm:py-2 text-sm font-medium text-neutral-950 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-600"
         >
           Lock rate

@@ -200,6 +200,9 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                   liveRate={liveRate}
                   initialMaturity={tradeMaturity}
                   onSuccess={refreshAll}
+                  onGoAdvanced={() => {
+                    setTab('advanced')
+                  }}
                 />
               ) : (
                 <ConnectPrompt tab="trade" message="Connect a Testnet wallet to lock a fixed rate or go long yield." />
