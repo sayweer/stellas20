@@ -93,6 +93,7 @@ export const SPLITTER_ERRORS: ErrorTable = {
   11: { code: 'nothing_to_claim', message: 'There is no yield to claim yet.' },
   12: { code: 'unauthorized', message: 'Only the admin can do that.' },
   13: { code: 'math_overflow', message: 'That amount is too large to process.' },
+  14: { code: 'invalid_symbol', message: 'That underlying ticker is not a valid token symbol.' },
 }
 
 /** PT-AMM (`AmmError`). */
@@ -111,6 +112,10 @@ export const AMM_ERRORS: ErrorTable = {
   9: { code: 'insufficient_lp', message: 'That exceeds your pool share.' },
   10: { code: 'math_overflow', message: 'That amount is too large to process.' },
   11: { code: 'unauthorized', message: 'Only the admin can do that.' },
+  12: {
+    code: 'sy_token_mismatch',
+    message: 'This AMM is wired to a different SY token than the market it points at.',
+  },
 }
 
 /**

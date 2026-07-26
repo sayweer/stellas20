@@ -218,6 +218,9 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                   syBalance={portfolio.sy}
                   initialMaturity={poolMaturity}
                   onSuccess={refreshAll}
+                  onGoAdvanced={() => {
+                    setTab('advanced')
+                  }}
                 />
               ) : (
                 <ConnectPrompt tab="pool" message="Connect a Testnet wallet to provide liquidity and earn swap fees." />

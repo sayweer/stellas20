@@ -59,3 +59,36 @@ describe('classifyContractError', () => {
     expect(classifyContractError(err, MYT_ERRORS).code).toBe('contract_error')
   })
 })
+
+/**
+ * Guards against the failure this file was found in: two error variants added
+ * to the contracts during audit rounds (SplitterError::InvalidSymbol and
+ * AmmError::SyTokenMismatch) were never mirrored here, so they fell through to
+ * the generic "transaction failed" message. Any new variant must extend the
+ * table — these assert the highest code each contract currently defines.
+ */
+describe('error tables track the contracts', () => {
+  it('covers every SplitterError variant (1..14)', () => {
+    for (let code = 1; code <= 14; code++) {
+      expect(SPLITTER_ERRORS[code], `SplitterError #${String(code)}`).toBeDefined()
+    }
+  })
+
+  it('covers every AmmError variant (1..12)', () => {
+    for (let code = 1; code <= 12; code++) {
+      expect(AMM_ERRORS[code], `AmmError #${String(code)}`).toBeDefined()
+    }
+  })
+
+  it('covers every SyError variant (1..7) plus the Blend-only codes', () => {
+    for (let code = 1; code <= 10; code++) {
+      expect(SY_ERRORS[code], `SyError #${String(code)}`).toBeDefined()
+    }
+  })
+
+  it('covers every TokenError variant (1..9)', () => {
+    for (let code = 1; code <= 9; code++) {
+      expect(MYT_ERRORS[code], `TokenError #${String(code)}`).toBeDefined()
+    }
+  })
+})

@@ -25,6 +25,8 @@ interface PoolPanelProps {
   /** A maturity to preselect (e.g. "Manage" clicked from Portfolio). */
   initialMaturity: bigint | null
   onSuccess: () => void
+  /** Jump to the Advanced tab — the only place SY can be split into PT. */
+  onGoAdvanced: () => void
 }
 
 type Mode = 'add' | 'remove'
@@ -37,6 +39,7 @@ export function PoolPanel({
   syBalance,
   initialMaturity,
   onSuccess,
+  onGoAdvanced,
 }: PoolPanelProps): ReactElement {
   const now = useNow()
   const [mode, setMode] = useState<Mode>('add')
@@ -108,6 +111,7 @@ export function PoolPanel({
                 syBalance={syBalance}
                 matured={matured}
                 onSuccess={onSuccess}
+                onGoAdvanced={onGoAdvanced}
               />
             ) : (
               <RemoveForm
@@ -144,6 +148,7 @@ interface AddFormProps {
   syBalance: bigint
   matured: boolean
   onSuccess: () => void
+  onGoAdvanced: () => void
 }
 
 /** Deposit SY + the matching PT at the pool ratio. */
@@ -156,6 +161,7 @@ function AddForm({
   syBalance,
   matured,
   onSuccess,
+  onGoAdvanced,
 }: AddFormProps): ReactElement {
   const [amount, setAmount] = useState('')
   const [slippageBps, setSlippageBps] = useState(50)
@@ -216,8 +222,15 @@ function AddForm({
 
       {syIn > 0n && !enoughPt && (
         <p className="text-xs text-warning-300">
-          You need {formatAmount(ptNeeded)} PT to pair with that SY — split more SY (Advanced) or
-          reduce the amount.
+          You need {formatAmount(ptNeeded)} PT to pair with that SY — reduce the amount, or{' '}
+          <button
+            type="button"
+            onClick={onGoAdvanced}
+            className="rounded font-medium underline underline-offset-2 transition-colors hover:text-warning-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+          >
+            split more SY in Advanced
+          </button>
+          .
         </p>
       )}
 
