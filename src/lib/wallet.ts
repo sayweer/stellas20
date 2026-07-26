@@ -6,15 +6,74 @@
 import { KitEventType, Networks as KitNetworks, StellarWalletsKit } from '@creit.tech/stellar-wallets-kit'
 import { AlbedoModule } from '@creit.tech/stellar-wallets-kit/modules/albedo'
 import { FreighterModule } from '@creit.tech/stellar-wallets-kit/modules/freighter'
+import { LobstrModule } from '@creit.tech/stellar-wallets-kit/modules/lobstr'
 import { xBullModule } from '@creit.tech/stellar-wallets-kit/modules/xbull'
+import { config } from '../config'
 import type { AppError } from '../types'
 
-// Albedo needs no install (web popup flow), so the picker always has at
-// least one usable option even with no browser extension present.
-const WALLET_MODULES = [new FreighterModule(), new xBullModule(), new AlbedoModule()]
+/**
+ * Wallets that inject themselves into the page. Albedo needs no install (web
+ * popup flow), so the picker always has at least one usable option even with
+ * no browser extension present.
+ */
+const INJECTED_MODULES = [
+  new FreighterModule(),
+  new xBullModule(),
+  new LobstrModule(),
+  new AlbedoModule(),
+]
+
+/**
+ * True on a phone/tablet browser. Used to explain *why* an extension wallet
+ * cannot connect there rather than leaving the kit's "Install" link looking
+ * broken to someone who already has the app.
+ */
+export function isMobileBrowser(): boolean {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+}
+
+/** Whether a phone can actually reach a wallet — i.e. WalletConnect is configured. */
+export function hasMobileWalletSupport(): boolean {
+  return config.walletConnectProjectId !== ''
+}
+
+/**
+ * Extension wallets cannot inject into a mobile browser, and Freighter's own
+ * module returns `isAvailable() === false` when it detects its mobile build —
+ * its source says outright that WalletConnect must be used instead. Without a
+ * project id the picker therefore shows "Install" to someone who already has
+ * the wallet, which is what it did before this was added.
+ *
+ * Loaded dynamically so the WalletConnect/AppKit bundle is only fetched when a
+ * project id is actually configured.
+ */
+const modules = await (async () => {
+  if (!config.walletConnectProjectId) return INJECTED_MODULES
+  try {
+    const { WalletConnectModule, WalletConnectTargetChain } = await import(
+      '@creit.tech/stellar-wallets-kit/modules/wallet-connect'
+    )
+    return [
+      ...INJECTED_MODULES,
+      new WalletConnectModule({
+        projectId: config.walletConnectProjectId,
+        allowedChains: [WalletConnectTargetChain.TESTNET],
+        metadata: {
+          name: 'stellas20',
+          description: 'Lock a fixed yield on Stellar',
+          url: window.location.origin,
+          icons: [`${window.location.origin}/icon-512.png`],
+        },
+      }),
+    ]
+  } catch {
+    // A misconfigured project id must not take the whole picker down.
+    return INJECTED_MODULES
+  }
+})()
 
 StellarWalletsKit.init({
-  modules: WALLET_MODULES,
+  modules,
   network: KitNetworks.TESTNET,
 })
 

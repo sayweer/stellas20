@@ -218,7 +218,9 @@ asserts exactly this after every operation in a scripted lifecycle.
   Portfolio · Activity · Advanced). Responsive to 390px, with the left rail collapsing to a bottom
   bar. All money math is pure, tested `bigint` in `src/lib/`.
 - **Wallet:** [`@creit.tech/stellar-wallets-kit`](https://github.com/Creit-Tech/Stellar-Wallets-Kit)
-  (multi-wallet picker — Freighter, xBull, Albedo, …) behind a thin adapter.
+  (multi-wallet picker — Freighter, xBull, LOBSTR, Albedo) behind a thin adapter. Set
+  `VITE_WALLETCONNECT_PROJECT_ID` to add WalletConnect, which is what mobile browsers need — see
+  *Connecting from a phone* below.
 - **Chain:** [`@stellar/stellar-sdk`](https://github.com/stellar/js-stellar-sdk) — the official
   `contract` Client/AssembledTransaction pipeline (build → simulate → sign → send → poll), plus
   `/rpc` `getEvents` for the live activity feed.
@@ -327,6 +329,24 @@ Blend pool named in the script (a constructor argument, never hardcoded in a con
 Market and AMM. Paste the printed IDs into `.env`, `.env.example`, and your Vercel project's
 environment variables; leaving the `VITE_BLEND_*` values empty ships a mock-only build and the
 market switcher hides itself.
+
+## Connecting from a phone
+
+Browser-extension wallets cannot inject into a mobile browser, so Freighter, xBull and LOBSTR are
+unreachable there. Freighter's kit module makes this explicit — it returns `isAvailable() === false`
+when it detects its own mobile build, [with a comment saying WalletConnect must be used
+instead](https://github.com/Creit-Tech/Stellar-Wallets-Kit). Left unhandled, the picker offers an
+**Install** link to someone who already has the app, and installing it again changes nothing.
+
+Two ways through:
+
+- **Albedo** works in any browser (web popup, nothing to install) and is in the picker already.
+- **WalletConnect** reaches the real mobile apps, including Freighter mobile. It needs a free
+  project id from [reown.com](https://dashboard.reown.com): set `VITE_WALLETCONNECT_PROJECT_ID` and
+  the module is added automatically. It is loaded dynamically, so with no project id configured none
+  of its ~400 kB is downloaded.
+
+When neither applies, the connect button says so plainly instead of repeating the install advice.
 
 ## Error handling
 

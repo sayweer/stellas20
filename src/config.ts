@@ -12,6 +12,12 @@ export interface AppConfig {
   readonly networkPassphrase: string
   /** Soroban RPC endpoint (Testnet) for contract simulate/send/getEvents. */
   readonly sorobanRpcUrl: string
+  /**
+   * WalletConnect project id (free, from reown.com). Empty means the wallet
+   * picker only offers wallets that inject into the page — which on a phone is
+   * none of them.
+   */
+  readonly walletConnectProjectId: string
 }
 
 /**
@@ -25,6 +31,12 @@ export const config: AppConfig = {
     import.meta.env.VITE_STELLAR_EXPERT_URL ?? 'https://stellar.expert/explorer/testnet',
   networkPassphrase: Networks.TESTNET,
   sorobanRpcUrl: import.meta.env.VITE_SOROBAN_RPC_URL ?? 'https://soroban-testnet.stellar.org',
+  /**
+   * WalletConnect project id (free, from reown.com). Optional: without it the
+   * picker only offers wallets that inject into the page, which on a phone
+   * means none of the extension wallets can connect. See `src/lib/wallet.ts`.
+   */
+  walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?? '',
 }
 
 /** Identifier of a deployed market (one SY vault + its Market + its AMM). */

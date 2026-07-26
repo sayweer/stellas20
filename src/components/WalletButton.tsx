@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import type { ReactElement } from 'react'
 import { useWallet } from '../context/WalletContext'
+import { hasMobileWalletSupport, isMobileBrowser } from '../lib/wallet'
 import { useToast } from '../hooks/useToast'
 import { CheckIcon, CopyIcon, Spinner, XIcon } from './icons'
 
@@ -100,20 +101,31 @@ export function WalletButton(): ReactElement {
           'Connect Wallet'
         )}
       </button>
-      {notFound && (
-        <p role="alert" className="text-right text-xs text-neutral-400">
-          No compatible wallet found. Install{' '}
-          <a
-            href="https://www.freighter.app/"
-            target="_blank"
-            rel="noreferrer"
-            className="rounded font-medium text-accent-400 underline underline-offset-2 hover:text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
-          >
-            Freighter
-          </a>{' '}
-          and try again.
-        </p>
-      )}
+      {notFound &&
+        (isMobileBrowser() && !hasMobileWalletSupport() ? (
+          /* "Install Freighter" is wrong advice on a phone: extensions cannot
+             inject into a mobile browser, and Freighter's own module reports
+             itself unavailable there on purpose. Telling someone who already
+             has the app to install it again is why this looked broken. */
+          <p role="alert" className="max-w-xs text-right text-xs text-neutral-400">
+            Extension wallets can’t connect from a mobile browser — installing the app again won’t
+            change that. Pick <span className="text-neutral-200">Albedo</span> in the wallet list,
+            which works in any browser, or open this page on desktop.
+          </p>
+        ) : (
+          <p role="alert" className="text-right text-xs text-neutral-400">
+            No compatible wallet found. Install{' '}
+            <a
+              href="https://www.freighter.app/"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded font-medium text-accent-400 underline underline-offset-2 hover:text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+            >
+              Freighter
+            </a>{' '}
+            and try again.
+          </p>
+        ))}
     </div>
   )
 }
