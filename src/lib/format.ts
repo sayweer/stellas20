@@ -9,9 +9,21 @@ import { stroopsToXlm } from './amounts'
 export function formatAmount(stroops: bigint, maxDecimals = 4): string {
   const [intPart = '0', fracRaw = ''] = stroopsToXlm(stroops < 0n ? -stroops : stroops).split('.')
   const sign = stroops < 0n ? '-' : ''
-  const grouped = Number(intPart).toLocaleString('en-US')
+  const grouped = groupDigits(intPart)
   const frac = fracRaw.slice(0, maxDecimals).replace(/0+$/, '')
   return frac ? `${sign}${grouped}.${frac}` : `${sign}${grouped}`
+}
+
+/**
+ * Insert thousands separators into a decimal integer *string*.
+ *
+ * Amounts are i128 on chain, so the integer part can exceed 2^53. Going through
+ * `Number(...).toLocaleString()` silently rewrote the low digits of anything
+ * larger — 9007199254740993456 displayed as ...993,000 — which contradicted
+ * this module's own promise that the bigint conversion loses no precision.
+ */
+function groupDigits(intPart: string): string {
+  return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
 /** Shorten a Stellar address/contract id for compact display. */

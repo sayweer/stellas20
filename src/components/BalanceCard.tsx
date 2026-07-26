@@ -18,7 +18,9 @@ interface BalanceCardProps {
 /** Group the integer part and keep up to 7 decimals (min 2), without float rounding. */
 function formatXlm(raw: string): string {
   const [intPart = '0', fracRaw = ''] = raw.split('.')
-  const grouped = Number(intPart).toLocaleString('en-US')
+  // Group as a string: the balance arrives as a decimal string from Horizon and
+  // may exceed what a double represents exactly.
+  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
   let frac = fracRaw.replace(/0+$/, '')
   if (frac.length < 2) frac = frac.padEnd(2, '0')
   return `${grouped}.${frac}`
