@@ -10,7 +10,7 @@ jobs:
     name: Contracts (build, lint, test)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -44,7 +44,7 @@ jobs:
         run: cargo test --workspace
 
       - name: Upload WASM artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: contract-wasms
           path: target/wasm32v1-none/release/*.wasm
@@ -53,10 +53,10 @@ jobs:
     name: Frontend (lint, test, build)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           # Node 24 ships npm 11, which matches the npm that generated
           # package-lock.json — npm 10 (Node 22) resolves peer deps

@@ -3,6 +3,9 @@
 A 1–2 minute walkthrough that shows the product's promise: **locking a fixed yield on Stellar**.
 This file has two parts — the pre-recording setup, then the shot-by-shot script.
 
+> Record at a desktop width; the console is responsive down to 390px, but the left rail collapses
+> to a bottom bar below `lg` and the rail is worth showing.
+
 > Everything below runs on **Testnet**. The admin identity is `vault-admin`; the live contract
 > IDs are in the README's *Deployed on Testnet* table (and are the defaults baked into the app).
 
@@ -68,7 +71,9 @@ Walk the whole script below end to end before the real take, so nothing surprise
 > On Ethereum, Pendle solved this by splitting a yield asset into a Principal Token — a bond — and a
 > Yield Token — the coupon. Stellar had no equivalent. This is that primitive."
 
-Show the **Markets** tab: maturities, each with an implied **fixed APY**.
+Open the landing page at **`/`** — the headline, and the counters underneath reading *live* chain
+state (tradeable markets, pool liquidity). Click **Launch App** to enter the console at `/app`; it
+lands on **Markets**, one row per maturity with its implied **fixed APY**.
 
 **(0:15–0:40) Lock a fixed rate.**
 - Click **Connect Wallet** → the StellarWalletsKit picker (Freighter / xBull / Albedo). Connect.
@@ -82,6 +87,8 @@ Show the **Markets** tab: maturities, each with an implied **fixed APY**.
 **(0:40–1:05) Live yield, then claim.**
 - Go to **Advanced**, **Split** some SY (equal PT + YT — an on-chain invariant).
 - Open **Portfolio**: watch **claimable yield tick up live**. Click **Claim** → tx success.
+- Optional beat: open **Activity** — every protocol and AMM event streaming in from `getEvents`,
+  including the two transactions just sent.
 
 > "The Yield Token streams the underlying yield in real time. Anyone can claim what's accrued, any
 > time — settled exactly, per holder."
@@ -95,10 +102,10 @@ Show the **Markets** tab: maturities, each with an implied **fixed APY**.
 > realized."
 
 **(1:25–1:35) Close.**
-> "Six Soroban contracts, invariant-tested, CI-green, live on Testnet. The missing fixed-income
+> "Seven Soroban contracts, invariant-tested, CI-green, live on Testnet. The missing fixed-income
 > primitive for Stellar."
 
-Flash the green **CI run** (GitHub Actions) and the test counts — **98 Rust / 60 Vitest**.
+Flash the green **CI run** (GitHub Actions) and the test counts — **130 Rust / 77 Vitest**.
 
 ---
 

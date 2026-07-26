@@ -15,7 +15,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 
 ## The contracts
 
-stellas20 is five core Soroban contracts (six with the Blend vault) plus a factory-deployed
+stellas20 is six core Soroban contracts (seven with the Blend vault) plus a factory-deployed
 PT/YT token pair per maturity — inter-contract communication is intrinsic to the design, not
 bolted on:
 
@@ -212,16 +212,19 @@ asserts exactly this after every operation in a scripted lifecycle.
 - **Contracts:** Rust + [`soroban-sdk`](https://crates.io/crates/soroban-sdk) `27.0.0`, built &
   deployed with the `stellar` CLI `27.0.0`. A Cargo workspace of seven crates under `contracts/`
   (`mock-yield-token`, `sy-vault`, `sy-vault-blend`, `splitter`, `pt-token`, `yt-token`, `pt-amm`).
-- **Frontend:** [Vite](https://vite.dev/) + React 19 + TypeScript (strict), [Tailwind CSS](https://tailwindcss.com/).
-  A five-tab product SPA (Markets · Trade · Pool · Portfolio · Advanced); all money math is pure,
-  tested `bigint` in `src/lib/`.
+- **Frontend:** [Vite](https://vite.dev/) + React 19 + TypeScript (strict), [Tailwind CSS](https://tailwindcss.com/),
+  React Router. Two surfaces: a marketing page at `/` (light, and it reads live chain state — no
+  wallet needed) and the product console at `/app` (dark, six sections: Markets · Trade · Pool ·
+  Portfolio · Activity · Advanced). Responsive to 390px, with the left rail collapsing to a bottom
+  bar. All money math is pure, tested `bigint` in `src/lib/`.
 - **Wallet:** [`@creit.tech/stellar-wallets-kit`](https://github.com/Creit-Tech/Stellar-Wallets-Kit)
   (multi-wallet picker — Freighter, xBull, Albedo, …) behind a thin adapter.
 - **Chain:** [`@stellar/stellar-sdk`](https://github.com/stellar/js-stellar-sdk) — the official
   `contract` Client/AssembledTransaction pipeline (build → simulate → sign → send → poll), plus
   `/rpc` `getEvents` for the live activity feed.
-- **Tests:** Rust unit + integration + a randomized invariant harness (122, run over *both* yield
-  sources), [Vitest](https://vitest.dev/) for the frontend (66).
+- **Tests:** Rust unit + integration + a randomized invariant harness (130 passing, plus 3
+  `#[ignore]` slow-tier runs, over *both* yield sources), [Vitest](https://vitest.dev/) for the
+  frontend (77).
 - **CI:** GitHub Actions (`.github/workflows/ci.yml`), on a pinned Rust toolchain.
 
 ## Setup / run locally
@@ -341,8 +344,9 @@ Distinct, visibly-handled error types include:
 
 ## How to use
 
-The app opens on **Markets** — one row per maturity with its implied **fixed APY**, the underlying
-yield APY, and pool depth. To lock a rate:
+`/` is the marketing page; **Launch App** opens the console at `/app`. It lands on **Markets** —
+one row per maturity with its implied **fixed APY**, the underlying yield APY, and pool depth
+(matured maturities are collapsed out of the way). To lock a rate:
 
 1. **Connect** a Testnet wallet (Freighter, xBull, or Albedo).
 2. On **Advanced**, **Faucet** 1,000 mUSDY and **Wrap** it into SY (SY is the standardized,
@@ -355,7 +359,8 @@ yield APY, and pool depth. To lock a rate:
 5. **Portfolio**: watch **claimable yield tick up live**, **Claim** it as SY, and after maturity
    **Redeem PT** for its fixed principal. Manage **liquidity positions** here too.
 6. **Pool**: provide PT + SY liquidity and earn the 30 bps swap fee.
-7. The **Activity feed** streams every protocol *and* AMM event across all contracts in real time.
+7. **Activity**: streams every protocol *and* AMM event across all contracts in real time, polled
+   from `getEvents`.
 
 ## Demo
 
@@ -371,9 +376,12 @@ pool, funded wallet, rate acceleration and restore) live in [`DEMO.md`](DEMO.md)
 | **Markets — fixed-rate discovery** | **Multi-wallet picker** |
 | ![Markets tab on the live site](screenshots/markets-desktop.png) | ![StellarWalletsKit wallet picker](screenshots/wallet-picker.png) |
 
-To round out the submission, capture from a connected session (see `DEMO.md`): the 375px mobile
-layout, the Trade panel with a live quote, a green **CI run** on GitHub Actions, and the
-`cargo test --workspace` (98) and `npm run test` (60) output.
+| **Mobile — 390px** | **CI pipeline** |
+|---|---|
+| ![Console at 390px with the bottom navigation bar](screenshots/mobile-390.png) | ![GitHub Actions run, both jobs green](screenshots/ci-run.png) |
+
+Still to capture from a connected session (see `DEMO.md`): the Trade panel with a live quote, and
+the `cargo test --workspace` (130 passing) + `npm run test` (77) terminal output.
 
 ## Security & notes
 
