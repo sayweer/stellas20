@@ -14,7 +14,7 @@ import { AmountField, ActionButton, TabToggle } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
 import { TxStatus } from './TxStatus'
-import { LayersIcon } from './icons'
+import {  } from './icons'
 
 interface PoolPanelProps {
   address: string
@@ -59,10 +59,14 @@ export function PoolPanel({
       role="tabpanel"
       aria-labelledby="tab-pool"
     >
-      <div className="flex items-center gap-2">
-        <LayersIcon className="h-4 w-4 text-neutral-400" />
-        <h2 className="text-sm font-medium text-neutral-400">Provide liquidity</h2>
-      </div>
+      <header>
+        <h2 className="text-lg font-medium tracking-[-0.02em] text-neutral-100">
+          Provide liquidity
+        </h2>
+        <p className="mt-1 text-sm text-neutral-400">
+          Deposit PT and SY into a maturity's pool to earn the 0.30% swap fee.
+        </p>
+      </header>
 
       {withPool.length === 0 || mp === null || selected === null ? (
         <p className="mt-4 text-sm text-neutral-400">No pools exist yet.</p>

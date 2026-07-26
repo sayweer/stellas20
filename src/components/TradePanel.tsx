@@ -23,7 +23,7 @@ import { AmountField, ActionButton, TabToggle } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
 import { TxStatus } from './TxStatus'
-import { LockIcon, SwapIcon } from './icons'
+import { LockIcon } from './icons'
 
 interface TradePanelProps {
   address: string
@@ -70,10 +70,12 @@ export function TradePanel({
       role="tabpanel"
       aria-labelledby="tab-trade"
     >
-      <div className="flex items-center gap-2">
-        <SwapIcon className="h-4 w-4 text-neutral-400" />
-        <h2 className="text-sm font-medium text-neutral-400">Trade</h2>
-      </div>
+      <header>
+        <h2 className="text-lg font-medium tracking-[-0.02em] text-neutral-100">Trade</h2>
+        <p className="mt-1 text-sm text-neutral-400">
+          Lock a fixed rate to maturity, or take the other side and go long the yield.
+        </p>
+      </header>
 
       {tradeable.length === 0 ? (
         <p className="mt-4 text-sm text-neutral-400">
@@ -150,7 +152,7 @@ function SummaryRow({
     <div className="flex items-center justify-between text-sm">
       <span className="text-neutral-400">{label}</span>
       <span
-        className={`font-mono tabular-nums ${accent ? 'font-semibold text-accent-300' : 'text-neutral-200'}`}
+        className={`font-mono tabular-nums ${accent ? 'font-medium text-positive-300' : 'text-neutral-200'}`}
       >
         {children}
       </span>
@@ -208,14 +210,14 @@ function LockRateForm({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-accent-500/20 bg-accent-500/5 px-4 py-3">
+      <div className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-3">
         <div className="flex items-center gap-2">
-          <LockIcon className="h-4 w-4 text-accent-400" />
-          <span className="text-sm font-medium text-accent-200">
+          <LockIcon className="h-4 w-4 text-positive-400" />
+          <span className="text-sm font-medium text-neutral-100">
             {lockedApy === null ? 'Lock a fixed rate' : `Lock ${formatPercent(lockedApy)} APY`}
           </span>
         </div>
-        <p className="mt-1 text-xs text-accent-200/70">
+        <p className="mt-1 text-xs text-neutral-400">
           until {formatMaturity(maturity)} · {countdown.days}d {countdown.hours}h left
         </p>
       </div>
