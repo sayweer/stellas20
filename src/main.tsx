@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { Landing } from './routes/Landing.tsx'
+import { NotFound } from './routes/NotFound.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 import { ToastProvider } from './context/ToastContext.tsx'
 import { WalletProvider } from './context/WalletContext.tsx'
@@ -24,6 +25,7 @@ createRoot(rootElement).render(
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/app" element={<App />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </WalletProvider>

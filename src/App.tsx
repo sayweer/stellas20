@@ -3,6 +3,7 @@ import type { ReactElement } from 'react'
 import { Link } from 'react-router-dom'
 import { useWallet } from './context/WalletContext'
 import { useSurface } from './hooks/useSurface'
+import { useDocumentTitle } from './hooks/useDocumentTitle'
 import { useBalance } from './hooks/useBalance'
 import { usePortfolio } from './hooks/usePortfolio'
 import { usePools } from './hooks/usePools'
@@ -30,6 +31,7 @@ import { AlertTriangleIcon } from './components/icons'
 
 function App(): ReactElement {
   useSurface('app')
+  useDocumentTitle('App — stellas20')
   const [marketKey, setMarketKey] = useState<MarketKey>(markets[0].key)
   const configured = isContractsConfigured()
 

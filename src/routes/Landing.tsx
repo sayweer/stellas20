@@ -3,11 +3,12 @@ import type { ReactElement, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
 import { useSurface } from '../hooks/useSurface'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { ArrowRightIcon } from '../components/icons'
 
 /** A claim we can point at on-chain — no projections, no TVL theatre. */
 const FACTS = [
-  { value: '6', label: 'Soroban contracts', note: 'LIVE ON TESTNET' },
+  { value: '7', label: 'Soroban contracts', note: 'LIVE ON TESTNET' },
   { value: '0.30%', label: 'AMM swap fee', note: 'CPMM' },
   { value: '~5s', label: 'Settlement', note: 'STELLAR' },
   { value: '100%', label: 'Non-custodial', note: 'YOUR KEYS' },
@@ -15,6 +16,7 @@ const FACTS = [
 
 export function Landing(): ReactElement {
   useSurface('site')
+  useDocumentTitle('stellas20 — lock a fixed yield on Stellar')
 
   return (
     <div className="flex min-h-screen flex-col">

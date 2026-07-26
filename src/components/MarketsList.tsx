@@ -119,7 +119,7 @@ interface MarketRowProps {
 }
 
 function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): ReactElement {
-  const { maturity, pool } = mp
+  const { maturity, pool, unavailable } = mp
   const countdown = maturityCountdown(maturity, nowMs)
   const dtSeconds = Number(maturity) - Math.floor(nowMs / 1000)
   const hasLiquidity = pool !== null && pool.ptReserve > 0n && pool.syReserve > 0n
@@ -181,7 +181,13 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
       <div className="sm:min-w-[6rem]">
         <Label>Liquidity</Label>
         <p className="mt-1 text-sm tabular-nums text-neutral-300">
-          {pool === null ? 'No pool' : `${formatAmount(pool.syReserve)} SY`}
+          {pool !== null ? (
+            `${formatAmount(pool.syReserve)} SY`
+          ) : unavailable ? (
+            <span className="text-warning-300">Unavailable</span>
+          ) : (
+            'No pool'
+          )}
         </p>
       </div>
 

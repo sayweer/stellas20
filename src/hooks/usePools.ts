@@ -8,6 +8,13 @@ export interface MaturityPool {
   maturity: bigint
   /** Pool reserves/state, or null when no pool exists for this maturity. */
   pool: PoolView | null
+  /**
+   * True when the read itself failed rather than the pool being absent. Both
+   * arrive as a null `pool`, but they mean opposite things to a user: "this
+   * maturity has no market" is permanent, a dropped RPC call is not. Reporting
+   * a transient failure as "No pool" told people a live market did not exist.
+   */
+  unavailable: boolean
   /** The connected account's LP shares in this pool (0 while disconnected). */
   lpBalance: bigint
 }
@@ -49,9 +56,11 @@ export function usePools(address: string | null, maturities: bigint[]): UsePools
             readPool(maturity),
             address ? readLpBalance(address, maturity) : Promise.resolve(0n),
           ])
+          const absent = isAppError(poolRes) && poolRes.code === 'pool_not_found'
           return {
             maturity,
             pool: isAppError(poolRes) ? null : poolRes,
+            unavailable: isAppError(poolRes) && !absent,
             lpBalance: isAppError(lpRes) ? 0n : lpRes,
           }
         }),
