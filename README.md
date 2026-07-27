@@ -402,14 +402,13 @@ one row per maturity with its implied **fixed APY**, the underlying yield APY, a
 
 ## Screenshots
 
-| | |
+| **Markets — live fixed rates** | **Multi-wallet picker** |
 |---|---|
-| **Markets — fixed-rate discovery** | **Multi-wallet picker** |
-| ![Markets tab on the live site](screenshots/markets-desktop.png) | ![StellarWalletsKit wallet picker](screenshots/wallet-picker.png) |
+| ![Markets tab on the live site, two maturities quoting 8.31% and 7.60% fixed APY](screenshots/markets-desktop.png) | ![StellarWalletsKit picker offering Freighter, xBull, Albedo and LOBSTR](screenshots/wallet-picker.png) |
 
-| **Mobile — 390px** | **CI pipeline** |
+| **Mobile — 390px** | **CI + test output** |
 |---|---|
-| ![Console at 390px with the bottom navigation bar](screenshots/mobile-390.png) | ![GitHub Actions run, both jobs green](screenshots/ci-run.png) |
+| ![Console at 390px: the left rail becomes a bottom bar and market rows re-flow](screenshots/mobile-390.png) | ![GitHub Actions run with both jobs green and the Vitest summary: 9 files, 77 tests](screenshots/ci-run.png) |
 
 The [demo video](https://youtu.be/G_06mT7pscw) walks the full flow end to end: locking a fixed rate, splitting SY, watching
 yield accrue, and claiming it — every step a signed Testnet transaction.
