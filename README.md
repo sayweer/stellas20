@@ -1,5 +1,7 @@
 # stellas20 — PT/YT Yield Splitting on Stellar
 
+[![CI](https://github.com/sayweer/stellas20/actions/workflows/ci.yml/badge.svg)](https://github.com/sayweer/stellas20/actions/workflows/ci.yml)
+
 **The missing fixed-income primitive for Stellar's RWA boom.** stellas20 splits a
 yield-bearing token into two tradable parts — a **Principal Token (PT)**, redeemable 1:1 for the
 underlying at maturity (a zero-coupon bond / fixed rate), and a **Yield Token (YT)**, which
@@ -15,6 +17,8 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 | **Live demo** | [stellas20.vercel.app](https://stellas20.vercel.app/) |
 | **Demo video** | [2-minute walkthrough](https://youtu.be/G_06mT7pscw) |
 | **Network** | Stellar Testnet — seven contracts, addresses [below](#deployed-on-testnet) |
+
+[![The Markets tab on the live deployment: two maturities quoting 8.31% and 7.60% implied fixed APY](screenshots/markets-desktop.png)](https://stellas20.vercel.app/app)
 
 ## Where each requirement is met
 
@@ -402,13 +406,13 @@ one row per maturity with its implied **fixed APY**, the underlying yield APY, a
 
 ## Screenshots
 
-| **Markets — live fixed rates** | **Multi-wallet picker** |
+| **Mobile — 390px** | **Multi-wallet picker** |
 |---|---|
-| ![Markets tab on the live site, two maturities quoting 8.31% and 7.60% fixed APY](screenshots/markets-desktop.png) | ![StellarWalletsKit picker offering Freighter, xBull, Albedo and LOBSTR](screenshots/wallet-picker.png) |
+| ![Console at 390px: the left rail becomes a bottom bar and market rows re-flow](screenshots/mobile-390.png) | ![StellarWalletsKit picker offering Freighter, xBull, Albedo and LOBSTR](screenshots/wallet-picker.png) |
 
-| **Mobile — 390px** | **CI + test output** |
-|---|---|
-| ![Console at 390px: the left rail becomes a bottom bar and market rows re-flow](screenshots/mobile-390.png) | ![GitHub Actions run with both jobs green and the Vitest summary: 9 files, 77 tests](screenshots/ci-run.png) |
+**CI and test output** — both jobs green, with the Vitest summary reporting 9 files / 77 tests:
+
+![GitHub Actions run with both jobs green and the Vitest summary](screenshots/ci-run.png)
 
 The [demo video](https://youtu.be/G_06mT7pscw) walks the full flow end to end: locking a fixed rate, splitting SY, watching
 yield accrue, and claiming it — every step a signed Testnet transaction.
