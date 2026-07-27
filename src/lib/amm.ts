@@ -9,7 +9,7 @@
 import { RATE_SCALE } from './yield'
 
 /** Seconds in a (non-leap) year — the annualization base for APY figures. */
-export const YEAR_SECONDS = 31_536_000
+const YEAR_SECONDS = 31_536_000
 
 /** Fee: 30 bps on input, as `in·997/1000` (matches the contract constants). */
 const FEE_NUM = 997n
@@ -34,16 +34,10 @@ export function quoteAmountOut(reserveIn: bigint, reserveOut: bigint, amountIn: 
   return (inWithFee * reserveOut) / (reserveIn * FEE_DEN + inWithFee)
 }
 
-/** The (reserveIn, reserveOut) pair for a swap side. */
-export function reservesForSide(pool: Reserves, side: SwapSide): [bigint, bigint] {
-  return side === 'SyToPt'
-    ? [pool.syReserve, pool.ptReserve]
-    : [pool.ptReserve, pool.syReserve]
-}
-
 /** Quote a swap on a pool by side — the form the UI calls. */
 export function quoteSwap(pool: Reserves, side: SwapSide, amountIn: bigint): bigint {
-  const [rIn, rOut] = reservesForSide(pool, side)
+  const [rIn, rOut] =
+    side === 'SyToPt' ? [pool.syReserve, pool.ptReserve] : [pool.ptReserve, pool.syReserve]
   return quoteAmountOut(rIn, rOut, amountIn)
 }
 

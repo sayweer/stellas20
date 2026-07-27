@@ -10,8 +10,26 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 > **Testnet only.** No mainnet config. Signing happens only inside your wallet — this app never
 > sees your secret key.
 
-- **Live demo:** [stellas20.vercel.app](https://stellas20.vercel.app/)
-- **Demo video:** _(record per [`DEMO.md`](DEMO.md), then link here)_
+| | |
+|---|---|
+| **Live demo** | [stellas20.vercel.app](https://stellas20.vercel.app/) |
+| **Demo video** | [2-minute walkthrough](https://youtu.be/G_06mT7pscw) |
+| **Network** | Stellar Testnet — seven contracts, addresses [below](#deployed-on-testnet) |
+
+## Where each requirement is met
+
+| Requirement | Where | In short |
+|---|---|---|
+| Advanced smart contracts | [`contracts/`](contracts/) | Tokenized PT/YT with Pendle-style user-index accounting, a factory that deploys a SEP-41 token pair per maturity, and a constant-product AMM |
+| Inter-contract communication | [inventory below](#inter-contract-call-inventory) | 14 distinct cross-contract calls, including a two-hop rate chain and a re-entrancy-safe settlement callback |
+| Event streaming & real-time updates | [`src/lib/events.ts`](src/lib/events.ts), Activity tab | `getEvents` polling every 5s, deduped by cursor; reads refresh in the background off each new event |
+| CI/CD pipeline | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | fmt · clippy `-D warnings` · contract tests · wasm build, and lint · test · build for the frontend; Vercel deploys on push |
+| Deployment workflow | [`scripts/`](scripts/), [`docs/RUNBOOKS.md`](docs/RUNBOOKS.md) | One script deploys in dependency order with constructor init; a second seeds a pool at a target APY |
+| Mobile responsive | [screenshot](#screenshots) | Responsive to 390px; the left rail becomes a bottom bar, market rows re-flow to a two-column grid |
+| Error handling & loading states | [table below](#error-handling) | Every contract's `#[contracterror]` mapped to a specific message; one of loading / error+retry / empty / content, never two at once |
+| Tests, contracts and frontend | [`cargo test`](#testing), [`npm test`](#testing) | 130 Rust tests including randomized invariant harnesses, 77 Vitest tests |
+| Production-ready architecture | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Threat model, two adversarial audit rounds with findings closed, no upgrade key or pause switch by design |
+| Documentation & demo | this file, [video](https://youtu.be/G_06mT7pscw) | Architecture diagrams, verifiable on-chain transactions, a recorded walkthrough |
 
 ## The contracts
 
@@ -288,7 +306,7 @@ npm run dev            # http://localhost:5173
   `overflow-checks` stays on there, so i128 overflow still panics rather than wrapping.
   (`cargo` prints a harmless warning that the workspace's `panic = "abort"` does not apply to test
   profiles.)
-- **Frontend — 66 Vitest tests.** `npm run test` — the AMM quote/APY math (the swap fixture matches
+- **Frontend — 77 Vitest tests.** `npm run test` — the AMM quote/APY math (the swap fixture matches
   the Rust one byte-for-byte; a p=0.988/90d → ~5% APY sanity check), amount parsing/validation in
   `bigint`, the client-side yield math mirroring the contract, chain-time anchoring, per-contract
   error mapping (including the Blend liquidity error and the market-specific wrap message), event
@@ -368,7 +386,7 @@ Distinct, visibly-handled error types include:
 one row per maturity with its implied **fixed APY**, the underlying yield APY, and pool depth
 (matured maturities are collapsed out of the way). To lock a rate:
 
-1. **Connect** a Testnet wallet (Freighter, xBull, or Albedo).
+1. **Connect** a Testnet wallet (Freighter, xBull, LOBSTR, or Albedo).
 2. On **Advanced**, **Faucet** 1,000 mUSDY and **Wrap** it into SY (SY is the standardized,
    yield-bearing unit everything trades against).
 3. **Trade → Lock fixed rate**: buy PT with SY. The panel shows the locked APY, price impact, and
@@ -382,13 +400,6 @@ one row per maturity with its implied **fixed APY**, the underlying yield APY, a
 7. **Activity**: streams every protocol *and* AMM event across all contracts in real time, polled
    from `getEvents`.
 
-## Demo
-
-A **1–2 minute video script** and the exact pre-recording runbook (short demo maturity, seeded
-pool, funded wallet, rate acceleration and restore) live in [`DEMO.md`](DEMO.md).
-
-- **Demo video:** _(record per `DEMO.md`, then link here)_
-
 ## Screenshots
 
 | | |
@@ -400,8 +411,8 @@ pool, funded wallet, rate acceleration and restore) live in [`DEMO.md`](DEMO.md)
 |---|---|
 | ![Console at 390px with the bottom navigation bar](screenshots/mobile-390.png) | ![GitHub Actions run, both jobs green](screenshots/ci-run.png) |
 
-Still to capture from a connected session (see `DEMO.md`): the Trade panel with a live quote, and
-the `cargo test --workspace` (130 passing) + `npm run test` (77) terminal output.
+The [demo video](https://youtu.be/G_06mT7pscw) walks the full flow end to end: locking a fixed rate, splitting SY, watching
+yield accrue, and claiming it — every step a signed Testnet transaction.
 
 ## Security & notes
 

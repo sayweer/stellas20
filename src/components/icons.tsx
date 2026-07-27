@@ -166,14 +166,6 @@ export function ClockIcon({ className }: IconProps): ReactElement {
   )
 }
 
-export function TrendingUpIcon({ className }: IconProps): ReactElement {
-  return (
-    <Icon className={className}>
-      <path d="M16 7h6v6" />
-      <path d="m22 7-8.5 8.5-5-5L2 17" />
-    </Icon>
-  )
-}
 
 export function Spinner({ className = 'h-4 w-4' }: IconProps): ReactElement {
   return (

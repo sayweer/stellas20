@@ -152,7 +152,9 @@ invisible on camera. Steepen the slope right before recording and restore it aft
 continuity is preserved by the checkpoint mechanism, so nothing already split is disturbed.
 
 ```bash
-# ~+1.2%/min — yield visibly ticks
+# ~+1.2%/min. NOTE: this also shows the underlying APY as ~630,000% in the UI,
+# which looks absurd on camera. 20000 (~63% APY) is enough to make accrual
+# visible while staying believable — that is what the recorded demo used.
 stellar contract invoke --id "$MYT" --source "$IDENTITY" --network testnet -- \
   set_rate --slope_per_sec 200000000
 
