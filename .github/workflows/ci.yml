@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# Nothing here writes to the repo, so the token that third-party actions run
+# alongside should not be able to either.
+permissions:
+  contents: read
+
 jobs:
   contracts:
     name: Contracts (build, lint, test)
