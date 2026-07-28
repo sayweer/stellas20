@@ -62,7 +62,14 @@ export function TradePanel({
       p.pool.syReserve > 0n &&
       Number(p.maturity) * 1000 > now,
   )
-  const preselect = initialMaturity ?? tradeable[0]?.maturity ?? null
+  // Only honour the incoming preselection while it is still tradeable: it is
+  // captured on a click in Markets and outlives it, so a maturity that has since
+  // expired or lost its liquidity would select a pool that isn't there — leaving
+  // the panel with a dropdown showing a value it doesn't list and no form at all.
+  const preselect =
+    (initialMaturity !== null && tradeable.some((p) => p.maturity === initialMaturity)
+      ? initialMaturity
+      : tradeable[0]?.maturity) ?? null
   const selected =
     maturity !== null && tradeable.some((p) => p.maturity === maturity) ? maturity : preselect
   const selectedPool = tradeable.find((p) => p.maturity === selected)?.pool ?? null
