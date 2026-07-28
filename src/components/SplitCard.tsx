@@ -69,8 +69,15 @@ export function SplitCard({
   const selectedMatured = selected !== null && isMatured(selected, nowMs)
   const position = positions.find((p) => p.maturity === selected)?.position ?? ZERO_POSITION
 
-  const balance = tab === 'split' ? syBalance : position.pt
-  const valid = isValidTokenAmount(amount, balance, { label: tab === 'split' ? 'SY' : 'PT' })
+  // A merge burns PT *and* YT in equal parts, so the ceiling is whichever the
+  // holder has less of. Validating against PT alone let anyone who had sold or
+  // transferred their YT submit a merge that could only fail on chain
+  // (SplitterError::InsufficientYt), paying the fee to find out.
+  const mergeable = position.pt < position.yt ? position.pt : position.yt
+  const balance = tab === 'split' ? syBalance : mergeable
+  const valid = isValidTokenAmount(amount, balance, {
+    label: tab === 'split' ? 'SY' : 'PT + YT',
+  })
 
   // Client-side floor preview of what the action produces: PT/YT from a split
   // (sy·rate/SCALE), or SY from a merge (pt·SCALE/rate) — merge isn't 1:1 as the
@@ -153,7 +160,7 @@ export function SplitCard({
                   ? 'Loading balances…'
                   : tab === 'split'
                     ? `Available: ${formatAmount(syBalance)} SY`
-                    : `Your PT: ${formatAmount(position.pt)}`
+                    : `Your PT: ${formatAmount(position.pt)} · YT: ${formatAmount(position.yt)}`
               }
               error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
               onEnter={submit}
