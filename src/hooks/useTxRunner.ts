@@ -36,8 +36,16 @@ export function useTxRunner(): UseTxRunnerResult {
       setPending(true)
       setOutcome({ status: 'pending', label, hash: null })
 
+      // Keep the hash once it arrives. The submit callback is the only phase
+      // that carries one; every poll after it calls back with none, and
+      // overwriting with null made the hash — and with it the only handle on an
+      // in-flight transaction — flash into the pending card and vanish again.
       const onPhase: OnTxPhase = (_phase, hash) => {
-        setOutcome({ status: 'pending', label, hash: hash ?? null })
+        setOutcome((prev) => ({
+          status: 'pending',
+          label,
+          hash: hash ?? (prev?.status === 'pending' ? prev.hash : null),
+        }))
       }
       const result = await fn(onPhase)
       setPending(false)
