@@ -2,6 +2,8 @@
  * card instead of a blank white screen. */
 import { Component } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
+import * as Sentry from '@sentry/react'
+import { config } from '../config'
 import { AlertTriangleIcon } from './icons'
 
 interface Props {
@@ -20,6 +22,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
+    if (config.sentryDsn) {
+      Sentry.captureException(error, { extra: { componentStack: info.componentStack } })
+    }
     // Surface it for debugging without leaving the user on a blank screen.
     console.error('Unhandled UI error:', error, info.componentStack)
   }

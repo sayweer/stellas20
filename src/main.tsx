@@ -1,14 +1,20 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import * as Sentry from '@sentry/react'
 import { Analytics } from '@vercel/analytics/react'
 import './index.css'
 import App from './App.tsx'
+import { config } from './config.ts'
 import { Landing } from './routes/Landing.tsx'
 import { NotFound } from './routes/NotFound.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 import { ToastProvider } from './context/ToastContext.tsx'
 import { WalletProvider } from './context/WalletContext.tsx'
+
+if (config.sentryDsn) {
+  Sentry.init({ dsn: config.sentryDsn })
+}
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {

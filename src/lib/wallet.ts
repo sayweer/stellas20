@@ -8,6 +8,7 @@ import { AlbedoModule } from '@creit.tech/stellar-wallets-kit/modules/albedo'
 import { FreighterModule } from '@creit.tech/stellar-wallets-kit/modules/freighter'
 import { LobstrModule } from '@creit.tech/stellar-wallets-kit/modules/lobstr'
 import { xBullModule } from '@creit.tech/stellar-wallets-kit/modules/xbull'
+import * as Sentry from '@sentry/react'
 import { config } from '../config'
 import type { AppError } from '../types'
 
@@ -181,6 +182,9 @@ function classifyKitError(e: unknown): AppError {
       code: 'wallet_not_found',
       message: 'The selected wallet is not available. Install it and try again.',
     }
+  }
+  if (config.sentryDsn) {
+    Sentry.captureException(e)
   }
   return { code: 'wallet_error', message: extractMessage(e) || 'Unexpected wallet error.' }
 }

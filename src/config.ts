@@ -18,6 +18,8 @@ export interface AppConfig {
    * none of them.
    */
   readonly walletConnectProjectId: string
+  /** Sentry browser project DSN. Empty disables error reporting. */
+  readonly sentryDsn: string
 }
 
 /**
@@ -39,6 +41,7 @@ export const config: AppConfig = {
    * means none of the extension wallets can connect. See `src/lib/wallet.ts`.
    */
   walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?? '',
+  sentryDsn: import.meta.env.VITE_SENTRY_DSN || '',
 }
 
 /** Identifier of a deployed market (one SY vault + its Market + its AMM). */

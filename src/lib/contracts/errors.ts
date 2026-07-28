@@ -5,6 +5,8 @@
  * disambiguate the overlapping numeric codes across contracts.
  */
 import { AssembledTransaction } from '@stellar/stellar-sdk/contract'
+import * as Sentry from '@sentry/react'
+import { config } from '../../config'
 import type { AppError } from '../../types'
 
 /** A per-contract error-code → friendly-message table. */
@@ -33,6 +35,9 @@ export function classifyContractError(e: unknown, errorTable: ErrorTable): AppEr
       code: 'account_unfunded',
       message: 'Your account is not funded yet. Fund it with Friendbot and try again.',
     }
+  }
+  if (config.sentryDsn) {
+    Sentry.captureException(e)
   }
   return { code: 'contract_error', message: 'The transaction failed. Please try again.' }
 }
