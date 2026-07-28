@@ -25,12 +25,14 @@ export interface AppConfig {
  * Testnet defaults so the app works with zero local setup.
  */
 export const config: AppConfig = {
-  horizonUrl: import.meta.env.VITE_HORIZON_URL ?? 'https://horizon-testnet.stellar.org',
-  friendbotUrl: import.meta.env.VITE_FRIENDBOT_URL ?? 'https://friendbot.stellar.org',
+  // `||` throughout: a blank env var is an empty string, and falling back to the
+  // Testnet default beats pointing the SDK at "".
+  horizonUrl: import.meta.env.VITE_HORIZON_URL || 'https://horizon-testnet.stellar.org',
+  friendbotUrl: import.meta.env.VITE_FRIENDBOT_URL || 'https://friendbot.stellar.org',
   stellarExpertUrl:
-    import.meta.env.VITE_STELLAR_EXPERT_URL ?? 'https://stellar.expert/explorer/testnet',
+    import.meta.env.VITE_STELLAR_EXPERT_URL || 'https://stellar.expert/explorer/testnet',
   networkPassphrase: Networks.TESTNET,
-  sorobanRpcUrl: import.meta.env.VITE_SOROBAN_RPC_URL ?? 'https://soroban-testnet.stellar.org',
+  sorobanRpcUrl: import.meta.env.VITE_SOROBAN_RPC_URL || 'https://soroban-testnet.stellar.org',
   /**
    * WalletConnect project id (free, from reown.com). Optional: without it the
    * picker only offers wallets that inject into the page, which on a phone
@@ -81,18 +83,21 @@ const musdyMarket: MarketConfig = {
   label: 'mUSDY',
   underlyingSymbol: 'mUSDY',
   // Default to the current Testnet deployment (public, non-secret) so the app
-  // works with zero config; override via env for a fresh deployment.
+  // works with zero config; override via env for a fresh deployment. `||`, not
+  // `??`: a variable declared-but-blank in a hosting dashboard is a blank
+  // string, not undefined, and would otherwise point every contract call at an
+  // empty id — the same guard the Blend block below already used.
   underlyingContractId:
-    import.meta.env.VITE_MYT_CONTRACT_ID ??
+    import.meta.env.VITE_MYT_CONTRACT_ID ||
     'CDN42W36GJ2AGPWGDMEL2BUEKCGCVCQ4GRLFXUBPTQUDIEDWQQHZG3TR',
   syVaultContractId:
-    import.meta.env.VITE_SY_VAULT_CONTRACT_ID ??
+    import.meta.env.VITE_SY_VAULT_CONTRACT_ID ||
     'CBPCPCDCHGAJUU7BID7DOOKBTIWTRIYYZXGL2YBMJ64KNR53YJD4ANZE',
   splitterContractId:
-    import.meta.env.VITE_SPLITTER_CONTRACT_ID ??
+    import.meta.env.VITE_SPLITTER_CONTRACT_ID ||
     'CCBQ4PWTSBKL6RTSL5CFUPVX3SZMLODDJKGH6XFVRZU6UPFXAHHZBSBR',
   ammContractId:
-    import.meta.env.VITE_AMM_CONTRACT_ID ??
+    import.meta.env.VITE_AMM_CONTRACT_ID ||
     'CD4B2YYEMDDRVOFH6EWIXFMP5ZX3YCLMALTYRTGSHCNXDDV3XWNIMILD',
   yieldSource: 'Mock yield token (demo, ~5% APY)',
   source: 'mock',
