@@ -20,6 +20,8 @@ export interface AppConfig {
   readonly walletConnectProjectId: string
   /** Sentry browser project DSN. Empty disables error reporting. */
   readonly sentryDsn: string
+  /** External feedback form. Empty hides the feedback link. */
+  readonly feedbackFormUrl: string
 }
 
 /**
@@ -42,6 +44,7 @@ export const config: AppConfig = {
    */
   walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ?? '',
   sentryDsn: import.meta.env.VITE_SENTRY_DSN || '',
+  feedbackFormUrl: import.meta.env.VITE_FEEDBACK_FORM_URL || '',
 }
 
 /** Identifier of a deployed market (one SY vault + its Market + its AMM). */

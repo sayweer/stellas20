@@ -9,7 +9,7 @@ import { usePortfolio } from './hooks/usePortfolio'
 import { usePools } from './hooks/usePools'
 import { useLiveRate } from './hooks/useLiveRate'
 import { useProtocolEvents } from './hooks/useProtocolEvents'
-import { isContractsConfigured, markets, type MarketKey } from './config'
+import { config, isContractsConfigured, markets, type MarketKey } from './config'
 import { setActiveMarket } from './lib/market'
 import { NetworkBanner } from './components/NetworkBanner'
 import { BalanceCard } from './components/BalanceCard'
@@ -27,7 +27,7 @@ import { AdvancedPanel } from './components/AdvancedPanel'
 import { ConnectPrompt } from './components/ConnectPrompt'
 import { ActivityFeed } from './components/ActivityFeed'
 import { Toast } from './components/Toast'
-import { AlertTriangleIcon } from './components/icons'
+import { AlertTriangleIcon, ExternalLinkIcon } from './components/icons'
 
 function App(): ReactElement {
   useSurface('app')
@@ -148,7 +148,19 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
             >
               <BrandMark className="h-6 w-6 text-neutral-50" />
             </Link>
-            <div className="order-2 ml-auto sm:order-3">
+            <div className="order-2 ml-auto flex items-center gap-2 sm:order-3">
+              {config.feedbackFormUrl && (
+                <a
+                  href={config.feedbackFormUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Open feedback form"
+                  className="flex h-9 items-center gap-2 rounded-lg border border-neutral-800 px-2.5 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-900 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 sm:px-3"
+                >
+                  <span className="hidden sm:inline">Feedback</span>
+                  <ExternalLinkIcon className="h-4 w-4 shrink-0" />
+                </a>
+              )}
               <WalletButton />
             </div>
             <div className="order-3 w-full sm:order-2 sm:ml-0 sm:w-auto">
