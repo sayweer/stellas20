@@ -27,7 +27,7 @@ import { AdvancedPanel } from './components/AdvancedPanel'
 import { ConnectPrompt } from './components/ConnectPrompt'
 import { ActivityFeed } from './components/ActivityFeed'
 import { Toast } from './components/Toast'
-import { AlertTriangleIcon, ExternalLinkIcon } from './components/icons'
+import { AlertTriangleIcon } from './components/icons'
 
 function App(): ReactElement {
   useSurface('app')
@@ -62,6 +62,17 @@ function App(): ReactElement {
           pools and balances. Remounting on a switch is what guarantees that
           no read, position or form value survives from the previous one. */}
       <MarketContent key={marketKey} marketKey={marketKey} onSwitchMarket={switchMarket} />
+
+      {config.feedbackFormUrl && (
+        <a
+          href={config.feedbackFormUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-40 inline-flex min-h-11 items-center justify-center rounded-full bg-neutral-50 px-5 py-2.5 text-sm font-semibold text-neutral-950 shadow-lg shadow-black/30 transition-[transform,background-color,box-shadow] duration-100 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:shadow-black/40 active:translate-y-0 active:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-50 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 motion-reduce:transform-none motion-reduce:transition-none lg:bottom-6 lg:right-6"
+        >
+          Share feedback
+        </a>
+      )}
 
       <Toast />
     </div>
@@ -149,18 +160,6 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
               <BrandMark className="h-6 w-6 text-neutral-50" />
             </Link>
             <div className="order-2 ml-auto flex items-center gap-2 sm:order-3">
-              {config.feedbackFormUrl && (
-                <a
-                  href={config.feedbackFormUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Open feedback form"
-                  className="flex h-9 items-center gap-2 rounded-lg border border-neutral-800 px-2.5 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-900 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 sm:px-3"
-                >
-                  <span className="hidden sm:inline">Feedback</span>
-                  <ExternalLinkIcon className="h-4 w-4 shrink-0" />
-                </a>
-              )}
               <WalletButton />
             </div>
             <div className="order-3 w-full sm:order-2 sm:ml-0 sm:w-auto">
