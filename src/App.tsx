@@ -30,7 +30,6 @@ import { Toast } from './components/Toast'
 import { AlertTriangleIcon, ExternalLinkIcon } from './components/icons'
 
 function App(): ReactElement {
-  throw new Error('Phase 8 Sentry browser check')
   useSurface('app')
   useDocumentTitle('App — stellas20')
   const [marketKey, setMarketKey] = useState<MarketKey>(markets[0].key)
