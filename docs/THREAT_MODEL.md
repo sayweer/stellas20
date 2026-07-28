@@ -73,6 +73,20 @@ mismatched deployment fails at deploy rather than at the first drained pool
 `exchange_rate_at`. That interface *is* the adapter boundary — swapping the mock vault for the
 Blend-backed one required no change in the Market (MASTERPLAN §3.7).
 
+**Browser → the app.** The contracts cannot be tricked into moving funds, so the realistic
+attack on a user is to trick the *user* — and the only such attack this app is exposed to is
+clickjacking, because every write is "press a button here, then approve what the wallet shows
+you". Framed inside an attacker's page under a transparent overlay, that first press can be
+steered. `vercel.json` therefore serves `frame-ancestors 'none'` (plus `X-Frame-Options: DENY`
+for anything predating it), `nosniff`, a referrer policy that stops the full URL leaking to
+stellar.expert, and a `Permissions-Policy` denying hardware and payment APIs the app never uses.
+
+A full script/connect CSP is deliberately **not** set. It would have to enumerate every wallet's
+flow — Albedo's popup origin, WalletConnect's relay endpoints, whatever a future module adds —
+and a source missed there does not degrade gracefully, it silently breaks signing. The second
+line of defence is that there is nothing worth stealing in the page: no secret key ever reaches
+it, and the wallet shows the user the real operation regardless of what the page claims.
+
 ## 4. Administrator powers — the complete inventory
 
 Exactly four entry points in the whole workspace are admin-gated. There are **no others**:
