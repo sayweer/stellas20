@@ -63,6 +63,20 @@ function App(): ReactElement {
           no read, position or form value survives from the previous one. */}
       <MarketContent key={marketKey} marketKey={marketKey} onSwitchMarket={switchMarket} />
 
+      {/* Desktop only. Below lg the same link lives in the header instead: the
+          content column is full-width there, so a floating button sits on top
+          of each panel's primary action and swallows taps meant for it. */}
+      {config.feedbackFormUrl && (
+        <a
+          href={config.feedbackFormUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-6 z-40 hidden min-h-11 items-center justify-center rounded-full bg-neutral-50 px-5 py-2.5 text-sm font-semibold text-neutral-950 shadow-lg shadow-black/30 transition-[transform,background-color,box-shadow] duration-100 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:shadow-black/40 active:translate-y-0 active:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-50 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 motion-reduce:transform-none motion-reduce:transition-none lg:inline-flex"
+        >
+          Share feedback
+        </a>
+      )}
+
       <Toast />
     </div>
   )
@@ -149,15 +163,14 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
               <BrandMark className="h-6 w-6 text-neutral-50" />
             </Link>
             <div className="order-2 ml-auto flex items-center gap-2 sm:order-3">
-              {/* Header-level, never floating: every panel's primary action is a
-                  full-width button at the bottom of the column, so an overlay
-                  pinned above the bottom bar covers it at phone widths. */}
+              {/* Phone-width stand-in for the floating button, which is hidden
+                  below lg because it would cover the panels' primary action. */}
               {config.feedbackFormUrl && (
                 <a
                   href={config.feedbackFormUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="whitespace-nowrap rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+                  className="whitespace-nowrap rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:hidden"
                 >
                   Feedback
                 </a>
