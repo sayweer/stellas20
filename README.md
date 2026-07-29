@@ -28,7 +28,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 | Production deployment | [stellas20.vercel.app](https://stellas20.vercel.app/) | Vercel, auto-deployed from `main`; contracts live on Testnet |
 | Monitoring & analytics | [monitoring](#monitoring-analytics-and-feedback) | Vercel Analytics for traffic, Sentry for unclassified runtime errors |
 | Feedback collection | *Feedback* link in the app header | A Google Form, wired through `VITE_FEEDBACK_FORM_URL` |
-| Real users & feedback summary | [users and feedback](#users-and-feedback) | 32 visitors, 12 form responses, what they asked for and where they agree with each other |
+| Real users & feedback summary | [users and feedback](#users-and-feedback) | 32 visitors, 12 form responses, what they asked for, and the six fixes that shipped because of them |
 | Wallet interaction, proven | [verified on-chain](#wallet-interaction-verified-on-chain) | Six addresses the project does not control, each with successful contract invocations on Horizon |
 | 15+ meaningful commits | `git log` | 100+ commits, one logical unit each |
 | Public repo & documentation | this file, [`docs/`](docs/) | Architecture, threat model, runbooks, verifiable on-chain transactions |
@@ -402,6 +402,26 @@ the numbers below cover the **eleven external respondents**.
 
 Unprompted positives: *"the UI is smooth and useful, put it on production"*, *"the website feels
 premium"*, *"the landing page looks good"*.
+
+### What changed because of them
+
+Real traffic found things a test never did. Each of these was shipped within hours of the users who
+caused it, and each is one commit:
+
+| What a real user hit | Fix |
+|---|---|
+| An iOS visitor picked a wallet and got the kit's raw `no elements in sequence` | Extension wallets are no longer offered on a phone at all, and WalletConnect is (`f7a2568`, `50ecc45`, `add0518`) — the picker had been sending people who already had the app to the app store, forever |
+| Every failed read reported "transaction failed" | The contract's own error code is recovered from where the SDK buries it (`f7da58d`) |
+| The single most common Sentry event was a dropped RPC call | Named as a connection problem, not a failure — the transaction may never have been sent (`0a1ed62`) |
+| One user's buy pushed a pool's PT above par | The trade panel now warns and requires an explicit confirmation before locking a negative rate (`5239dbb`); the pools were rebalanced back to ~6% |
+| Sentry stack traces were unreadable (`gf`, `_f`) | Source maps published (`91927d1`) |
+
+Two problems the same wave surfaced by inspection rather than by report: the Markets tab announced
+"No maturities exist yet" for a beat on every load, and the Blend market's Underlying column read a
+flat `0.00%` because only the mock source publishes a curve to annualize (`b1e76bb`).
+
+The dashboard note from the two deepest sessions is **not** fixed and is not being claimed as
+fixed — it is a design change, not a defect, and it is the top item for the next belt.
 
 ### Wallet interaction, verified on-chain
 
