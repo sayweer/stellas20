@@ -183,6 +183,21 @@ function classifyKitError(e: unknown): AppError {
       message: 'The selected wallet is not available. Install it and try again.',
     }
   }
+  // A browser extension cannot inject into a mobile browser. Freighter's module
+  // says so via `isAvailable()`, but the others report themselves available and
+  // then fail once selected — xBull surfaces it as `no elements in sequence`,
+  // which was being shown to the user verbatim. On a phone this is the
+  // overwhelmingly likely cause of an otherwise unrecognized picker failure, so
+  // name the real constraint and point at what does work. It is a platform
+  // limitation rather than a defect, so it does not belong in Sentry either.
+  if (isMobileBrowser()) {
+    return {
+      code: 'wallet_not_found',
+      message: hasMobileWalletSupport()
+        ? 'That wallet needs a browser extension, which mobile browsers can’t run. Use WalletConnect or Albedo instead.'
+        : 'That wallet needs a browser extension, which mobile browsers can’t run. Albedo works in any browser — or open this page on a desktop.',
+    }
+  }
   if (config.sentryDsn) {
     Sentry.captureException(e)
   }
