@@ -30,7 +30,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 | Feedback collection | *Feedback* link in the app header | A Google Form, wired through `VITE_FEEDBACK_FORM_URL` |
 | Real users & feedback summary | [users and feedback](#users-and-feedback) | 32 visitors, 12 form responses, what they asked for and where they agree with each other |
 | Wallet interaction, proven | [verified on-chain](#wallet-interaction-verified-on-chain) | Six addresses the project does not control, each with successful contract invocations on Horizon |
-| 15+ meaningful commits | `git log` | 101 commits, one logical unit each |
+| 15+ meaningful commits | `git log` | 100+ commits, one logical unit each |
 | Public repo & documentation | this file, [`docs/`](docs/) | Architecture, threat model, runbooks, verifiable on-chain transactions |
 | Advanced smart contracts | [`contracts/`](contracts/) | Tokenized PT/YT with Pendle-style user-index accounting, a factory that deploys a SEP-41 token pair per maturity, and a constant-product AMM |
 | Inter-contract communication | [inventory below](#inter-contract-call-inventory) | 14 distinct cross-contract calls, including a two-hop rate chain and a re-entrancy-safe settlement callback |
@@ -516,6 +516,9 @@ one row per maturity with its implied **fixed APY**, the underlying yield APY, a
 | **Mobile — 390px** | **Multi-wallet picker** |
 |---|---|
 | ![Console at 390px: the left rail becomes a bottom bar and market rows re-flow](screenshots/mobile-390.png) | ![StellarWalletsKit picker offering Freighter, xBull, Albedo and LOBSTR](screenshots/wallet-picker.png) |
+
+The traffic and error panels the checklist asks for are in
+[Monitoring](#monitoring-analytics-and-feedback), next to what they are wired to.
 
 **CI and test output** — both jobs green, with the contract suite and the Vitest summary in the log:
 
