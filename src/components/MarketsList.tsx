@@ -132,7 +132,12 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
           dtSeconds,
         )
       : null
-  const underApy = rateInfo && liveRate ? underlyingApy(rateInfo.slopePerSec, liveRate) : null
+  // Only a source that publishes a forward slope can be annualized. Blend
+  // reports its rate now and nothing about the future, so annualizing it gave
+  // every row of the real-yield market a flat "0.00%" — the one number a reader
+  // would take as "this pays nothing". Same guard the rate ticker uses.
+  const hasCurve = rateInfo !== null && rateInfo.slopePerSec > 0n
+  const underApy = hasCurve && liveRate ? underlyingApy(rateInfo.slopePerSec, liveRate) : null
 
   // PT can trade above par, which implies a negative fixed rate — a real market
   // state, not an error. It must never be painted in the "good" colour.

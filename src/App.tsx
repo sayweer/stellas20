@@ -209,7 +209,12 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
             {tab === 'markets' && (
               <MarketsList
                 pools={pools.pools}
-                loading={pools.loading}
+                /* The maturity list arrives first, and until it does `usePools`
+                   has nothing to fetch — so it reports "done" with an empty
+                   result and the list flashed "No maturities exist yet" on
+                   every load and every market switch. The panel is loading
+                   while either read is still in flight. */
+                loading={pools.loading || loading}
                 rateInfo={portfolio.rateInfo}
                 liveRate={liveRate}
                 onTrade={goTrade}
