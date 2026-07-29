@@ -28,9 +28,9 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 | Production deployment | [stellas20.vercel.app](https://stellas20.vercel.app/) | Vercel, auto-deployed from `main`; contracts live on Testnet |
 | Monitoring & analytics | [monitoring](#monitoring-analytics-and-feedback) | Vercel Analytics for traffic, Sentry for unclassified runtime errors |
 | Feedback collection | *Feedback* link in the app header | A Google Form, wired through `VITE_FEEDBACK_FORM_URL` |
-| Real users & feedback summary | [users and feedback](#users-and-feedback) | 32 visitors, 10 form responses, what they asked for and what changed because of it |
-| Wallet interaction, proven | [verified on-chain](#wallet-interaction-verified-on-chain) | Four addresses the project does not control, each with successful contract invocations on Horizon |
-| 15+ meaningful commits | `git log` | 100 commits, one logical unit each |
+| Real users & feedback summary | [users and feedback](#users-and-feedback) | 32 visitors, 12 form responses, what they asked for and where they agree with each other |
+| Wallet interaction, proven | [verified on-chain](#wallet-interaction-verified-on-chain) | Six addresses the project does not control, each with successful contract invocations on Horizon |
+| 15+ meaningful commits | `git log` | 101 commits, one logical unit each |
 | Public repo & documentation | this file, [`docs/`](docs/) | Architecture, threat model, runbooks, verifiable on-chain transactions |
 | Advanced smart contracts | [`contracts/`](contracts/) | Tokenized PT/YT with Pendle-style user-index accounting, a factory that deploys a SEP-41 token pair per maturity, and a constant-product AMM |
 | Inter-contract communication | [inventory below](#inter-contract-call-inventory) | 14 distinct cross-contract calls, including a two-hop rate chain and a re-entrancy-safe settlement callback |
@@ -377,30 +377,31 @@ source maps.
 
 The app was shared publicly on **28 Jul 2026** and drew **32 unique visitors / 150 page views**
 within two days — the whole 7-day window in the panel above, arriving on the 28th and 29th.
-**Ten form responses** came back; one is a submission by the maintainer while testing the form, so
-the numbers below cover the **nine external respondents**.
+**Twelve form responses** came back; one is a submission by the maintainer while testing the form, so
+the numbers below cover the **eleven external respondents**.
 
 | | |
 |---|---|
-| Average rating | **4.7 / 5** (seven 5s, one 4, one 3) |
-| Would use in production | 6 yes · 2 maybe · 1 no |
-| Connected a wallet | 6 of 9 |
-| Reported using Trade / Pool / Portfolio | 2 of 9 (four transacted on-chain — see below) |
-| Happy to be followed up with | 8 of 9 |
+| Average rating | **4.6 / 5** (eight 5s, two 4s, one 3) |
+| Would use in production | 8 yes · 2 maybe · 1 no |
+| Connected a wallet | 7 of 11 |
+| Reported using Trade / Pool / Portfolio | 3 of 11 (six transacted on-chain — see below) |
+| Happy to be followed up with | 10 of 11 |
 
 **What they asked for**, in frequency order:
 
-- **A theme switcher** — the only request made twice, independently. The app is dark-only today.
-- **A simpler first screen.** The one respondent who used the full Trade → Pool → Portfolio path
-  called the interface "a bit confusing" and asked for a user-focused dashboard. It is the most
-  valuable note in the set: it comes from the deepest session, and it is about the product's core
-  claim being legible, not about polish.
+- **A simpler first screen** — asked for twice, and by the two deepest sessions in the set: both
+  people who walked Trade → Pool → Portfolio called the interface confusing and asked for a
+  user-focused dashboard. That agreement is the most valuable signal here. It is not about polish;
+  it says the product's core claim — *lock a fixed rate until maturity* — is not legible fast enough
+  to the people who got furthest into it.
+- **A theme switcher**, twice and independently. The app is dark-only today.
 - **A docs page** — from a respondent who looked around without connecting, which is exactly who a
   docs page is for.
 - **Font tuning.**
 
 Unprompted positives: *"the UI is smooth and useful, put it on production"*, *"the website feels
-premium"*, *"good idea"*.
+premium"*, *"the landing page looks good"*.
 
 ### Wallet interaction, verified on-chain
 
@@ -411,13 +412,17 @@ contract IDs**, by an address the project does not control:
 
 | Address | Contracts invoked | Successful calls | When |
 |---|---|---|---|
+| [`GB7HPKSE…JY2G`](https://stellar.expert/explorer/testnet/account/GB7HPKSEA2OED4YDBX3AKBKV4S66SHJPN7BDGJMHKVCBLEGTJVUWJY2G) | mock-yield-token, sy-vault-blend, splitter-blend, pt-amm-blend | 11 | 29 Jul |
 | [`GBGHSPQE…TDQS`](https://stellar.expert/explorer/testnet/account/GBGHSPQEIZGJOJJDJYG5VVIPU7THJQU2Z4B6V5VF5IHUQ2SOLIRITDQS) | mock-yield-token, sy-vault, splitter, pt-amm, sy-vault-blend, splitter-blend | 6 | 28 Jul |
 | [`GACJLJGI…K542`](https://stellar.expert/explorer/testnet/account/GACJLJGIV4FGZGE4NRBMNBFFLDUCNTADEDCC4BFGDGQ44ZU54MJ5K542) | mock-yield-token, sy-vault, splitter, pt-amm | 6 | 29 Jul |
 | [`GAJG7CSJ…DUTO`](https://stellar.expert/explorer/testnet/account/GAJG7CSJMVY4Y27ESZIQGPQ5Y3BUJ2WWS3SKB2HN7DO4DFUITGFXDUTO) | sy-vault-blend | 1 | 29 Jul |
 | [`GBO7BZSN…PM4T`](https://stellar.expert/explorer/testnet/account/GBO7BZSNAX6APJW32OE5LHXQZ6MTIHBTWRZZRCJL3VSILWCAZLGCPM4T) | mock-yield-token | 1 | 29 Jul |
+| [`GCV5ONGW…MKT5`](https://stellar.expert/explorer/testnet/account/GCV5ONGW6TCX3G6YNDSEZLZYGLIW3MQCPG7QUVENFM5SLKULDRIUMKT5) | mock-yield-token | 1 | 29 Jul |
 
-The first row walked the whole protocol — mint, wrap, split, swap — across **both** markets, the
-mock one and the Blend-backed one.
+Neither of the top two rows is a shallow visit. The first spent four minutes in the **Blend-backed**
+market — wrap, split, then five AMM calls, i.e. real price discovery against a live pool paying real
+Testnet yield. The second walked the whole protocol across **both** markets, the mock one and the
+Blend one.
 
 Three further respondents' addresses are funded Testnet accounts with no call to these contracts,
 matching what they reported: they connected a wallet and browsed. That is consistent rather than
