@@ -149,7 +149,7 @@ export async function readCall<T>(
 ): Promise<T | AppError> {
   try {
     const tx = await call()
-    return unwrapSpecResult<T>(tx.result)
+    return unwrapSpecResult<T>(tx.result, tx)
   } catch (e) {
     return classifyContractError(e, errorTable)
   }
@@ -160,15 +160,28 @@ export async function readCall<T>(
  * client as `Ok { value }` / `Err` objects with an `unwrap()`; plain-returning
  * methods come back raw. Normalize both to `T` — an `Err` unwraps into a
  * throw, which the callers' catch classifies into a friendly AppError.
+ *
+ * An `Err` needs `tx` to classify. The SDK recognizes the contract error code
+ * while building the `Err`, but stores only the spec's message for it — and our
+ * error enums carry no doc comments, so that message is the empty string. The
+ * code is therefore already gone by the time `unwrap()` throws, and every
+ * contract failure on a read arrived as a message-less `Error` that no table
+ * could match. Re-reading `simulationData` re-throws the SDK's own
+ * `SimulationFailed`, whose text still contains `Error(Contract, #N)`.
  */
-function unwrapSpecResult<T>(value: unknown): T {
+function unwrapSpecResult<T>(value: unknown, tx?: { simulationData: unknown }): T {
   if (
     value !== null &&
     typeof value === 'object' &&
     'unwrap' in value &&
     typeof (value as { unwrap: unknown }).unwrap === 'function'
   ) {
-    return (value as { unwrap: () => T }).unwrap()
+    const result = value as { unwrap: () => T; isErr?: () => boolean }
+    if (tx && result.isErr?.() === true) {
+      // Getter with a throwing side effect — that throw is the point.
+      void tx.simulationData
+    }
+    return result.unwrap()
   }
   return value as T
 }
