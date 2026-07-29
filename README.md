@@ -37,7 +37,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 | Deployment workflow | [`scripts/`](scripts/), [`docs/RUNBOOKS.md`](docs/RUNBOOKS.md) | One script deploys in dependency order with constructor init; a second seeds a pool at a target APY |
 | Mobile responsive | [screenshot](#screenshots) | Responsive to 390px; the left rail becomes a bottom bar, market rows re-flow to a two-column grid |
 | Error handling & loading states | [table below](#error-handling) | Every contract's `#[contracterror]` mapped to a specific message; one of loading / error+retry / empty / content, never two at once |
-| Tests, contracts and frontend | [`cargo test`](#testing), [`npm test`](#testing) | 130 Rust tests including randomized invariant harnesses, 77 Vitest tests |
+| Tests, contracts and frontend | [`cargo test`](#testing), [`npm test`](#testing) | 130 Rust tests including randomized invariant harnesses, 81 Vitest tests |
 | Production-ready architecture | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Threat model, two adversarial audit rounds with findings closed, no upgrade key or pause switch by design |
 | Documentation & demo | this file, [video](https://youtu.be/G_06mT7pscw) | Architecture diagrams, verifiable on-chain transactions, a recorded walkthrough |
 
@@ -254,7 +254,7 @@ asserts exactly this after every operation in a scripted lifecycle.
   `/rpc` `getEvents` for the live activity feed.
 - **Tests:** Rust unit + integration + a randomized invariant harness (130 passing, plus 3
   `#[ignore]` slow-tier runs, over *both* yield sources), [Vitest](https://vitest.dev/) for the
-  frontend (77).
+  frontend (81).
 - **CI:** GitHub Actions (`.github/workflows/ci.yml`), on a pinned Rust toolchain.
 
 ## Setup / run locally
@@ -316,7 +316,7 @@ npm run dev            # http://localhost:5173
   `overflow-checks` stays on there, so i128 overflow still panics rather than wrapping.
   (`cargo` prints a harmless warning that the workspace's `panic = "abort"` does not apply to test
   profiles.)
-- **Frontend — 77 Vitest tests.** `npm run test` — the AMM quote/APY math (the swap fixture matches
+- **Frontend — 81 Vitest tests.** `npm run test` — the AMM quote/APY math (the swap fixture matches
   the Rust one byte-for-byte; a p=0.988/90d → ~5% APY sanity check), amount parsing/validation in
   `bigint`, the client-side yield math mirroring the contract, chain-time anchoring, per-contract
   error mapping (including the Blend liquidity error and the market-specific wrap message), event
@@ -439,7 +439,7 @@ one row per maturity with its implied **fixed APY**, the underlying yield APY, a
 |---|---|
 | ![Console at 390px: the left rail becomes a bottom bar and market rows re-flow](screenshots/mobile-390.png) | ![StellarWalletsKit picker offering Freighter, xBull, Albedo and LOBSTR](screenshots/wallet-picker.png) |
 
-**CI and test output** — both jobs green, with the Vitest summary reporting 9 files / 77 tests:
+**CI and test output** — both jobs green, with the contract suite and the Vitest summary in the log:
 
 ![GitHub Actions run with both jobs green and the Vitest summary](screenshots/ci-run.png)
 
