@@ -485,10 +485,12 @@ Distinct, visibly-handled error types include:
 
 | Trigger | What the UI shows |
 |---|---|
-| Wallet not available / not installed | The picker marks it with an install link |
+| Wallet not available / not installed | On desktop the picker marks it with an install link; on a phone, where an extension cannot exist, it is not offered at all |
 | User declines a signature | The action quietly returns to idle |
 | Insufficient balance | Inline form error; the button disables |
+| RPC unreachable | Named as a connection problem with a retry, not as a failed transaction — the tx may never have been sent |
 | Faucet cap exceeded, maturity passed/not reached, nothing to claim, … | The contract's `#[contracterror]` mapped to a specific message |
+| Blend reserve fully utilized | *"The Blend pool has no free liquidity right now"* — the pool's own error, not a generic one |
 | Wrong network | A blocking banner; writes disabled |
 
 ## How to use
