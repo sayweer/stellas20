@@ -387,15 +387,19 @@ Browser-extension wallets cannot inject into a mobile browser, so Freighter, xBu
 unreachable there. Freighter's kit module makes this explicit — it returns `isAvailable() === false`
 when it detects its own mobile build, [with a comment saying WalletConnect must be used
 instead](https://github.com/Creit-Tech/Stellar-Wallets-Kit). Left unhandled, the picker offers an
-**Install** link to someone who already has the app, and installing it again changes nothing.
+**Install** link to someone who already has the app, which opens the app store and changes nothing —
+so on a phone those modules are not registered at all. (The kit's own
+`authModal.hideUnsupportedWallets` flag cannot do this in 2.5.0: the setting is stored but the picker
+never reads it.) A wallet app's in-app browser does inject a provider, and keeps the full list.
 
 Two ways through:
 
 - **Albedo** works in any browser (web popup, nothing to install) and is in the picker already.
-- **WalletConnect** reaches the real mobile apps, including Freighter mobile. It needs a free
-  project id from [reown.com](https://dashboard.reown.com): set `VITE_WALLETCONNECT_PROJECT_ID` and
-  the module is added automatically. It is loaded dynamically, so with no project id configured none
-  of its ~400 kB is downloaded.
+- **WalletConnect** reaches the real mobile apps, including Freighter mobile — inside Freighter's
+  in-app browser it takes over the picker and connects directly. It needs a free project id from
+  [reown.com](https://dashboard.reown.com): set `VITE_WALLETCONNECT_PROJECT_ID` and the module is
+  added automatically. Its ~400 kB is loaded dynamically and only on a phone, since app start waits
+  on it and desktop reaches the same wallets through an extension.
 
 When neither applies, the connect button says so plainly instead of repeating the install advice.
 

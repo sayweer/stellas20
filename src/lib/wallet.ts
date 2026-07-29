@@ -63,11 +63,16 @@ const baseModules =
 
 /**
  * WalletConnect is the only route to a wallet held in a phone's own app, and is
- * what Freighter mobile expects. Loaded dynamically so the WalletConnect/AppKit
- * bundle is only fetched when a project id is actually configured.
+ * what Freighter mobile expects — inside Freighter's in-app browser its module
+ * even takes over the picker and connects directly.
+ *
+ * Its AppKit bundle is ~120 kB gzipped and awaited before the app can start, so
+ * it is loaded dynamically and only where it changes the outcome: a phone, and
+ * only once a project id is configured. Desktop reaches the same wallets
+ * through an extension and does not pay for it.
  */
 const modules = await (async () => {
-  if (!config.walletConnectProjectId) return baseModules
+  if (!config.walletConnectProjectId || !isMobileBrowser()) return baseModules
   try {
     const { WalletConnectModule, WalletConnectTargetChain } = await import(
       '@creit.tech/stellar-wallets-kit/modules/wallet-connect'
