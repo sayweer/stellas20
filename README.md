@@ -28,7 +28,9 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 | Production deployment | [stellas20.vercel.app](https://stellas20.vercel.app/) | Vercel, auto-deployed from `main`; contracts live on Testnet |
 | Monitoring & analytics | [monitoring](#monitoring-analytics-and-feedback) | Vercel Analytics for traffic, Sentry for unclassified runtime errors |
 | Feedback collection | *Feedback* link in the app header | A Google Form, wired through `VITE_FEEDBACK_FORM_URL` |
-| 15+ meaningful commits | `git log` | 88 commits, one logical unit each |
+| Real users & feedback summary | [users and feedback](#users-and-feedback) | 32 visitors, 10 form responses, what they asked for and what changed because of it |
+| Wallet interaction, proven | [verified on-chain](#wallet-interaction-verified-on-chain) | Four addresses the project does not control, each with successful contract invocations on Horizon |
+| 15+ meaningful commits | `git log` | 100 commits, one logical unit each |
 | Public repo & documentation | this file, [`docs/`](docs/) | Architecture, threat model, runbooks, verifiable on-chain transactions |
 | Advanced smart contracts | [`contracts/`](contracts/) | Tokenized PT/YT with Pendle-style user-index accounting, a factory that deploys a SEP-41 token pair per maturity, and a constant-product AMM |
 | Inter-contract communication | [inventory below](#inter-contract-call-inventory) | 14 distinct cross-contract calls, including a two-hop rate chain and a re-entrancy-safe settlement callback |
@@ -358,6 +360,73 @@ catch-alls: [`ErrorBoundary`](src/components/ErrorBoundary.tsx) (a render crash)
 
 A Sentry DSN is not a secret — it is designed to ship in a client bundle — so it lives in a
 `VITE_`-prefixed variable like the rest of the public config.
+
+| **Traffic — Vercel Analytics** | **Errors — Sentry** |
+|---|---|
+| ![Vercel Analytics for stellas20.vercel.app: 32 visitors, 150 page views, 22% bounce rate over the last 7 days](screenshots/analytics-vercel.png) | ![Sentry issue list for the javascript-react project, grouped by fingerprint with event counts and last-seen times](screenshots/sentry-issues.png) |
+
+Both panels are from **29 Jul 2026**, the day the app was first shared. Sentry earned its keep
+immediately: the issues in that list are what the first real visitors hit, and three of them were
+genuine bugs, each fixed in its own commit — a contract error code that the SDK buried in an empty
+message (`f7da58d`), an unreachable RPC reported as a failure rather than a connection problem
+(`0a1ed62`), and an extension wallet offered to a phone that cannot run extensions (`add0518`).
+The stack frames read as minified names because that traffic predates `91927d1`, which turned on
+source maps.
+
+## Users and feedback
+
+The app was shared publicly on **28 Jul 2026** and drew **32 unique visitors / 150 page views**
+within two days — the whole 7-day window in the panel above, arriving on the 28th and 29th.
+**Ten form responses** came back; one is a submission by the maintainer while testing the form, so
+the numbers below cover the **nine external respondents**.
+
+| | |
+|---|---|
+| Average rating | **4.7 / 5** (seven 5s, one 4, one 3) |
+| Would use in production | 6 yes · 2 maybe · 1 no |
+| Connected a wallet | 6 of 9 |
+| Reported using Trade / Pool / Portfolio | 2 of 9 (four transacted on-chain — see below) |
+| Happy to be followed up with | 8 of 9 |
+
+**What they asked for**, in frequency order:
+
+- **A theme switcher** — the only request made twice, independently. The app is dark-only today.
+- **A simpler first screen.** The one respondent who used the full Trade → Pool → Portfolio path
+  called the interface "a bit confusing" and asked for a user-focused dashboard. It is the most
+  valuable note in the set: it comes from the deepest session, and it is about the product's core
+  claim being legible, not about polish.
+- **A docs page** — from a respondent who looked around without connecting, which is exactly who a
+  docs page is for.
+- **Font tuning.**
+
+Unprompted positives: *"the UI is smooth and useful, put it on production"*, *"the website feels
+premium"*, *"good idea"*.
+
+### Wallet interaction, verified on-chain
+
+Self-reported answers are not proof, so every address submitted through the form was checked against
+Horizon — permanent history, unlike RPC events, which the public node retains for roughly a day.
+Each row below is a **successful `invoke_host_function` against one of this project's deployed
+contract IDs**, by an address the project does not control:
+
+| Address | Contracts invoked | Successful calls | When |
+|---|---|---|---|
+| [`GBGHSPQE…TDQS`](https://stellar.expert/explorer/testnet/account/GBGHSPQEIZGJOJJDJYG5VVIPU7THJQU2Z4B6V5VF5IHUQ2SOLIRITDQS) | mock-yield-token, sy-vault, splitter, pt-amm, sy-vault-blend, splitter-blend | 6 | 28 Jul |
+| [`GACJLJGI…K542`](https://stellar.expert/explorer/testnet/account/GACJLJGIV4FGZGE4NRBMNBFFLDUCNTADEDCC4BFGDGQ44ZU54MJ5K542) | mock-yield-token, sy-vault, splitter, pt-amm | 6 | 29 Jul |
+| [`GAJG7CSJ…DUTO`](https://stellar.expert/explorer/testnet/account/GAJG7CSJMVY4Y27ESZIQGPQ5Y3BUJ2WWS3SKB2HN7DO4DFUITGFXDUTO) | sy-vault-blend | 1 | 29 Jul |
+| [`GBO7BZSN…PM4T`](https://stellar.expert/explorer/testnet/account/GBO7BZSNAX6APJW32OE5LHXQZ6MTIHBTWRZZRCJL3VSILWCAZLGCPM4T) | mock-yield-token | 1 | 29 Jul |
+
+The first row walked the whole protocol — mint, wrap, split, swap — across **both** markets, the
+mock one and the Blend-backed one.
+
+Three further respondents' addresses are funded Testnet accounts with no call to these contracts,
+matching what they reported: they connected a wallet and browsed. That is consistent rather than
+contradictory — connecting a wallet is a client-side handshake and leaves no on-chain trace, which is
+why the two signals are reported separately here instead of being merged into one flattering number.
+One address was never funded, by someone who said they only looked around.
+
+Names and email addresses from the form are deliberately not published; wallet addresses are, because
+they are public keys and were submitted as evidence of exactly this.
 
 ## Deployment workflow
 
