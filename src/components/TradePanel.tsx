@@ -23,7 +23,7 @@ import { AmountField, ActionButton, TabToggle } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
 import { TxStatus } from './TxStatus'
-import { LockIcon } from './icons'
+import { AlertTriangleIcon, LockIcon } from './icons'
 
 interface TradePanelProps {
   address: string
@@ -197,7 +197,14 @@ function LockRateForm({
 }: LockFormProps): ReactElement {
   const [amount, setAmount] = useState('')
   const [slippageBps, setSlippageBps] = useState(50)
+  const [acceptsLoss, setAcceptsLoss] = useState(false)
   const { outcome, pending, run, reset } = useTxRunner()
+
+  // A new amount is a new trade — never carry an acknowledgement across it.
+  function changeAmount(next: string): void {
+    setAmount(next)
+    setAcceptsLoss(false)
+  }
 
   const valid = isValidTokenAmount(amount, syBalance, { label: 'SY' })
   const syIn = valid.ok ? valid.stroops : 0n
@@ -208,9 +215,14 @@ function LockRateForm({
     liveRate !== null && ptOut > 0n ? effectiveApy(syIn, ptOut, liveRate, dtSeconds) : null
   const impact = syIn > 0n ? priceImpact(pool.syReserve, pool.ptReserve, syIn) : 0
   const countdown = maturityCountdown(maturity, nowMs)
+  // Paying above par for PT locks in a loss: PT only ever redeems its
+  // principal, so a negative rate here is the trade's actual outcome, not a
+  // display artefact. Shallow pools and near maturities make it easy to reach
+  // with a modest order, so it has to be acknowledged rather than just shown.
+  const locksLoss = lockedApy !== null && lockedApy < 0
 
   function submit(): void {
-    if (!valid.ok || pending || ptOut <= 0n) return
+    if (!valid.ok || pending || ptOut <= 0n || (locksLoss && !acceptsLoss)) return
     void run(
       'Lock rate',
       (onPhase) => swapExactIn(address, maturity, 'SyToPt', syIn, minOut, onPhase),
@@ -238,7 +250,7 @@ function LockRateForm({
       <AmountField
         id="lock-amount"
         value={amount}
-        onChange={setAmount}
+        onChange={changeAmount}
         unit="SY"
         hint={`Available: ${formatAmount(syBalance)} SY`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
@@ -273,9 +285,38 @@ function LockRateForm({
         </div>
       )}
 
+      {locksLoss && (
+        <div
+          role="alert"
+          className="rounded-xl border border-warning-500/30 bg-warning-500/10 p-3.5 text-warning-100"
+        >
+          <div className="flex items-start gap-2.5">
+            <AlertTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-warning-400" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium">This trade locks in a loss</p>
+              <p className="text-xs leading-relaxed text-warning-100/80">
+                You would pay more for {formatAmount(ptOut)} PT than it redeems for at maturity — a
+                fixed rate of {formatPercent(lockedApy)}. The 0.30% swap fee and this order&apos;s
+                price impact together outweigh the yield left until {formatMaturity(maturity)}. A
+                later maturity, or a deeper pool, prices better.
+              </p>
+            </div>
+          </div>
+          <label className="mt-3 flex items-center gap-2.5 text-xs font-medium">
+            <input
+              type="checkbox"
+              checked={acceptsLoss}
+              onChange={(e) => { setAcceptsLoss(e.target.checked) }}
+              className="h-4 w-4 shrink-0 rounded border-warning-500/40 bg-transparent accent-warning-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-400/60"
+            />
+            I understand this locks a negative rate
+          </label>
+        </div>
+      )}
+
       <ActionButton
         onClick={submit}
-        disabled={isWrongNetwork || !valid.ok || ptOut <= 0n}
+        disabled={isWrongNetwork || !valid.ok || ptOut <= 0n || (locksLoss && !acceptsLoss)}
         pending={pending}
         pendingLabel="Locking rate…"
       >
