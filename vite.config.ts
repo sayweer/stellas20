@@ -5,6 +5,13 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
+    /**
+     * Sentry only ever receives failures we could not classify, so every event
+     * it does get is worth reading — and without maps each one points at
+     * minified names. The repo is public, so publishing the maps alongside the
+     * bundle costs nothing and lets Sentry fetch them straight from the deploy.
+     */
+    sourcemap: true,
     rollupOptions: {
       output: {
         /**
