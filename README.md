@@ -7,7 +7,8 @@ yield-bearing token into two tradable parts — a **Principal Token (PT)**, rede
 underlying at maturity (a zero-coupon bond / fixed rate), and a **Yield Token (YT)**, which
 receives all the yield until maturity (pure yield exposure). On Ethereum, Pendle turned this into
 the backbone of on-chain fixed income; Stellar has no equivalent. This is that primitive, on
-**Testnet**, as the **Orange Belt (Level 3)** submission for the Stellar *Journey to Mastery*.
+**Testnet**, as the **Green Belt (Level 4)** submission for the Stellar *Journey to Mastery*
+(Orange Belt, Level 3, was approved on the same codebase).
 
 > **Testnet only.** No mainnet config. Signing happens only inside your wallet — this app never
 > sees your secret key.
@@ -24,6 +25,11 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 
 | Requirement | Where | In short |
 |---|---|---|
+| Production deployment | [stellas20.vercel.app](https://stellas20.vercel.app/) | Vercel, auto-deployed from `main`; contracts live on Testnet |
+| Monitoring & analytics | [monitoring](#monitoring-analytics-and-feedback) | Vercel Analytics for traffic, Sentry for unclassified runtime errors |
+| Feedback collection | *Feedback* link in the app header | A Google Form, wired through `VITE_FEEDBACK_FORM_URL` |
+| 15+ meaningful commits | `git log` | 88 commits, one logical unit each |
+| Public repo & documentation | this file, [`docs/`](docs/) | Architecture, threat model, runbooks, verifiable on-chain transactions |
 | Advanced smart contracts | [`contracts/`](contracts/) | Tokenized PT/YT with Pendle-style user-index accounting, a factory that deploys a SEP-41 token pair per maturity, and a constant-product AMM |
 | Inter-contract communication | [inventory below](#inter-contract-call-inventory) | 14 distinct cross-contract calls, including a two-hop rate chain and a re-entrancy-safe settlement callback |
 | Event streaming & real-time updates | [`src/lib/events.ts`](src/lib/events.ts), Activity tab | `getEvents` polling every 5s, deduped by cursor; reads refresh in the background off each new event |
@@ -329,6 +335,29 @@ The frontend deploys to **Vercel via its GitHub integration**: import the repo (
 auto-detected, no build config needed), and once connected Vercel auto-deploys on every push to
 `main`. Contract deployment stays a documented local workflow — the admin key lives only in the
 local `stellar keys` store, never in CI secrets.
+
+## Monitoring, analytics and feedback
+
+Three production signals, each optional and each a clean no-op when its variable is unset —
+so a local checkout and a fork both run with zero configuration and make zero outbound calls.
+
+| Signal | Wiring | Configured by |
+|---|---|---|
+| **Traffic** | `@vercel/analytics` mounted once in [`src/main.tsx`](src/main.tsx) | auto-detected on Vercel; enabled in the project dashboard |
+| **Errors** | `@sentry/react`, initialised in `src/main.tsx` only when a DSN is present | `VITE_SENTRY_DSN` |
+| **Feedback** | a *Feedback* link in the app header, opening an external form | `VITE_FEEDBACK_FORM_URL` |
+
+Sentry is deliberately fed **only unclassified failures**. The whole `src/lib/**` layer returns
+`AppError` values rather than throwing, and the expected ones — user declined signing, insufficient
+balance, wallet not installed, wrong network, a mapped `#[contracterror]` — are *product states, not
+defects*. Reporting them would bury real bugs in noise. Capture happens in exactly three places, all
+catch-alls: [`ErrorBoundary`](src/components/ErrorBoundary.tsx) (a render crash),
+`classifyKitError`'s `wallet_error` branch ([`src/lib/wallet.ts`](src/lib/wallet.ts)), and
+`classifyContractError`'s unrecognised-code branch
+([`src/lib/contracts/errors.ts`](src/lib/contracts/errors.ts)).
+
+A Sentry DSN is not a secret — it is designed to ship in a client bundle — so it lives in a
+`VITE_`-prefixed variable like the rest of the public config.
 
 ## Deployment workflow
 
