@@ -19,7 +19,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 | **Demo video** | [2-minute walkthrough](https://youtu.be/G_06mT7pscw) |
 | **Network** | Stellar Testnet — seven contracts, addresses [below](#deployed-on-testnet) |
 
-[![The Markets tab on the live deployment: two maturities quoting 8.31% and 7.60% implied fixed APY](screenshots/markets-desktop.png)](https://stellas20.vercel.app/app)
+[![The Markets tab: three open maturities, each with its implied fixed APY, the underlying yield and its pool depth](screenshots/markets-desktop.png)](https://stellas20.vercel.app/app)
 
 ## Where each requirement is met
 

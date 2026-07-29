@@ -188,6 +188,28 @@ stellar contract invoke --id "$AMM" --source "$IDENTITY" --network testnet -- \
   create_pool --maturity "$M"
 ```
 
+**Sizing a maturity so it quotes a usable rate.** Implied APY annualises the PT discount by
+`YEAR/dt`, so a near maturity magnifies *everything* — including the 30 bps swap fee, which is
+charged once but annualises to roughly:
+
+| time to maturity | fee alone, as APY |
+|---|---|
+| 5 days | ~25 points |
+| 30 days | ~3.7 points |
+| 90 days | ~1.2 points |
+| 180 days | ~0.6 points |
+
+At five days that fee exceeds any plausible rate on offer, so **every** buy locks a negative
+rate no matter how deep the pool or how small the order — the pool is untradeable in practice
+even while the Markets list shows a healthy mid-price. Price impact then adds to it: a 200 SY
+pool three days from maturity went to −99% APY on a single 5 SY buy.
+
+Use **90 days or more** for anything users will actually trade, and seed it deep — a 12,000 SY
+pool at 90 days holds a 100 SY buy above water, a 3,000 SY one does not. Do not go past ~180
+days: positions extend to `env.storage().max_ttl()`, which is about 180 days, so a longer
+maturity can archive a holder's balance before they can redeem it. Short maturities are still
+fine for a recording (§2) — just do not leave them as the only funded pool.
+
 **Retire** — there is no delete. A matured market simply stops accepting `split`/`merge` and
 swaps while `redeem_pt`, `claim_yield` and `remove_liquidity` keep working forever, so holders
 can always exit. The frontend hides matured maturities from the trading views.
