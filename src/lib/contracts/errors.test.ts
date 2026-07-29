@@ -58,6 +58,29 @@ describe('classifyContractError', () => {
     const err = new Error('Error(Contract, #999)')
     expect(classifyContractError(err, MYT_ERRORS).code).toBe('contract_error')
   })
+
+  /**
+   * These were the most frequent thing in Sentry, reported as defects while
+   * telling us nothing: not reaching the RPC is routine on a phone and under
+   * Testnet load, and retrying is the whole remedy. Each engine words it
+   * differently, so all three spellings have to land on the same result.
+   */
+  it.each([
+    ['Failed to fetch', 'Chrome'],
+    ['Load failed', 'Safari'],
+    ['Network Error', 'axios'],
+  ])('treats %s (%s) as a reachability problem, not a failed transaction', (message) => {
+    const classified = classifyContractError(new Error(message), SPLITTER_ERRORS)
+    expect(classified.code).toBe('network_error')
+    expect(classified.message).toMatch(/connection/i)
+  })
+
+  it('still prefers a contract code over the network wording', () => {
+    // A contract failure whose text happens to mention fetching must not be
+    // demoted to "check your connection".
+    const err = new Error('Error(Contract, #11) while fetching')
+    expect(classifyContractError(err, SPLITTER_ERRORS).code).toBe('nothing_to_claim')
+  })
 })
 
 /**

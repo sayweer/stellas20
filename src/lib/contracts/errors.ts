@@ -36,6 +36,18 @@ export function classifyContractError(e: unknown, errorTable: ErrorTable): AppEr
       message: 'Your account is not funded yet. Fund it with Friendbot and try again.',
     }
   }
+  // Not reaching the RPC at all is an operational condition, not a defect: it
+  // is routine on a phone changing networks, and public Testnet RPC drops
+  // requests under load. Retrying is the whole remedy, so say that rather than
+  // blaming the transaction — and keep it out of Sentry, where it was the most
+  // frequent report while telling us nothing. Wording differs per engine:
+  // Chrome "Failed to fetch", Safari "Load failed", axios "Network Error".
+  if (/failed to fetch|load failed|network ?error|fetch failed|networkerror/i.test(message)) {
+    return {
+      code: 'network_error',
+      message: 'Could not reach the Stellar network. Check your connection and try again.',
+    }
+  }
   if (config.sentryDsn) {
     Sentry.captureException(e)
   }
