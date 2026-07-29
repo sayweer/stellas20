@@ -29,7 +29,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 | Monitoring & analytics | [monitoring](#monitoring-analytics-and-feedback) | Vercel Analytics for traffic, Sentry for unclassified runtime errors |
 | Feedback collection | *Feedback* link in the app header | A Google Form, wired through `VITE_FEEDBACK_FORM_URL` |
 | Real users & feedback summary | [users and feedback](#users-and-feedback) | 32 visitors, 12 form responses, what they asked for, and the six fixes that shipped because of them |
-| Wallet interaction, proven | [verified on-chain](#wallet-interaction-verified-on-chain) | Six addresses the project does not control, each with successful contract invocations on Horizon |
+| Wallet interaction, proven | [verified on-chain](#wallet-interaction-verified-on-chain) | All ten wallets respondents submitted, each checked against Horizon — six with successful contract invocations |
 | 15+ meaningful commits | `git log` | 100+ commits, one logical unit each |
 | Public repo & documentation | this file, [`docs/`](docs/) | Architecture, threat model, runbooks, verifiable on-chain transactions |
 | Advanced smart contracts | [`contracts/`](contracts/) | Tokenized PT/YT with Pendle-style user-index accounting, a factory that deploys a SEP-41 token pair per maturity, and a constant-product AMM |
@@ -430,28 +430,37 @@ Horizon — permanent history, unlike RPC events, which the public node retains 
 Each row below is a **successful `invoke_host_function` against one of this project's deployed
 contract IDs**, by an address the project does not control:
 
-| Address | Contracts invoked | Successful calls | When |
-|---|---|---|---|
-| [`GB7HPKSE…JY2G`](https://stellar.expert/explorer/testnet/account/GB7HPKSEA2OED4YDBX3AKBKV4S66SHJPN7BDGJMHKVCBLEGTJVUWJY2G) | mock-yield-token, sy-vault-blend, splitter-blend, pt-amm-blend | 11 | 29 Jul |
-| [`GBGHSPQE…TDQS`](https://stellar.expert/explorer/testnet/account/GBGHSPQEIZGJOJJDJYG5VVIPU7THJQU2Z4B6V5VF5IHUQ2SOLIRITDQS) | mock-yield-token, sy-vault, splitter, pt-amm, sy-vault-blend, splitter-blend | 6 | 28 Jul |
-| [`GACJLJGI…K542`](https://stellar.expert/explorer/testnet/account/GACJLJGIV4FGZGE4NRBMNBFFLDUCNTADEDCC4BFGDGQ44ZU54MJ5K542) | mock-yield-token, sy-vault, splitter, pt-amm | 6 | 29 Jul |
-| [`GAJG7CSJ…DUTO`](https://stellar.expert/explorer/testnet/account/GAJG7CSJMVY4Y27ESZIQGPQ5Y3BUJ2WWS3SKB2HN7DO4DFUITGFXDUTO) | sy-vault-blend | 1 | 29 Jul |
-| [`GBO7BZSN…PM4T`](https://stellar.expert/explorer/testnet/account/GBO7BZSNAX6APJW32OE5LHXQZ6MTIHBTWRZZRCJL3VSILWCAZLGCPM4T) | mock-yield-token | 1 | 29 Jul |
-| [`GCV5ONGW…MKT5`](https://stellar.expert/explorer/testnet/account/GCV5ONGW6TCX3G6YNDSEZLZYGLIW3MQCPG7QUVENFM5SLKULDRIUMKT5) | mock-yield-token | 1 | 29 Jul |
+**Ten distinct wallets** were submitted (the eleventh respondent gave no address). Every one is
+listed, whether or not it flatters the numbers — the six that transacted, and the four that did not:
+
+| # | Wallet | Contracts invoked | Calls | When |
+|---|---|---|---|---|
+| 1 | [`GB7HPKSEA2OED4YDBX3AKBKV4S66SHJPN7BDGJMHKVCBLEGTJVUWJY2G`](https://stellar.expert/explorer/testnet/account/GB7HPKSEA2OED4YDBX3AKBKV4S66SHJPN7BDGJMHKVCBLEGTJVUWJY2G) | mock-yield-token, sy-vault-blend, splitter-blend, pt-amm-blend | **11** | 29 Jul |
+| 2 | [`GBGHSPQEIZGJOJJDJYG5VVIPU7THJQU2Z4B6V5VF5IHUQ2SOLIRITDQS`](https://stellar.expert/explorer/testnet/account/GBGHSPQEIZGJOJJDJYG5VVIPU7THJQU2Z4B6V5VF5IHUQ2SOLIRITDQS) | mock-yield-token, sy-vault, splitter, pt-amm, sy-vault-blend, splitter-blend | **6** | 28 Jul |
+| 3 | [`GACJLJGIV4FGZGE4NRBMNBFFLDUCNTADEDCC4BFGDGQ44ZU54MJ5K542`](https://stellar.expert/explorer/testnet/account/GACJLJGIV4FGZGE4NRBMNBFFLDUCNTADEDCC4BFGDGQ44ZU54MJ5K542) | mock-yield-token, sy-vault, splitter, pt-amm | **6** | 29 Jul |
+| 4 | [`GAJG7CSJMVY4Y27ESZIQGPQ5Y3BUJ2WWS3SKB2HN7DO4DFUITGFXDUTO`](https://stellar.expert/explorer/testnet/account/GAJG7CSJMVY4Y27ESZIQGPQ5Y3BUJ2WWS3SKB2HN7DO4DFUITGFXDUTO) | sy-vault-blend | 1 | 29 Jul |
+| 5 | [`GBO7BZSNAX6APJW32OE5LHXQZ6MTIHBTWRZZRCJL3VSILWCAZLGCPM4T`](https://stellar.expert/explorer/testnet/account/GBO7BZSNAX6APJW32OE5LHXQZ6MTIHBTWRZZRCJL3VSILWCAZLGCPM4T) | mock-yield-token | 1 | 29 Jul |
+| 6 | [`GCV5ONGW6TCX3G6YNDSEZLZYGLIW3MQCPG7QUVENFM5SLKULDRIUMKT5`](https://stellar.expert/explorer/testnet/account/GCV5ONGW6TCX3G6YNDSEZLZYGLIW3MQCPG7QUVENFM5SLKULDRIUMKT5) | mock-yield-token | 1 | 29 Jul |
+| 7 | [`GBX7BKR453SXVKX32KDFIQQ5PWVIGYUOHUUNPYBFKSDBBAKVI7UO4ITO`](https://stellar.expert/explorer/testnet/account/GBX7BKR453SXVKX32KDFIQQ5PWVIGYUOHUUNPYBFKSDBBAKVI7UO4ITO) | funded account, no call to these contracts | 0 | — |
+| 8 | [`GC5WUJYIISS4623HC67JS33UBWBHEAVB6V6DIVZDDXJQJDMAUDIUO5ED`](https://stellar.expert/explorer/testnet/account/GC5WUJYIISS4623HC67JS33UBWBHEAVB6V6DIVZDDXJQJDMAUDIUO5ED) | funded account, no call to these contracts | 0 | — |
+| 9 | [`GBKYHWSL2MNUO73HWY6KWNOA64AKSUENCOBTR56M66HNLMMKMZHK5OAS`](https://stellar.expert/explorer/testnet/account/GBKYHWSL2MNUO73HWY6KWNOA64AKSUENCOBTR56M66HNLMMKMZHK5OAS) | funded account, one native-SAC transfer, none of ours | 0 | — |
+| 10 | `GBOZ2J7T7S32ZE7JY4VNBQ7DZ4YC7JOS4VDTKXQMVDUBLWUK7P5TAHRT` | account was never funded | — | — |
+
+Rows 7–10 match what those people reported: three connected a wallet and browsed, one only looked
+around. Connecting a wallet is a client-side handshake and leaves no on-chain trace, so it cannot be
+proven here — which is exactly why the two signals are kept apart instead of merged into one
+flattering number. Anyone can re-run this check: the addresses are above and Horizon is public.
 
 Neither of the top two rows is a shallow visit. The first spent four minutes in the **Blend-backed**
 market — wrap, split, then five AMM calls, i.e. real price discovery against a live pool paying real
 Testnet yield. The second walked the whole protocol across **both** markets, the mock one and the
 Blend one.
 
-Three further respondents' addresses are funded Testnet accounts with no call to these contracts,
-matching what they reported: they connected a wallet and browsed. That is consistent rather than
-contradictory — connecting a wallet is a client-side handshake and leaves no on-chain trace, which is
-why the two signals are reported separately here instead of being merged into one flattering number.
-One address was never funded, by someone who said they only looked around.
-
-Names and email addresses from the form are deliberately not published; wallet addresses are, because
-they are public keys and were submitted as evidence of exactly this.
+**On the personal data.** The form also collected names and email addresses. Those are personal data
+and are **deliberately not published** — not here, not in the repo, nowhere. What is published is the
+Testnet wallet addresses, and only those: a public key is public by construction, respondents were
+asked for it precisely so this claim could be checked, and it identifies an account rather than a
+person. Nothing links a row above to a name.
 
 ## Deployment workflow
 
