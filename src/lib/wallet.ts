@@ -12,17 +12,14 @@ import * as Sentry from '@sentry/react'
 import { config } from '../config'
 import type { AppError } from '../types'
 
+/** Wallets that reach the page through a browser extension. */
+const EXTENSION_MODULES = [new FreighterModule(), new xBullModule(), new LobstrModule()]
+
 /**
- * Wallets that inject themselves into the page. Albedo needs no install (web
- * popup flow), so the picker always has at least one usable option even with
- * no browser extension present.
+ * Wallets that need no install at all (Albedo is a web popup flow), so the
+ * picker always has at least one usable option with no extension present.
  */
-const INJECTED_MODULES = [
-  new FreighterModule(),
-  new xBullModule(),
-  new LobstrModule(),
-  new AlbedoModule(),
-]
+const WEB_MODULES = [new AlbedoModule()]
 
 /**
  * True on a phone/tablet browser. Used to explain *why* an extension wallet
@@ -33,29 +30,50 @@ export function isMobileBrowser(): boolean {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 }
 
+/**
+ * True inside a wallet app's own in-app browser, which does inject a provider
+ * even though the platform is mobile — the one case where an "extension"
+ * wallet is reachable from a phone.
+ */
+function hasInjectedProvider(): boolean {
+  return 'stellar' in window
+}
+
 /** Whether a phone can actually reach a wallet — i.e. WalletConnect is configured. */
 export function hasMobileWalletSupport(): boolean {
   return config.walletConnectProjectId !== ''
 }
 
 /**
- * Extension wallets cannot inject into a mobile browser, and Freighter's own
- * module returns `isAvailable() === false` when it detects its mobile build —
- * its source says outright that WalletConnect must be used instead. Without a
- * project id the picker therefore shows "Install" to someone who already has
- * the wallet, which is what it did before this was added.
+ * Extension wallets cannot inject into a mobile browser, so on a phone they are
+ * not registered at all. Listing them is worse than useless: Freighter's module
+ * reports `isAvailable() === false` there on purpose (its source says to use
+ * WalletConnect instead), and the picker turns that into an "Install" badge that
+ * opens the app store — an endless loop for someone who already has the app.
+ * xBull is the mirror image: it claims to be available everywhere and then fails
+ * on selection, because its iframe bridge cannot run on a phone.
  *
- * Loaded dynamically so the WalletConnect/AppKit bundle is only fetched when a
- * project id is actually configured.
+ * A wallet app's own in-app browser does inject a provider, so that case keeps
+ * the full list.
+ */
+const baseModules =
+  isMobileBrowser() && !hasInjectedProvider()
+    ? WEB_MODULES
+    : [...EXTENSION_MODULES, ...WEB_MODULES]
+
+/**
+ * WalletConnect is the only route to a wallet held in a phone's own app, and is
+ * what Freighter mobile expects. Loaded dynamically so the WalletConnect/AppKit
+ * bundle is only fetched when a project id is actually configured.
  */
 const modules = await (async () => {
-  if (!config.walletConnectProjectId) return INJECTED_MODULES
+  if (!config.walletConnectProjectId) return baseModules
   try {
     const { WalletConnectModule, WalletConnectTargetChain } = await import(
       '@creit.tech/stellar-wallets-kit/modules/wallet-connect'
     )
     return [
-      ...INJECTED_MODULES,
+      ...baseModules,
       new WalletConnectModule({
         projectId: config.walletConnectProjectId,
         allowedChains: [WalletConnectTargetChain.TESTNET],
@@ -69,7 +87,7 @@ const modules = await (async () => {
     ]
   } catch {
     // A misconfigured project id must not take the whole picker down.
-    return INJECTED_MODULES
+    return baseModules
   }
 })()
 
