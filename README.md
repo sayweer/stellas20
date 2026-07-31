@@ -28,8 +28,8 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 | Production deployment | [stellas20.vercel.app](https://stellas20.vercel.app/) | Vercel, auto-deployed from `main`; contracts live on Testnet |
 | Monitoring & analytics | [monitoring](#monitoring-analytics-and-feedback) | Vercel Analytics for traffic, Sentry for unclassified runtime errors |
 | Feedback collection | *Feedback* link in the app header | A Google Form, wired through `VITE_FEEDBACK_FORM_URL` |
-| Real users & feedback summary | [users and feedback](#users-and-feedback) | 32 visitors, 12 form responses, what they asked for, and the six fixes that shipped because of them |
-| Wallet interaction, proven | [verified on-chain](#wallet-interaction-verified-on-chain) | All ten wallets respondents submitted, each checked against Horizon — six with successful contract invocations |
+| Real users & feedback summary | [users and feedback](#users-and-feedback) | 32 visitors, 16 form responses, what they asked for, and the six fixes that shipped because of them |
+| Wallet interaction, proven | [verified on-chain](#wallet-interaction-verified-on-chain) | All fourteen wallets respondents submitted, each checked against Horizon — six with successful contract invocations |
 | 15+ meaningful commits | `git log` | 100+ commits, one logical unit each |
 | Public repo & documentation | this file, [`docs/`](docs/) | Architecture, threat model, runbooks, verifiable on-chain transactions |
 | Advanced smart contracts | [`contracts/`](contracts/) | Tokenized PT/YT with Pendle-style user-index accounting, a factory that deploys a SEP-41 token pair per maturity, and a constant-product AMM |
@@ -377,16 +377,16 @@ source maps.
 
 The app was shared publicly on **28 Jul 2026** and drew **32 unique visitors / 150 page views**
 within two days — the whole 7-day window in the panel above, arriving on the 28th and 29th.
-**Twelve form responses** came back; one is a submission by the maintainer while testing the form, so
-the numbers below cover the **eleven external respondents**.
+**Sixteen form responses** came back; one is a submission by the maintainer while testing the form, so
+the numbers below cover the **fifteen external respondents**.
 
 | | |
 |---|---|
-| Average rating | **4.6 / 5** (eight 5s, two 4s, one 3) |
-| Would use in production | 8 yes · 2 maybe · 1 no |
-| Connected a wallet | 7 of 11 |
-| Reported using Trade / Pool / Portfolio | 3 of 11 (six transacted on-chain — see below) |
-| Happy to be followed up with | 10 of 11 |
+| Average rating | **4.7 / 5** (eleven 5s, three 4s, one 3) |
+| Would use in production | 10 yes · 4 maybe · 1 no |
+| Connected a wallet | 10 of 15 |
+| Reported using Trade / Pool / Portfolio | 7 of 15 (six transacted on-chain — see below) |
+| Happy to be followed up with | 13 of 15 |
 
 **What they asked for**, in frequency order:
 
@@ -399,9 +399,12 @@ the numbers below cover the **eleven external respondents**.
 - **A docs page** — from a respondent who looked around without connecting, which is exactly who a
   docs page is for.
 - **Font tuning.**
+- **Clearer visual hierarchy between PT/YT positions**, and more upfront APY/maturity info before
+  connecting a wallet.
+- **Button colors** — a cooler palette would read more "professional."
 
 Unprompted positives: *"the UI is smooth and useful, put it on production"*, *"the website feels
-premium"*, *"the landing page looks good"*.
+premium"*, *"the landing page looks good"*, *"very smooth UI and fresh site."*
 
 ### What changed because of them
 
@@ -430,8 +433,8 @@ Horizon — permanent history, unlike RPC events, which the public node retains 
 Each row below is a **successful `invoke_host_function` against one of this project's deployed
 contract IDs**, by an address the project does not control:
 
-**Ten distinct wallets** were submitted (the eleventh respondent gave no address). Every one is
-listed, whether or not it flatters the numbers — the six that transacted, and the four that did not:
+**Fourteen distinct wallets** were submitted (one respondent gave no address). Every one is
+listed, whether or not it flatters the numbers — the six that transacted, and the eight that did not:
 
 | # | Wallet | Contracts invoked | Calls | When |
 |---|---|---|---|---|
@@ -444,12 +447,22 @@ listed, whether or not it flatters the numbers — the six that transacted, and 
 | 7 | [`GBX7BKR453SXVKX32KDFIQQ5PWVIGYUOHUUNPYBFKSDBBAKVI7UO4ITO`](https://stellar.expert/explorer/testnet/account/GBX7BKR453SXVKX32KDFIQQ5PWVIGYUOHUUNPYBFKSDBBAKVI7UO4ITO) | funded account, no call to these contracts | 0 | — |
 | 8 | [`GC5WUJYIISS4623HC67JS33UBWBHEAVB6V6DIVZDDXJQJDMAUDIUO5ED`](https://stellar.expert/explorer/testnet/account/GC5WUJYIISS4623HC67JS33UBWBHEAVB6V6DIVZDDXJQJDMAUDIUO5ED) | funded account, no call to these contracts | 0 | — |
 | 9 | [`GBKYHWSL2MNUO73HWY6KWNOA64AKSUENCOBTR56M66HNLMMKMZHK5OAS`](https://stellar.expert/explorer/testnet/account/GBKYHWSL2MNUO73HWY6KWNOA64AKSUENCOBTR56M66HNLMMKMZHK5OAS) | funded account, one native-SAC transfer, none of ours | 0 | — |
-| 10 | `GBOZ2J7T7S32ZE7JY4VNBQ7DZ4YC7JOS4VDTKXQMVDUBLWUK7P5TAHRT` | account was never funded | — | — |
+| 10 | [`GC5PAIRM3MOOJRUTY5QL4CFMFNUK2WTWKXSJJVKIFAVGGWHRYFPHM4CF`](https://stellar.expert/explorer/testnet/account/GC5PAIRM3MOOJRUTY5QL4CFMFNUK2WTWKXSJJVKIFAVGGWHRYFPHM4CF) | funded account, 9 calls to an unrelated Testnet contract, none of ours | 0 | — |
+| 11 | [`GDTPOJOE7KEBNL2XPBUWBVGBZBC4TYX7P5YGV4RFVA3HZWNNLLB5JMG3`](https://stellar.expert/explorer/testnet/account/GDTPOJOE7KEBNL2XPBUWBVGBZBC4TYX7P5YGV4RFVA3HZWNNLLB5JMG3) | funded account, no operations beyond `create_account` | 0 | — |
+| 12 | [`GBVOKC5BCLBVWE5IP7KUSZ43QHEXHI5PLZIVQOIMQBUI62SDZ6SMSOHS`](https://stellar.expert/explorer/testnet/account/GBVOKC5BCLBVWE5IP7KUSZ43QHEXHI5PLZIVQOIMQBUI62SDZ6SMSOHS) | funded account, native payments and a trustline, no contract calls | 0 | — |
+| 13 | [`GALK544D5J4RO4WS7ATQO4C2BF6R3W6T32EW7ZO5RX4SYZ34QHBEUCWD`](https://stellar.expert/explorer/testnet/account/GALK544D5J4RO4WS7ATQO4C2BF6R3W6T32EW7ZO5RX4SYZ34QHBEUCWD) | funded account, 1 call to an unrelated Testnet contract, none of ours | 0 | — |
+| 14 | `GBOZ2J7T7S32ZE7JY4VNBQ7DZ4YC7JOS4VDTKXQMVDUBLWUK7P5TAHRT` | account was never funded | — | — |
 
-Rows 7–10 match what those people reported: three connected a wallet and browsed, one only looked
-around. Connecting a wallet is a client-side handshake and leaves no on-chain trace, so it cannot be
-proven here — which is exactly why the two signals are kept apart instead of merged into one
-flattering number. Anyone can re-run this check: the addresses are above and Horizon is public.
+Rows 7–13 are funded accounts with no call to any of this project's contracts, and three of those
+respondents' reports match that exactly: Abhishek, Prince and Amitabh said they only connected and
+browsed. The other four do not match. Efe, Vansh, Cem and Mark Angel each reported locking a fixed
+rate (Vansh and Mark Angel also reported providing liquidity), and none of it shows up on-chain here.
+Two of those four wallets (Efe's, Mark Angel's) did call *other* Testnet contracts in the same window
+— real, active wallets, just not invoking this project's deployed IDs. Row 14 was never funded,
+matching a respondent who said they only looked around. Connecting a wallet is a client-side handshake
+and leaves no on-chain trace either way, which is exactly why the two signals — self-report and
+Horizon — are kept apart instead of merged into one flattering number. Anyone can re-run this check:
+the addresses are above and Horizon is public.
 
 Neither of the top two rows is a shallow visit. The first spent four minutes in the **Blend-backed**
 market — wrap, split, then five AMM calls, i.e. real price discovery against a live pool paying real
