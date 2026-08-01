@@ -83,7 +83,7 @@ const modules = await (async () => {
         projectId: config.walletConnectProjectId,
         allowedChains: [WalletConnectTargetChain.TESTNET],
         metadata: {
-          name: 'stellas20',
+          name: 'Everspan',
           description: 'Lock a fixed yield on Stellar',
           url: window.location.origin,
           icons: [`${window.location.origin}/icon-512.png`],

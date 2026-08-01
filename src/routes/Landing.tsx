@@ -13,7 +13,7 @@ import { ArrowRightIcon } from '../components/icons'
 
 export function Landing(): ReactElement {
   useSurface('site')
-  useDocumentTitle('stellas20 — lock a fixed yield on Stellar')
+  useDocumentTitle('Everspan — lock a fixed yield on Stellar')
 
   // Read the same contracts the app reads. Passing a null address keeps this to
   // the public reads (maturities and pool state) — no wallet needed. Two of the
@@ -163,7 +163,7 @@ export function Landing(): ReactElement {
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2.5">
             <BrandMark className="h-5 w-5" />
-            <span className="text-sm font-medium tracking-[-0.01em]">stellas20</span>
+            <span className="text-sm font-medium tracking-[-0.01em]">Everspan</span>
           </div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-neutral-600">
             Stellar Testnet · Soroban
@@ -183,7 +183,7 @@ function SiteHeader(): ReactElement {
           className="flex items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-4 focus-visible:ring-offset-neutral-50"
         >
           <BrandMark className="h-6 w-6" />
-          <span className="text-base font-medium tracking-[-0.02em]">stellas20</span>
+          <span className="text-base font-medium tracking-[-0.02em]">Everspan</span>
         </Link>
         <Link
           to="/app"

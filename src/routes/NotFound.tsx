@@ -7,7 +7,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function NotFound(): ReactElement {
   useSurface('site')
-  useDocumentTitle('Page not found — stellas20')
+  useDocumentTitle('Page not found — Everspan')
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">

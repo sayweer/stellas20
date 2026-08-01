@@ -31,7 +31,7 @@ import { AlertTriangleIcon } from './components/icons'
 
 function App(): ReactElement {
   useSurface('app')
-  useDocumentTitle('App — stellas20')
+  useDocumentTitle('App — Everspan')
   const [marketKey, setMarketKey] = useState<MarketKey>(markets[0].key)
   const configured = isContractsConfigured()
 
@@ -134,7 +134,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
           >
             <BrandMark className="h-6 w-6 text-neutral-50" />
             <span className="text-base font-medium tracking-[-0.02em] text-neutral-50">
-              stellas20
+              Everspan
             </span>
           </Link>
 
@@ -157,7 +157,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
           <header className="sticky top-0 z-20 -mx-4 flex flex-wrap items-center gap-3 border-b border-neutral-800 bg-neutral-950/90 px-4 py-3 backdrop-blur lg:mx-0 lg:px-0">
             <Link
               to="/"
-              aria-label="stellas20 home"
+              aria-label="Everspan home"
               className="order-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:hidden"
             >
               <BrandMark className="h-6 w-6 text-neutral-50" />

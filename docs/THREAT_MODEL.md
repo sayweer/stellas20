@@ -1,4 +1,4 @@
-# Threat model — stellas20
+# Threat model — Everspan
 
 **Status:** Testnet only. No mainnet deployment exists and none is planned inside this phase.
 **Last reviewed:** 2026-07-25, against the tree at Phase 7. Findings and the storage/TTL audit

@@ -1,8 +1,8 @@
-# stellas20 — PT/YT Yield Splitting on Stellar
+# Everspan — PT/YT Yield Splitting on Stellar
 
-[![CI](https://github.com/sayweer/stellas20/actions/workflows/ci.yml/badge.svg)](https://github.com/sayweer/stellas20/actions/workflows/ci.yml)
+[![Everspan CI](https://github.com/sayweer/stellas20/actions/workflows/ci.yml/badge.svg)](https://github.com/sayweer/stellas20/actions/workflows/ci.yml)
 
-**The missing fixed-income primitive for Stellar's RWA boom.** stellas20 splits a
+**The missing fixed-income primitive for Stellar's RWA boom.** Everspan splits a
 yield-bearing token into two tradable parts — a **Principal Token (PT)**, redeemable 1:1 for the
 underlying at maturity (a zero-coupon bond / fixed rate), and a **Yield Token (YT)**, which
 receives all the yield until maturity (pure yield exposure). On Ethereum, Pendle turned this into
@@ -45,7 +45,7 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 
 ## The contracts
 
-stellas20 is six core Soroban contracts (seven with the Blend vault) plus a factory-deployed
+Everspan is six core Soroban contracts (seven with the Blend vault) plus a factory-deployed
 PT/YT token pair per maturity — inter-contract communication is intrinsic to the design, not
 bolted on:
 
@@ -266,7 +266,7 @@ zero config.
 
 ```bash
 git clone <repository-url>
-cd stellas20
+cd everspan
 npm install
 cp .env.example .env   # optional — defaults already point at the live deployment
 npm run dev            # http://localhost:5173
@@ -363,7 +363,7 @@ A Sentry DSN is not a secret — it is designed to ship in a client bundle — s
 
 | **Traffic — Vercel Analytics** | **Errors — Sentry** |
 |---|---|
-| ![Vercel Analytics for stellas20.vercel.app: 32 visitors, 150 page views, 22% bounce rate over the last 7 days](screenshots/analytics-vercel.png) | ![Sentry issue list for the javascript-react project, grouped by fingerprint with event counts and last-seen times](screenshots/sentry-issues.png) |
+| ![Vercel Analytics for Everspan: 32 visitors, 150 page views, 22% bounce rate over the last 7 days](screenshots/analytics-vercel.png) | ![Sentry issue list for the javascript-react project, grouped by fingerprint with event counts and last-seen times](screenshots/sentry-issues.png) |
 
 Both panels are from **29 Jul 2026**, the day the app was first shared. Sentry earned its keep
 immediately: the issues in that list are what the first real visitors hit, and three of them were
