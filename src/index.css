@@ -5,8 +5,17 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --brand-paper: oklch(0.9555 0.014 88.68);
+    --brand-paper-elevated: oklch(0.9795 0.0098 87.47);
+    --brand-ink: oklch(0.1149 0 0);
+    --brand-red: oklch(0.4389 0.1718 29.71);
+    --brand-red-soft: oklch(0.8902 0.0223 35.12);
+  }
+
   html {
     @apply font-sans antialiased;
+    background: var(--brand-paper);
   }
 
   /* The colour scheme is per-surface, not global: the marketing route paints
@@ -25,16 +34,65 @@
   body {
     @apply min-h-screen;
   }
+
+  ::selection {
+    color: var(--brand-paper);
+    background: var(--brand-red);
+  }
 }
 
 @layer components {
-  /* Faint ruled grid behind the marketing hero. Two hairline gradients rather
-     than an image so it stays crisp at any zoom and costs nothing to load. */
-  .grid-rule {
+  .intro-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    overflow: visible;
+    color: var(--brand-paper);
+    background: var(--brand-ink);
+    transform: translate3d(0, 0, 0);
+    transition: transform 600ms cubic-bezier(0.76, 0, 0.24, 1);
+    will-change: transform;
+  }
+
+  .intro-screen::after {
+    position: absolute;
+    right: -20%;
+    bottom: -14vh;
+    left: -20%;
+    height: 28vh;
+    border-radius: 0 0 50% 50%;
+    background: var(--brand-ink);
+    content: '';
+  }
+
+  .intro-screen[data-stage='exit'] {
+    transform: translate3d(0, -114%, 0);
+  }
+
+  .intro-word {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+  }
+
+  .intro-dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    flex: none;
+    border-radius: 999px;
+    background: var(--brand-red);
+  }
+
+  .landing-hero-visual {
     background-image:
-      linear-gradient(to right, rgb(14 18 22 / 0.055) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(14 18 22 / 0.055) 1px, transparent 1px);
-    background-size: 7.5rem 7.5rem;
+      linear-gradient(rgb(5 5 5 / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(5 5 5 / 0.08) 1px, transparent 1px);
+    background-size: 3rem 3rem;
   }
 }
 
@@ -47,5 +105,9 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .intro-screen {
+    display: none;
   }
 }

@@ -5,31 +5,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        /** Everspan's warm paper-to-ink surface scale. */
         neutral: {
-          50: '#f4f0e6',
-          100: '#ebe6db',
-          200: '#e4ddd0',
-          300: '#c8beae',
-          400: '#9f9383',
-          500: '#776d60',
-          600: '#5b544b',
-          700: '#3c3630',
-          800: '#2a2520',
-          850: '#1f1c18',
-          900: '#171512',
-          950: '#050505',
+          50: '#f3f5f7',
+          100: '#eaecf0',
+          200: '#d6dae0',
+          300: '#bac2c9',
+          400: '#9aa6af',
+          500: '#778691',
+          600: '#4f6471',
+          700: '#1b303c',
+          800: '#101b23',
+          850: '#0a1116',
+          900: '#060a0c',
+          950: '#000000',
         },
-        /** Everspan red. Use cream text on 500/600 fills. */
         accent: {
-          100: '#f4ddd9',
-          200: '#e9aaa3',
-          300: '#da6d63',
-          400: '#b91c12',
-          500: '#9b0f06',
-          600: '#7e0c05',
+          100: '#ffe4d1',
+          200: '#ffcfae',
+          300: '#ffb37f',
+          400: '#ff9450',
+          500: '#fe7f2d',
+          600: '#e8681a',
         },
-        /** Status colours. Kept off the accent hue so a warning never reads as a button. */
         positive: {
           100: '#d4f5e5',
           200: '#a7ebcb',
