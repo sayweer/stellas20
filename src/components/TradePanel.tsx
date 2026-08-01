@@ -75,11 +75,7 @@ export function TradePanel({
   const selectedPool = tradeable.find((p) => p.maturity === selected)?.pool ?? null
 
   return (
-    <section
-      id="panel-trade"
-      role="tabpanel"
-      aria-labelledby="tab-trade"
-    >
+    <section id="panel-trade" role="tabpanel" aria-labelledby="tab-trade">
       <header>
         <h2 className="text-lg font-medium tracking-[-0.02em] text-neutral-100">Trade</h2>
         <p className="mt-1 text-sm text-neutral-400">
@@ -255,7 +251,13 @@ function LockRateForm({
         hint={`Available: ${formatAmount(syBalance)} SY`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
         onEnter={submit}
-        onMax={syBalance > 0n ? () => { setAmount(stroopsToXlm(syBalance)) } : undefined}
+        onMax={
+          syBalance > 0n
+            ? () => {
+                setAmount(stroopsToXlm(syBalance))
+              }
+            : undefined
+        }
       />
 
       {syBalance === 0n && (
@@ -306,7 +308,9 @@ function LockRateForm({
             <input
               type="checkbox"
               checked={acceptsLoss}
-              onChange={(e) => { setAcceptsLoss(e.target.checked) }}
+              onChange={(e) => {
+                setAcceptsLoss(e.target.checked)
+              }}
               className="h-4 w-4 shrink-0 rounded border-warning-500/40 bg-transparent accent-warning-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-400/60"
             />
             I understand this locks a negative rate
@@ -328,7 +332,9 @@ function LockRateForm({
       </p>
 
       {isWrongNetwork && (
-        <p className="text-center text-xs text-warning-300">Switch your wallet to Testnet to continue.</p>
+        <p className="text-center text-xs text-warning-300">
+          Switch your wallet to Testnet to continue.
+        </p>
       )}
       {outcome && (
         <div>
@@ -414,8 +420,8 @@ function LongYieldForm({
   return (
     <div className="space-y-4">
       <p className="text-sm text-neutral-400">
-        Split SY into PT + YT, then sell the PT — you keep the <span className="text-neutral-200">YT</span> for
-        pure yield exposure. Two transactions.
+        Split SY into PT + YT, then sell the PT — you keep the{' '}
+        <span className="text-neutral-200">YT</span> for pure yield exposure. Two transactions.
       </p>
 
       <AmountField
@@ -430,7 +436,13 @@ function LongYieldForm({
         hint={`Available: ${formatAmount(syBalance)} SY`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
         disabled={step2}
-        onMax={syBalance > 0n && !step2 ? () => { setAmount(stroopsToXlm(syBalance)) } : undefined}
+        onMax={
+          syBalance > 0n && !step2
+            ? () => {
+                setAmount(stroopsToXlm(syBalance))
+              }
+            : undefined
+        }
       />
 
       {projected > 0n && (
@@ -474,7 +486,9 @@ function LongYieldForm({
       )}
 
       {isWrongNetwork && (
-        <p className="text-center text-xs text-warning-300">Switch your wallet to Testnet to continue.</p>
+        <p className="text-center text-xs text-warning-300">
+          Switch your wallet to Testnet to continue.
+        </p>
       )}
       {split.outcome && <TxStatus outcome={split.outcome} />}
       {sell.outcome && <TxStatus outcome={sell.outcome} />}
@@ -505,7 +519,11 @@ function StageChip({
     >
       <span
         className={`grid h-4 w-4 place-items-center rounded-full text-[10px] ${
-          done ? 'bg-accent-500 text-neutral-950' : active ? 'bg-neutral-700 text-neutral-100' : 'bg-neutral-800 text-neutral-500'
+          done
+            ? 'bg-accent-500 text-neutral-50'
+            : active
+              ? 'bg-neutral-700 text-neutral-100'
+              : 'bg-neutral-800 text-neutral-500'
         }`}
       >
         {done ? '✓' : n}

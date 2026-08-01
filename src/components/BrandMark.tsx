@@ -1,5 +1,5 @@
 /**
- * The stellas brand mark: a four-pointed star split down the middle — the
+ * The Everspan brand mark: a four-pointed star split down the middle — the
  * principal half and the yield half of the same asset.
  *
  * Kept out of `icons.tsx` on purpose: those are stroked 24-unit lucide-style

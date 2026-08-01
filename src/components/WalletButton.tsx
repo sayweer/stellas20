@@ -55,10 +55,7 @@ export function WalletButton(): ReactElement {
           aria-label={copied ? 'Address copied' : `Copy address ${address}`}
           className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-sm text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
         >
-          <span
-            aria-hidden="true"
-            className="h-2 w-2 shrink-0 rounded-full bg-positive-400"
-          />
+          <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-positive-400" />
           <span className="tabular-nums">{truncate(address)}</span>
           {copied ? (
             <CheckIcon className="h-4 w-4 text-positive-400" />
@@ -90,7 +87,7 @@ export function WalletButton(): ReactElement {
         }}
         disabled={connecting}
         aria-busy={connecting}
-        className="inline-flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-semibold text-neutral-50 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {connecting ? (
           <>

@@ -24,7 +24,7 @@ export function NotFound(): ReactElement {
       <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
         <Link
           to="/"
-          className="inline-flex items-center rounded-full bg-accent-500 px-6 py-3.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
+          className="inline-flex items-center rounded-full bg-accent-500 px-6 py-3.5 text-sm font-medium text-neutral-50 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
         >
           Back home
         </Link>
