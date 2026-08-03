@@ -42,6 +42,9 @@ import {
  * resizes the viewport mid-scroll, which makes pinned layers jump.
  * ───────────────────────────────────────────────────────── */
 
+/** Where in a scene's segment the nav lands: past the entrance, inside dwell. */
+const SCENE_TARGET = 0.82
+
 export function ScrollStage({
   children,
   apiRef,
@@ -96,8 +99,12 @@ export function ScrollStage({
         scene?.element.scrollIntoView({ behavior: 'smooth' })
         return
       }
+      // Land inside the scene's dwell rather than at the end of its segment,
+      // which is the instant before the next scene starts covering it.
       const offset =
-        index === 0 ? 0 : segmentStartPx(lengths, index) + segmentLengthPx(lengths, index)
+        index === 0
+          ? 0
+          : segmentStartPx(lengths, index) + segmentLengthPx(lengths, index) * SCENE_TARGET
       window.scrollTo({ top: track.offsetTop + offset, behavior: 'smooth' })
     },
     [lengths, pinned],

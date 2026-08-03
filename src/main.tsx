@@ -6,7 +6,7 @@ import { Analytics } from '@vercel/analytics/react'
 import './index.css'
 import App from './App.tsx'
 import { config } from './config.ts'
-import { Landing } from './routes/Landing.tsx'
+import { LandingRoute } from './routes/LandingRoute.tsx'
 import { NotFound } from './routes/NotFound.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 import { ToastProvider } from './context/ToastContext.tsx'
@@ -37,7 +37,7 @@ createRoot(rootElement).render(
               <BrowserRouter>
                 <TransactionSafetyBanner />
                 <Routes>
-                  <Route path="/" element={<Landing />} />
+                  <Route path="/" element={<LandingRoute />} />
                   <Route path="/app" element={<App />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

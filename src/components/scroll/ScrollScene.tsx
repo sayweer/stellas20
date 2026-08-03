@@ -49,6 +49,14 @@ export function ScrollScene({
           : 'relative min-h-[100svh] py-20'
       } ${className}`}
       style={pinned ? { zIndex: index } : undefined}
+      onFocusCapture={(event) => {
+        // Every scene sits at the same document offset while pinned, so the
+        // browser cannot scroll a keyboard focus into view on its own — a Tab
+        // into a covered scene would otherwise land on invisible content.
+        // Pointer focus is excluded so a click does not fight its own handler.
+        if (!pinned || !event.target.matches(':focus-visible')) return
+        stage?.scrollToScene(index)
+      }}
     >
       <div ref={contentRef} className={pinned ? 'w-full' : undefined}>
         {children}
