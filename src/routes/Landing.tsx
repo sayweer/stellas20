@@ -3,6 +3,7 @@ import { useRef, type ReactElement, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
 import { WelcomeIntro } from '../components/WelcomeIntro'
+import { OpeningScene } from '../components/OpeningScene'
 import { YieldJourney } from '../components/YieldJourney'
 import { SceneParallax } from '../components/scroll/SceneParallax'
 import { ScrollScene } from '../components/scroll/ScrollScene'
@@ -33,7 +34,7 @@ import { ArrowRightIcon, ChartBarIcon, DropletIcon, LockIcon, SwapIcon } from '.
  * with the order of <ScrollScene> children below.
  * ───────────────────────────────────────────────────────── */
 
-const NAV_SCENES = { story: 1, markets: 4, security: 8 } as const
+const NAV_SCENES = { story: 1, markets: 3, security: 7 } as const
 
 export function Landing(): ReactElement {
   useSurface('site')
@@ -87,35 +88,40 @@ export function Landing(): ReactElement {
 
         <main id="landing-main" tabIndex={-1}>
           <ScrollStage apiRef={stage}>
-            <ScrollScene className="bg-neutral-50 text-neutral-950" label="Everspan">
-              <SceneBody className="max-w-[96rem] text-center">
-                <h1 className="text-[clamp(4rem,9.2vw,9rem)] font-normal leading-[0.88] tracking-[-0.065em] lg:whitespace-nowrap">
-                  Yield, on your terms<span className="text-accent-500">.</span>
-                </h1>
-                <p className="mx-auto mt-10 max-w-2xl text-lg leading-relaxed text-neutral-600 sm:text-xl">
-                  Separate principal from yield. Choose the rate exposure you want to hold, then
-                  settle on-chain at maturity.
-                </p>
-                <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-                  <PrimaryLink>Launch App</PrimaryLink>
-                  <button
-                    type="button"
-                    onClick={() => stage.current?.scrollToScene(NAV_SCENES.story)}
-                    className="inline-flex min-h-11 items-center rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-neutral-50 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 motion-reduce:transform-none"
-                  >
-                    See how it works
-                  </button>
-                </div>
-              </SceneBody>
-
-              <button
-                type="button"
-                onClick={() => stage.current?.scrollToScene(NAV_SCENES.story)}
-                className="absolute bottom-5 left-1/2 inline-flex min-h-11 -translate-x-1/2 flex-col items-center gap-3 rounded-full px-4 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 sm:bottom-8"
+            <ScrollScene
+              custom
+              length={4}
+              className="bg-neutral-50 text-neutral-950"
+              label="Everspan"
+            >
+              <OpeningScene
+                stats={facts}
+                headline={(dotRef) => (
+                  <h1 className="mx-auto w-full max-w-[96rem] px-5 text-center text-[clamp(4rem,9.2vw,9rem)] font-normal leading-[0.88] tracking-[-0.065em] sm:px-8 lg:whitespace-nowrap lg:px-10">
+                    Yield, on your terms
+                    <span ref={dotRef} className="text-accent-500">
+                      .
+                    </span>
+                  </h1>
+                )}
               >
-                <span aria-hidden="true" className="h-8 w-px bg-neutral-950/30" />
-                Scroll to discover
-              </button>
+                <SceneBody className="max-w-[96rem] text-center">
+                  <p className="mx-auto mt-10 max-w-2xl text-lg leading-relaxed text-neutral-600 sm:text-xl">
+                    Separate principal from yield. Choose the rate exposure you want to hold, then
+                    settle on-chain at maturity.
+                  </p>
+                  <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                    <PrimaryLink>Launch App</PrimaryLink>
+                    <button
+                      type="button"
+                      onClick={() => stage.current?.scrollToScene(NAV_SCENES.story)}
+                      className="inline-flex min-h-11 items-center rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-neutral-50 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 motion-reduce:transform-none"
+                    >
+                      See how it works
+                    </button>
+                  </div>
+                </SceneBody>
+              </OpeningScene>
             </ScrollScene>
 
             <ScrollScene id="story" className="bg-neutral-950 text-neutral-50">
@@ -138,25 +144,6 @@ export function Landing(): ReactElement {
               length={3}
             >
               <YieldJourney />
-            </ScrollScene>
-
-            <ScrollScene className="bg-neutral-50 text-neutral-950" label="Protocol at a glance">
-              <dl className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-px bg-neutral-950/10 sm:grid-cols-2 lg:grid-cols-4">
-                {facts.map((fact) => (
-                  <div
-                    key={fact.label}
-                    className="min-w-0 bg-neutral-50 px-5 py-10 sm:px-8 sm:py-12 lg:px-10"
-                  >
-                    <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600">
-                      {fact.note}
-                    </dt>
-                    <dd className="mt-4 break-words text-4xl font-medium tracking-[-0.045em] tabular-nums sm:text-5xl">
-                      {fact.value}
-                    </dd>
-                    <dd className="mt-2 text-sm text-neutral-600">{fact.label}</dd>
-                  </div>
-                ))}
-              </dl>
             </ScrollScene>
 
             <ScrollScene id="markets" className="bg-accent-500 text-neutral-50">
