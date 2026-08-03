@@ -24,6 +24,13 @@ const RECEDE_SCALE = 0.97
 const RECEDE_DIM = 0.55
 /** Distance a scene's content travels as it settles into place. */
 const CONTENT_RISE_PX = 56
+/**
+ * Content waits for most of the wipe before appearing. Without this the
+ * headline is sliced in half by the advancing edge and briefly collides with
+ * the outgoing scene's headline behind it.
+ */
+const CONTENT_SETTLE_FROM = 0.3
+const CONTENT_SETTLE_TO = 0.78
 
 export type SceneRegistration = {
   element: HTMLElement
@@ -74,14 +81,33 @@ export function trackHeightVh(lengths: Record<number, number>, sceneCount: numbe
  * so it runs on every scroll frame and must only touch compositor-friendly
  * properties (`clip-path`, `transform`, `opacity`).
  */
-export function paintEntrance(scene: SceneRegistration, progress: number): void {
+export function paintEntrance(scene: SceneRegistration, rawProgress: number): void {
+  // A scene's entrance always costs the same scroll distance; a `length` above
+  // 1 buys dwell time on the far side, not a slower wipe.
+  const progress = clamp01(rawProgress * Math.max(1, scene.length))
   const reveal = clamp01(progress / REVEAL_SPLIT)
   const expand = clamp01((progress - REVEAL_SPLIT) / (1 - REVEAL_SPLIT))
   const gutter = GUTTER_PX * (1 - expand)
   const radius = RADIUS_PX * (1 - expand)
 
   scene.element.style.clipPath = `inset(${(1 - reveal) * 100}% ${gutter}px ${gutter}px ${gutter}px round ${radius}px)`
-  scene.content.style.transform = `translate3d(0, ${CONTENT_RISE_PX * (1 - clamp01(progress / 0.8))}px, 0)`
+
+  const settle = clamp01(
+    (progress - CONTENT_SETTLE_FROM) / (CONTENT_SETTLE_TO - CONTENT_SETTLE_FROM),
+  )
+  scene.content.style.opacity = String(settle)
+  scene.content.style.transform = `translate3d(0, ${CONTENT_RISE_PX * (1 - settle)}px, 0)`
+}
+
+/**
+ * How far a scene is through its dwell — the scroll it holds after its entrance
+ * finishes. Always 0 while the scene is still wiping in, so multi-step visuals
+ * start from the beginning once the scene is actually on screen.
+ */
+export function dwellProgress(scene: SceneRegistration, rawProgress: number): number {
+  const entrance = 1 / Math.max(1, scene.length)
+  if (entrance >= 1) return rawProgress
+  return clamp01((rawProgress - entrance) / (1 - entrance))
 }
 
 /** Paints the layer being covered: it settles back instead of sitting flat. */
@@ -94,6 +120,7 @@ export function resetScene(scene: SceneRegistration): void {
   scene.element.style.clipPath = ''
   scene.element.style.transform = ''
   scene.content.style.transform = ''
+  scene.content.style.opacity = ''
   scene.dim.style.opacity = '0'
 }
 
@@ -106,9 +133,9 @@ export function useSceneIndex(): number {
 }
 
 /**
- * Subscribes to this scene's entrance progress (0 → 1). The listener runs on
- * every scroll frame, so it should write to the DOM directly rather than call
- * `setState`. For discrete state, use `useSceneStep`.
+ * Subscribes to this scene's dwell progress (0 → 1, see `dwellProgress`). The
+ * listener runs on every scroll frame, so it should write to the DOM directly
+ * rather than call `setState`. For discrete state, use `useSceneStep`.
  */
 export function useSceneProgress(listener: (progress: number) => void): void {
   const stage = useStage()
@@ -126,16 +153,15 @@ export function useSceneProgress(listener: (progress: number) => void): void {
 }
 
 /**
- * Buckets this scene's entrance progress into `count` steps, re-rendering only
- * when the bucket changes. `from` skips the part of the entrance spent wiping
- * in, so steps advance once the scene is actually on screen.
+ * Buckets this scene's dwell into `count` steps, re-rendering only when the
+ * bucket changes. Give such a scene a `length` above 1 so each step gets a
+ * comfortable amount of scroll.
  */
-export function useSceneStep(count: number, from = 0.35): number {
+export function useSceneStep(count: number): number {
   const [step, setStep] = useState(0)
 
-  useSceneProgress((progress) => {
-    const span = clamp01((progress - from) / (1 - from))
-    setStep(Math.min(count - 1, Math.floor(span * count)))
+  useSceneProgress((dwell) => {
+    setStep(Math.min(count - 1, Math.floor(dwell * count)))
   })
 
   return step

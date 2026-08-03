@@ -14,6 +14,7 @@ import {
   SCENE_LENGTH_VH,
   SceneIndexContext,
   StageContext,
+  dwellProgress,
   paintEntrance,
   paintRecede,
   pinningSuits,
@@ -136,27 +137,30 @@ export function ScrollStage({
             return
           }
           const previous = registry.get(index - 1)
-          const proxy = { progress: 0 }
+          const apply = (progress: number): void => {
+            paintEntrance(scene, progress)
+            if (previous) paintRecede(previous, progress)
+            const dwell = dwellProgress(scene, progress)
+            listeners.current.get(index)?.forEach((listener) => listener(dwell))
+          }
 
-          gsap.to(proxy, {
-            progress: 1,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: track,
-              start: () => `top+=${segmentStartPx(lengths, index)} top`,
-              end: () =>
-                `top+=${segmentStartPx(lengths, index) + segmentLengthPx(lengths, index)} top`,
-              scrub: true,
-              invalidateOnRefresh: true,
-            },
-            onUpdate: () => {
-              paintEntrance(scene, proxy.progress)
-              if (previous) paintRecede(previous, proxy.progress)
-              listeners.current.get(index)?.forEach((listener) => listener(proxy.progress))
-            },
+          // Painting straight from the trigger, rather than scrubbing a tween,
+          // keeps scroll position and painted state the same quantity: there is
+          // no interpolation frame to wait for, so the panel cannot lag behind
+          // the wheel — and it stays correct when rAF is throttled.
+          ScrollTrigger.create({
+            trigger: track,
+            start: () => `top+=${segmentStartPx(lengths, index)} top`,
+            end: () =>
+              `top+=${segmentStartPx(lengths, index) + segmentLengthPx(lengths, index)} top`,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => apply(self.progress),
+            onRefresh: (self) => apply(self.progress),
+            onLeave: () => apply(1),
+            onLeaveBack: () => apply(0),
           })
 
-          paintEntrance(scene, 0)
+          apply(0)
         })
       }, track)
 
