@@ -6,18 +6,20 @@
 
 @layer base {
   :root {
-    --brand-paper: oklch(0.9555 0.014 88.68);
-    --brand-paper-elevated: oklch(0.9795 0.0098 87.47);
+    --brand-paper: oklch(1 0 0);
+    --brand-paper-elevated: oklch(0.9761 0 0);
     --brand-ink: oklch(0.1149 0 0);
     --brand-red: oklch(0.4389 0.1718 29.71);
     --brand-red-soft: oklch(0.8902 0.0223 35.12);
 
     /* Utility ramps are variables so the app can change theme without making
        the intentionally light marketing route theme-dependent. */
-    --neutral-50: 244 240 230;
-    --neutral-100: 235 230 219;
-    --neutral-200: 228 221 208;
-    --neutral-300: 200 190 174;
+    /* The light end is neutral so pure white never reads as yellowed next to
+       the step below it. Brand warmth lives from 400 down. */
+    --neutral-50: 255 255 255;
+    --neutral-100: 245 245 245;
+    --neutral-200: 235 235 235;
+    --neutral-300: 214 214 214;
     --neutral-400: 159 147 131;
     --neutral-500: 150 139 124;
     --neutral-600: 140 129 115;
@@ -50,7 +52,7 @@
     --warning-300: 218 109 99;
     --warning-400: 185 28 18;
     --warning-500: 155 15 6;
-    --on-accent: 244 240 230;
+    --on-accent: 255 255 255;
   }
 
   html {
@@ -77,13 +79,15 @@
     --neutral-400: 91 84 75;
     --neutral-500: 91 84 75;
     --neutral-600: 91 84 75;
-    --neutral-700: 200 190 174;
-    /* Resting control/card boundary: 3.14:1 against the cream canvas. */
-    --neutral-800: 145 134 120;
-    --neutral-850: 235 230 219;
-    --neutral-900: 251 248 241;
-    --neutral-950: 244 240 230;
-    --boundary: 145 134 120;
+    --neutral-700: 190 190 190;
+    /* Resting control/card boundary: 3.16:1 against the white canvas. */
+    --neutral-800: 138 138 138;
+    --neutral-850: 235 235 235;
+    /* Elevated panels sit a shade under the page so they stay readable now
+       that the canvas itself is pure white. */
+    --neutral-900: 247 247 247;
+    --neutral-950: 255 255 255;
+    --boundary: 138 138 138;
     --accent-100: 126 12 5;
     --accent-200: 126 12 5;
     --accent-300: 126 12 5;
@@ -250,7 +254,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
     padding: 0.65rem 0.75rem;
-    border: 1px solid rgb(244 240 230 / 0.18);
+    border: 1px solid rgb(255 255 255 / 0.18);
     border-radius: 999px;
     color: var(--brand-paper);
     background: rgb(5 5 5 / 0.88);
