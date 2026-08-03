@@ -35,6 +35,11 @@ export default defineConfig({
           if (id.includes('@stellar/stellar-sdk') || id.includes('@creit.tech/stellar-wallets-kit')) {
             return 'stellar'
           }
+          // GSAP drives the marketing page only. Keeping it out of the shared
+          // chunk means visitors who land straight on /app never download it.
+          if (id.includes('node_modules/gsap')) {
+            return 'gsap'
+          }
           return undefined
         },
       },
