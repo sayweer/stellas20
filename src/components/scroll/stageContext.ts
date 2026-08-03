@@ -9,7 +9,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react'
  * ───────────────────────────────────────────────────────── */
 
 /** Viewport heights of scroll one panel entrance consumes at `length={1}`. */
-export const SCENE_LENGTH_VH = 1.6
+export const SCENE_LENGTH_VH = 1
 /** Viewport heights the final panel holds before the stage unpins. */
 export const TAIL_VH = 0.6
 
@@ -132,6 +132,8 @@ function entranceSpan(scene: SceneRegistration): number {
 export function paintRecede(scene: SceneRegistration, progress: number): void {
   scene.element.style.transform = `scale(${1 - (1 - RECEDE_SCALE) * progress})`
   scene.dim.style.opacity = String(RECEDE_DIM * progress)
+  // A transparent full-screen layer still costs the compositor on every frame.
+  scene.dim.style.visibility = progress > 0 ? 'visible' : 'hidden'
 }
 
 export function resetScene(scene: SceneRegistration): void {
@@ -140,6 +142,7 @@ export function resetScene(scene: SceneRegistration): void {
   scene.content.style.transform = ''
   scene.content.style.opacity = ''
   scene.dim.style.opacity = '0'
+  scene.dim.style.visibility = 'hidden'
 }
 
 export function useStage(): StageApi | null {

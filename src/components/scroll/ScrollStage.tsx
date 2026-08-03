@@ -45,6 +45,16 @@ import {
 /** Where in a scene's segment the nav lands: past the entrance, inside dwell. */
 const SCENE_TARGET = 0.82
 
+/*
+ * Note on smoothing: a wheel delivers scroll in coarse notches, so a scrub
+ * painted straight from the scroll position can look stepped. Easing the paint
+ * behind the scroll was tried twice — with ScrollTrigger's own `scrub`, which
+ * completes in a single tick here whatever value it is given, and with a
+ * hand-rolled follow on `gsap.ticker`, which ended up with two loops painting
+ * conflicting values. Both looked worse than painting directly, so the paint
+ * tracks the scroll exactly and the shorter track carries the smoothness.
+ */
+
 export function ScrollStage({
   children,
   apiRef,
@@ -158,20 +168,23 @@ export function ScrollStage({
             listeners.current.get(index)?.forEach((listener) => listener(dwell))
           }
 
-          // Painting straight from the trigger, rather than scrubbing a tween,
-          // keeps scroll position and painted state the same quantity: there is
-          // no interpolation frame to wait for, so the panel cannot lag behind
-          // the wheel — and it stays correct when rAF is throttled.
+          let painted = -1
+          const paint = (value: number): void => {
+            if (value === painted) return
+            painted = value
+            apply(value)
+          }
+
           ScrollTrigger.create({
             trigger: track,
             start: () => `top+=${segmentStartPx(lengths, index)} top`,
             end: () =>
               `top+=${segmentStartPx(lengths, index) + segmentLengthPx(lengths, index)} top`,
             invalidateOnRefresh: true,
-            onUpdate: (self) => apply(self.progress),
-            onRefresh: (self) => apply(self.progress),
-            onLeave: () => apply(1),
-            onLeaveBack: () => apply(0),
+            onUpdate: (self) => paint(self.progress),
+            onRefresh: (self) => paint(self.progress),
+            onLeave: () => paint(1),
+            onLeaveBack: () => paint(0),
           })
 
           apply(0)

@@ -90,7 +90,7 @@ export function Landing(): ReactElement {
           <ScrollStage apiRef={stage}>
             <ScrollScene
               custom
-              length={4}
+              length={2.5}
               className="bg-neutral-50 text-neutral-950"
               label="Everspan"
             >
@@ -138,7 +138,7 @@ export function Landing(): ReactElement {
             <ScrollScene
               className="bg-neutral-950 text-neutral-50"
               label="How a position is built"
-              length={3}
+              length={2.5}
             >
               <YieldJourney />
             </ScrollScene>

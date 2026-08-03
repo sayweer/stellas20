@@ -29,7 +29,11 @@ const PUNCH_END = 0.3
 const DWELL_END = 0.84
 /** Resting band height, in viewport heights. */
 const BAND_VH = 38
-const MAX_SCALE = 30
+/**
+ * Past roughly 10× the headline already covers the frame, and every further
+ * step only asks the browser to re-rasterise larger text for no visible gain.
+ */
+const MAX_SCALE = 12
 /** The headline runs ahead of the rest of the hero, which layers the movement. */
 const HEADLINE_LEAD = 1.6
 /** How far the hero sits above the middle of the frame, in viewport heights. */
@@ -56,6 +60,7 @@ export function OpeningScene({
   const gapYPct = useRef(50)
   const [active, setActive] = useState(0)
   const [statsHidden, setStatsHidden] = useState(true)
+  const painted = useRef({ step: 0, hidden: true })
   const pinned = useStage()?.pinned ?? false
 
   /**
@@ -97,7 +102,11 @@ export function OpeningScene({
     }
     // Exponential, so the last stretch of scroll travels as far as the first.
     zoom.style.transform = `scale(${Math.exp(punch * Math.log(MAX_SCALE))})`
-    zoom.style.opacity = String(1 - clamp01((punch - 0.5) / 0.4))
+    const fade = 1 - clamp01((punch - 0.45) / 0.3)
+    zoom.style.opacity = String(fade)
+    // Once it is invisible, take it out of the frame entirely; otherwise the
+    // browser keeps rasterising hugely scaled text nobody can see.
+    zoom.style.visibility = fade > 0 ? 'visible' : 'hidden'
     if (headlineRef.current) {
       headlineRef.current.style.transform = `scale(${Math.exp(punch * Math.log(HEADLINE_LEAD))})`
     }
@@ -118,9 +127,20 @@ export function OpeningScene({
     // the resting hero.
     band.style.visibility = height > 0 ? 'visible' : 'hidden'
 
+    // Only touch React state when the value actually changes. Calling these on
+    // every scroll frame schedules work that mutates the DOM mid-scroll, which
+    // then forces ScrollTrigger's next read to reflow.
     const dwell = clamp01((p - PUNCH_END) / (DWELL_END - PUNCH_END))
-    setActive(Math.min(stats.length - 1, Math.floor(dwell * stats.length)))
-    setStatsHidden(open < 0.85 || expand > 0.15)
+    const step = Math.min(stats.length - 1, Math.floor(dwell * stats.length))
+    if (step !== painted.current.step) {
+      painted.current.step = step
+      setActive(step)
+    }
+    const hide = open < 0.85 || expand > 0.15
+    if (hide !== painted.current.hidden) {
+      painted.current.hidden = hide
+      setStatsHidden(hide)
+    }
   })
 
   // Without the stage there is no progress to paint from, so the zoom and the
