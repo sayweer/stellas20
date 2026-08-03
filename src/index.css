@@ -293,4 +293,10 @@
     transform: none !important;
     transition: none !important;
   }
+
+  /* Forcing opacity back on would stack the pre-split source on top of the two
+     positions it became, since all three share the same absolute box. */
+  .journey-source.is-separated {
+    display: none;
+  }
 }

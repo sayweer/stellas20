@@ -7,6 +7,7 @@ import {
   useState,
   type ReactElement,
   type ReactNode,
+  type RefObject,
 } from 'react'
 import { gsap, ScrollTrigger, whenIntroSettled } from '../../lib/gsap'
 import {
@@ -40,7 +41,14 @@ import {
  * resizes the viewport mid-scroll, which makes pinned layers jump.
  * ───────────────────────────────────────────────────────── */
 
-export function ScrollStage({ children }: { children: ReactNode }): ReactElement {
+export function ScrollStage({
+  children,
+  apiRef,
+}: {
+  children: ReactNode
+  /** Lets chrome outside the stage (the header nav) jump to a scene. */
+  apiRef?: RefObject<StageApi | null>
+}): ReactElement {
   const trackRef = useRef<HTMLDivElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const scenes = useRef(new Map<number, SceneRegistration>())
@@ -166,6 +174,14 @@ export function ScrollStage({ children }: { children: ReactNode }): ReactElement
     () => ({ pinned, register, subscribe, scrollToScene }),
     [pinned, register, subscribe, scrollToScene],
   )
+
+  useEffect(() => {
+    if (!apiRef) return
+    apiRef.current = api
+    return () => {
+      apiRef.current = null
+    }
+  }, [api, apiRef])
 
   const indexed = useMemo(
     () =>

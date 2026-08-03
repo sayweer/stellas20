@@ -1,10 +1,12 @@
 /** Marketing route: a progressive, product-led introduction to Everspan. */
-import type { ReactElement, ReactNode } from 'react'
+import { useRef, type ReactElement, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
-import { ScrollReveal } from '../components/ScrollReveal'
 import { WelcomeIntro } from '../components/WelcomeIntro'
 import { YieldJourney } from '../components/YieldJourney'
+import { ScrollScene } from '../components/scroll/ScrollScene'
+import { ScrollStage } from '../components/scroll/ScrollStage'
+import type { StageApi } from '../components/scroll/stageContext'
 import { useSurface } from '../hooks/useSurface'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useNow } from '../hooks/useNow'
@@ -19,12 +21,18 @@ import { ArrowRightIcon, ChartBarIcon, DropletIcon, LockIcon, SwapIcon } from '.
  *
  *    0ms   header and hero actions are available behind intro
  * 2320ms   welcome field clears; the quiet hero is revealed
- * scroll   protocol story advances SY → PT/YT → choice
- * scroll   each product chapter reveals once, then stays visible
+ * scroll   each chapter rises over the last one as an inset card,
+ *          then expands to full bleed while the layer beneath recedes
  *
- * Scroll motion uses IntersectionObserver and GPU-only properties.
- * No scroll listeners, parallax, continuous RAF loops or heavy media.
+ * The page does not scroll past the hero: scrolling drives the chapters
+ * directly (see `ScrollStage`). Below `md`, and under reduced motion, the
+ * same scenes render as ordinary stacked sections.
+ *
+ * Scene indices are referenced by the header nav — keep NAV_SCENES in sync
+ * with the order of <ScrollScene> children below.
  * ───────────────────────────────────────────────────────── */
+
+const NAV_SCENES = { story: 1, markets: 4, security: 8 } as const
 
 export function Landing(): ReactElement {
   useSurface('site')
@@ -62,8 +70,10 @@ export function Landing(): ReactElement {
     { value: '7', label: 'Soroban contracts', note: 'OPEN SOURCE' },
   ]
 
+  const stage = useRef<StageApi | null>(null)
+
   return (
-    <div className="min-h-screen overflow-clip bg-neutral-50 text-neutral-950">
+    <div className="min-h-screen bg-neutral-50 text-neutral-950">
       <WelcomeIntro />
       <div id="landing-content">
         <a
@@ -72,65 +82,64 @@ export function Landing(): ReactElement {
         >
           Skip to main content
         </a>
-        <SiteHeader />
+        <SiteHeader onNavigate={(scene) => stage.current?.scrollToScene(scene)} />
 
         <main id="landing-main" tabIndex={-1}>
-          <section className="relative border-b border-neutral-950/10">
-            <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] w-full max-w-[96rem] flex-col items-center justify-center px-5 py-20 text-center sm:px-8 lg:px-10">
-              <h1 className="text-[clamp(4rem,9.2vw,9rem)] font-normal leading-[0.88] tracking-[-0.065em] lg:whitespace-nowrap">
-                Yield, on your terms<span className="text-accent-500">.</span>
-              </h1>
-              <p className="mt-10 max-w-2xl text-lg leading-relaxed text-neutral-600 sm:text-xl">
-                Separate principal from yield. Choose the rate exposure you want to hold, then
-                settle on-chain at maturity.
-              </p>
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-                <PrimaryLink>Launch App</PrimaryLink>
-                <a
-                  href="#story"
-                  className="inline-flex min-h-11 items-center rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-neutral-50 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 motion-reduce:transform-none"
-                >
-                  See how it works
-                </a>
-              </div>
+          <ScrollStage apiRef={stage}>
+            <ScrollScene className="bg-neutral-50 text-neutral-950" label="Everspan">
+              <SceneBody className="max-w-[96rem] text-center">
+                <h1 className="text-[clamp(4rem,9.2vw,9rem)] font-normal leading-[0.88] tracking-[-0.065em] lg:whitespace-nowrap">
+                  Yield, on your terms<span className="text-accent-500">.</span>
+                </h1>
+                <p className="mx-auto mt-10 max-w-2xl text-lg leading-relaxed text-neutral-600 sm:text-xl">
+                  Separate principal from yield. Choose the rate exposure you want to hold, then
+                  settle on-chain at maturity.
+                </p>
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                  <PrimaryLink>Launch App</PrimaryLink>
+                  <button
+                    type="button"
+                    onClick={() => stage.current?.scrollToScene(NAV_SCENES.story)}
+                    className="inline-flex min-h-11 items-center rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-neutral-50 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 motion-reduce:transform-none"
+                  >
+                    See how it works
+                  </button>
+                </div>
+              </SceneBody>
 
-              <a
-                href="#story"
-                aria-label="Scroll to discover Everspan"
-                className="absolute bottom-5 inline-flex min-h-11 items-center gap-3 rounded-full px-4 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 sm:bottom-8"
+              <button
+                type="button"
+                onClick={() => stage.current?.scrollToScene(NAV_SCENES.story)}
+                className="absolute bottom-5 left-1/2 inline-flex min-h-11 -translate-x-1/2 flex-col items-center gap-3 rounded-full px-4 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 sm:bottom-8"
               >
                 <span aria-hidden="true" className="h-8 w-px bg-neutral-950/30" />
                 Scroll to discover
-              </a>
-            </div>
-          </section>
+              </button>
+            </ScrollScene>
 
-          <section
-            id="story"
-            className="scroll-mt-16 bg-neutral-950 pb-16 pt-24 text-neutral-50 sm:pt-32 lg:pb-24 lg:pt-40"
-          >
-            <ScrollReveal className="mx-auto w-full max-w-7xl px-5 text-center sm:px-8 lg:px-10">
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-300">
-                The Everspan primitive
-              </p>
-              <h2 className="mx-auto mt-7 max-w-5xl text-[clamp(3.25rem,7vw,7rem)] font-medium leading-[0.88] tracking-[-0.06em]">
-                One deposit becomes a market.
-              </h2>
-              <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-neutral-300">
-                Move through the three steps. The position changes as you scroll.
-              </p>
-            </ScrollReveal>
+            <ScrollScene id="story" className="bg-neutral-950 text-neutral-50">
+              <SceneBody className="text-center">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-300">
+                  The Everspan primitive
+                </p>
+                <h2 className="mx-auto mt-7 max-w-5xl text-[clamp(3.25rem,7vw,7rem)] font-medium leading-[0.88] tracking-[-0.06em]">
+                  One deposit becomes a market.
+                </h2>
+                <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-neutral-300">
+                  Three steps turn a yield-bearing deposit into two tradeable positions.
+                </p>
+              </SceneBody>
+            </ScrollScene>
 
-            <div className="mt-20 sm:mt-28 lg:mt-36">
+            <ScrollScene
+              className="bg-neutral-950 text-neutral-50"
+              label="How a position is built"
+              length={3}
+            >
               <YieldJourney />
-            </div>
-          </section>
+            </ScrollScene>
 
-          <section
-            aria-label="Protocol at a glance"
-            className="border-b border-neutral-950/10 bg-neutral-50"
-          >
-            <ScrollReveal>
+            <ScrollScene className="bg-neutral-50 text-neutral-950" label="Protocol at a glance">
               <dl className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-px bg-neutral-950/10 sm:grid-cols-2 lg:grid-cols-4">
                 {facts.map((fact) => (
                   <div
@@ -147,134 +156,132 @@ export function Landing(): ReactElement {
                   </div>
                 ))}
               </dl>
-            </ScrollReveal>
-          </section>
+            </ScrollScene>
 
-          <section id="markets" className="scroll-mt-16 bg-accent-500 text-neutral-50">
-            <ScrollReveal className="mx-auto grid min-h-[88svh] w-full max-w-7xl items-center gap-14 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[0.92fr_1.08fr] lg:px-10 lg:py-40">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-50/90">
-                  Principal Token · PT
-                </p>
-                <h2 className="mt-7 max-w-3xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
-                  Know what comes back.
-                </h2>
-                <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-50/80">
-                  PT trades below its maturity value. The difference between what you pay and what
-                  you redeem defines the implied rate for your position.
-                </p>
-              </div>
-              <FixedRateVisual />
-            </ScrollReveal>
-          </section>
-
-          <section className="bg-neutral-50">
-            <ScrollReveal className="mx-auto grid min-h-[88svh] w-full max-w-7xl items-center gap-14 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[1.08fr_0.92fr] lg:px-10 lg:py-40">
-              <YieldVisual />
-              <div className="lg:order-2">
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
-                  Yield Token · YT
-                </p>
-                <h2 className="mt-7 max-w-3xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
-                  Hold the rate itself.
-                </h2>
-                <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
-                  YT receives the yield released before maturity. When it moves, Everspan settles
-                  both holders first—accrued yield always follows the time it was earned.
-                </p>
-              </div>
-            </ScrollReveal>
-          </section>
-
-          <section className="border-y border-neutral-950/10 bg-neutral-200">
-            <ScrollReveal className="mx-auto grid min-h-[82svh] w-full max-w-7xl items-center gap-14 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-2 lg:px-10 lg:py-40">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-600">
-                  PT / SY Market
-                </p>
-                <h2 className="mt-7 max-w-3xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
-                  Make the market.
-                </h2>
-                <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
-                  Swap PT and SY or provide both sides as liquidity. Every pool is tied to one
-                  maturity, with a transparent 30 bps fee on each trade.
-                </p>
-              </div>
-              <LiquidityVisual />
-            </ScrollReveal>
-          </section>
-
-          <section className="bg-neutral-950 text-neutral-50">
-            <ScrollReveal className="mx-auto grid min-h-[80svh] w-full max-w-7xl items-center gap-16 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-2 lg:px-10 lg:py-40">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-300">
-                  Yield sources
-                </p>
-                <h2 className="mt-7 text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
-                  One standard interface.
-                </h2>
-                <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-300">
-                  Start with deterministic mUSDY or use a live Blend-backed XLM position. The same
-                  split, settlement and market mechanics run across both.
-                </p>
-              </div>
-              <div className="grid gap-px overflow-hidden rounded-2xl bg-neutral-50/15 sm:grid-cols-2">
-                <YieldSource
-                  label="mUSDY"
-                  title="Deterministic yield"
-                  body="A ledger-time exchange rate built for repeatable protocol testing."
-                />
-                <YieldSource
-                  label="XLM · BLEND"
-                  title="Live lending yield"
-                  body="A real Blend v2 lending position behind the same SY interface."
-                />
-              </div>
-            </ScrollReveal>
-          </section>
-
-          <section id="security" className="scroll-mt-16 bg-neutral-50">
-            <ScrollReveal className="mx-auto flex min-h-[82svh] w-full max-w-7xl flex-col justify-center px-5 py-24 sm:px-8 sm:py-32 lg:px-10 lg:py-40">
-              <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+            <ScrollScene id="markets" className="bg-accent-500 text-neutral-50">
+              <SceneBody className="grid items-center gap-14 lg:grid-cols-[0.92fr_1.08fr]">
                 <div>
-                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
-                    Protocol assurance
+                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-50/90">
+                    Principal Token · PT
                   </p>
-                  <h2 className="mt-7 max-w-5xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
-                    Your wallet stays in control.
+                  <h2 className="mt-7 max-w-3xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                    Know what comes back.
                   </h2>
+                  <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-50/80">
+                    PT trades below its maturity value. The difference between what you pay and
+                    what you redeem defines the implied rate for your position.
+                  </p>
                 </div>
-                <p className="max-w-xl text-lg leading-relaxed text-neutral-600">
-                  Signing happens inside your wallet. Contracts are open source and deployed on
-                  Stellar Testnet. There is no admin path into user balances.
-                </p>
-              </div>
+                <FixedRateVisual />
+              </SceneBody>
+            </ScrollScene>
 
-              <div className="mt-20 grid border-y border-neutral-950/10 sm:grid-cols-3">
-                <Assurance
-                  number="01"
-                  title="Self-custodial"
-                  body="Your secret key never enters Everspan."
-                />
-                <Assurance
-                  number="02"
-                  title="Open source"
-                  body="Seven Soroban contracts, documented and tested."
-                />
-                <Assurance
-                  number="03"
-                  title="Explicit settlement"
-                  body="Maturity and redemption rules execute on-chain."
-                />
-              </div>
-            </ScrollReveal>
-          </section>
+            <ScrollScene className="bg-neutral-50 text-neutral-950">
+              <SceneBody className="grid items-center gap-14 lg:grid-cols-[1.08fr_0.92fr]">
+                <YieldVisual />
+                <div className="lg:order-2">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
+                    Yield Token · YT
+                  </p>
+                  <h2 className="mt-7 max-w-3xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                    Hold the rate itself.
+                  </h2>
+                  <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
+                    YT receives the yield released before maturity. When it moves, Everspan settles
+                    both holders first—accrued yield always follows the time it was earned.
+                  </p>
+                </div>
+              </SceneBody>
+            </ScrollScene>
 
-          <section className="bg-accent-500 text-neutral-50">
-            <div className="mx-auto flex min-h-[72svh] w-full max-w-7xl flex-col justify-between gap-16 px-5 py-20 sm:px-8 sm:py-28 lg:px-10">
-              <BrandMark className="h-12 w-12" />
-              <ScrollReveal>
-                <h2 className="max-w-6xl text-[clamp(3.75rem,9vw,8.75rem)] font-medium leading-[0.84] tracking-[-0.065em]">
+            <ScrollScene className="bg-neutral-200 text-neutral-950">
+              <SceneBody className="grid items-center gap-14 lg:grid-cols-2">
+                <div>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-600">
+                    PT / SY Market
+                  </p>
+                  <h2 className="mt-7 max-w-3xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                    Make the market.
+                  </h2>
+                  <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
+                    Swap PT and SY or provide both sides as liquidity. Every pool is tied to one
+                    maturity, with a transparent 30 bps fee on each trade.
+                  </p>
+                </div>
+                <LiquidityVisual />
+              </SceneBody>
+            </ScrollScene>
+
+            <ScrollScene className="bg-neutral-950 text-neutral-50">
+              <SceneBody className="grid items-center gap-16 lg:grid-cols-2">
+                <div>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-300">
+                    Yield sources
+                  </p>
+                  <h2 className="mt-7 text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                    One standard interface.
+                  </h2>
+                  <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-300">
+                    Start with deterministic mUSDY or use a live Blend-backed XLM position. The
+                    same split, settlement and market mechanics run across both.
+                  </p>
+                </div>
+                <div className="grid gap-px overflow-hidden rounded-2xl bg-neutral-50/15 sm:grid-cols-2">
+                  <YieldSource
+                    label="mUSDY"
+                    title="Deterministic yield"
+                    body="A ledger-time exchange rate built for repeatable protocol testing."
+                  />
+                  <YieldSource
+                    label="XLM · BLEND"
+                    title="Live lending yield"
+                    body="A real Blend v2 lending position behind the same SY interface."
+                  />
+                </div>
+              </SceneBody>
+            </ScrollScene>
+
+            <ScrollScene id="security" className="bg-neutral-50 text-neutral-950">
+              <SceneBody>
+                <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+                  <div>
+                    <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
+                      Protocol assurance
+                    </p>
+                    <h2 className="mt-7 max-w-5xl text-[clamp(3rem,6vw,6rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                      Your wallet stays in control.
+                    </h2>
+                  </div>
+                  <p className="max-w-xl text-lg leading-relaxed text-neutral-600">
+                    Signing happens inside your wallet. Contracts are open source and deployed on
+                    Stellar Testnet. There is no admin path into user balances.
+                  </p>
+                </div>
+
+                <div className="mt-16 grid border-y border-neutral-950/10 sm:grid-cols-3">
+                  <Assurance
+                    number="01"
+                    title="Self-custodial"
+                    body="Your secret key never enters Everspan."
+                  />
+                  <Assurance
+                    number="02"
+                    title="Open source"
+                    body="Seven Soroban contracts, documented and tested."
+                  />
+                  <Assurance
+                    number="03"
+                    title="Explicit settlement"
+                    body="Maturity and redemption rules execute on-chain."
+                  />
+                </div>
+              </SceneBody>
+            </ScrollScene>
+
+            <ScrollScene className="bg-accent-500 text-neutral-50">
+              <SceneBody>
+                <BrandMark className="h-12 w-12" />
+                <h2 className="mt-14 max-w-6xl text-[clamp(3.25rem,7.5vw,7.5rem)] font-medium leading-[0.84] tracking-[-0.065em]">
                   Put your yield to work.
                 </h2>
                 <div className="mt-10 flex flex-wrap items-center gap-4">
@@ -289,9 +296,9 @@ export function Landing(): ReactElement {
                     No account. Connect a Stellar wallet.
                   </span>
                 </div>
-              </ScrollReveal>
-            </div>
-          </section>
+              </SceneBody>
+            </ScrollScene>
+          </ScrollStage>
         </main>
 
         <SiteFooter />
@@ -300,7 +307,24 @@ export function Landing(): ReactElement {
   )
 }
 
-function SiteHeader(): ReactElement {
+/**
+ * Shared inner container for a scene. The stage centres scenes vertically, so
+ * this only owns horizontal rhythm — no vertical padding that would fight the
+ * fixed viewport height while pinned.
+ */
+function SceneBody({
+  children,
+  className = '',
+}: {
+  children: ReactNode
+  className?: string
+}): ReactElement {
+  return (
+    <div className={`mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10 ${className}`}>{children}</div>
+  )
+}
+
+function SiteHeader({ onNavigate }: { onNavigate: (scene: number) => void }): ReactElement {
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-950/10 bg-neutral-50/95 backdrop-blur-md">
       <div className="mx-auto flex h-[4.5rem] w-full max-w-[96rem] items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
@@ -312,25 +336,26 @@ function SiteHeader(): ReactElement {
           <span className="text-base font-medium tracking-[-0.025em]">Everspan</span>
         </Link>
 
+        {/* While the stage is pinned every scene sits at the same document
+            offset, so an href anchor cannot reach one — the stage maps a scene
+            index back to its scroll position instead. */}
         <nav aria-label="Primary navigation" className="hidden items-center gap-8 md:flex">
-          <a
-            className="inline-flex min-h-11 items-center rounded-sm px-1 text-sm text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-            href="#story"
-          >
-            Protocol
-          </a>
-          <a
-            className="inline-flex min-h-11 items-center rounded-sm px-1 text-sm text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-            href="#markets"
-          >
-            Markets
-          </a>
-          <a
-            className="inline-flex min-h-11 items-center rounded-sm px-1 text-sm text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-            href="#security"
-          >
-            Security
-          </a>
+          {(
+            [
+              ['Protocol', NAV_SCENES.story],
+              ['Markets', NAV_SCENES.markets],
+              ['Security', NAV_SCENES.security],
+            ] as const
+          ).map(([label, scene]) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => onNavigate(scene)}
+              className="inline-flex min-h-11 items-center rounded-sm px-1 text-sm text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            >
+              {label}
+            </button>
+          ))}
         </nav>
 
         <PrimaryLink compact>Launch App</PrimaryLink>

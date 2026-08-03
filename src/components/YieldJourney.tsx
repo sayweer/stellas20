@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 import { ChartBarIcon, LockIcon, SplitIcon } from './icons'
+import { useSceneStep, useStage } from './scroll/stageContext'
 
 const JOURNEY_STEPS = [
   {
@@ -22,58 +23,61 @@ const JOURNEY_STEPS = [
   },
 ] as const
 
+/**
+ * The three-step story of a position. Inside a pinned `ScrollScene` the steps
+ * are driven by scroll progress and the copy cross-fades in place; in the
+ * stacked fallback every step is listed and the diagram shows its end state.
+ */
 export function YieldJourney(): ReactElement {
-  const [activeStep, setActiveStep] = useState(0)
-  const stepRefs = useRef<Array<HTMLElement | null>>([])
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-        if (!visibleEntry) return
-        const index = Number((visibleEntry.target as HTMLElement).dataset.step)
-        setActiveStep(index)
-      },
-      { threshold: [0.35, 0.55, 0.75], rootMargin: '-15% 0px -25% 0px' },
-    )
-
-    stepRefs.current.forEach((element) => {
-      if (element) observer.observe(element)
-    })
-    return () => observer.disconnect()
-  }, [])
+  const pinned = useStage()?.pinned ?? false
+  const scrubbedStep = useSceneStep(JOURNEY_STEPS.length)
+  const activeStep = pinned ? scrubbedStep : JOURNEY_STEPS.length - 1
 
   return (
-    <div className="mx-auto grid w-full max-w-7xl gap-8 px-5 sm:gap-12 sm:px-8 md:grid-cols-[1.02fr_0.98fr] md:gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-20 lg:px-10">
-      <div className="relative z-10 flex items-center bg-neutral-950 py-4 sm:py-0 md:sticky md:top-20 md:h-[calc(100svh-5rem)]">
-        <JourneyVisual activeStep={activeStep} />
-      </div>
+    <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-20 lg:px-10">
+      <JourneyVisual activeStep={activeStep} />
 
-      <div>
-        {JOURNEY_STEPS.map((step, index) => (
-          <article
-            key={step.eyebrow}
-            ref={(element) => {
-              stepRefs.current[index] = element
-            }}
-            data-step={index}
-            className="flex items-center border-b border-neutral-50/15 py-20 last:border-b-0 sm:min-h-[72svh] md:min-h-[88svh]"
-          >
-            <div className={`journey-copy ${activeStep === index ? 'is-active' : ''}`}>
-              <div className="flex items-center justify-between gap-6 text-neutral-400">
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em]">{step.eyebrow}</p>
-                <span aria-hidden="true">{step.icon}</span>
-              </div>
-              <h3 className="mt-8 text-[clamp(2.75rem,6vw,5.5rem)] font-medium leading-[0.9] tracking-[-0.055em]">
-                {step.title}
-              </h3>
-              <p className="mt-7 max-w-lg text-lg leading-relaxed text-neutral-300">{step.body}</p>
+      {pinned ? (
+        <div className="grid items-center">
+          {JOURNEY_STEPS.map((step, index) => (
+            <div
+              key={step.eyebrow}
+              className={`col-start-1 row-start-1 transition-opacity duration-300 ${
+                activeStep === index ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <JourneyCopy step={step} isActive={activeStep === index} />
             </div>
-          </article>
-        ))}
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col justify-center gap-14">
+          {JOURNEY_STEPS.map((step) => (
+            <JourneyCopy key={step.eyebrow} step={step} isActive />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function JourneyCopy({
+  step,
+  isActive,
+}: {
+  step: (typeof JOURNEY_STEPS)[number]
+  isActive: boolean
+}): ReactElement {
+  return (
+    <div className={`journey-copy ${isActive ? 'is-active' : ''}`}>
+      <div className="flex items-center justify-between gap-6 text-neutral-400">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em]">{step.eyebrow}</p>
+        <span aria-hidden="true">{step.icon}</span>
       </div>
+      <h3 className="mt-6 text-[clamp(2.25rem,4.6vw,4.25rem)] font-medium leading-[0.9] tracking-[-0.055em]">
+        {step.title}
+      </h3>
+      <p className="mt-6 max-w-lg text-lg leading-relaxed text-neutral-300">{step.body}</p>
     </div>
   )
 }
@@ -82,7 +86,7 @@ function JourneyVisual({ activeStep }: { activeStep: number }): ReactElement {
   return (
     <div
       aria-hidden="true"
-      className="relative mx-auto aspect-square w-full max-w-xl overflow-hidden rounded-3xl border border-neutral-50/15 bg-neutral-900 p-5 sm:p-8 lg:mx-0"
+      className="relative mx-auto aspect-square w-full max-w-md self-center overflow-hidden rounded-3xl border border-neutral-50/15 bg-neutral-900 p-5 sm:p-8 lg:mx-0"
     >
       <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
         <span>Position architecture</span>
@@ -142,9 +146,7 @@ function PositionCard({
   note: string
 }): ReactElement {
   return (
-    <div
-      className={`flex min-h-48 flex-col rounded-2xl p-5 pb-16 sm:min-h-56 sm:p-6 sm:pb-16 ${className}`}
-    >
+    <div className={`flex min-h-40 flex-col rounded-2xl p-5 pb-14 sm:min-h-48 sm:p-6 ${className}`}>
       <p className="font-mono text-[10px] uppercase tracking-[0.16em] opacity-90">{label}</p>
       <p className="mt-auto text-2xl font-medium tracking-[-0.04em] tabular-nums sm:text-3xl">
         {amount}

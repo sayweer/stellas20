@@ -43,8 +43,10 @@ export function ScrollScene({
       ref={sceneRef}
       id={id}
       aria-label={label}
-      className={`${
-        pinned ? 'absolute inset-0 flex flex-col justify-center overflow-hidden' : 'relative'
+      className={`flex flex-col justify-center ${
+        pinned
+          ? 'absolute inset-0 overflow-hidden'
+          : 'relative min-h-[100svh] py-20'
       } ${className}`}
       style={pinned ? { zIndex: index } : undefined}
     >
