@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
 import { WelcomeIntro } from '../components/WelcomeIntro'
 import { YieldJourney } from '../components/YieldJourney'
+import { SceneParallax } from '../components/scroll/SceneParallax'
 import { ScrollScene } from '../components/scroll/ScrollScene'
 import { ScrollStage } from '../components/scroll/ScrollStage'
 import type { StageApi } from '../components/scroll/stageContext'
@@ -172,13 +173,17 @@ export function Landing(): ReactElement {
                     what you redeem defines the implied rate for your position.
                   </p>
                 </div>
-                <FixedRateVisual />
+                <SceneParallax>
+                  <FixedRateVisual />
+                </SceneParallax>
               </SceneBody>
             </ScrollScene>
 
             <ScrollScene className="bg-neutral-50 text-neutral-950">
               <SceneBody className="grid items-center gap-14 lg:grid-cols-[1.08fr_0.92fr]">
-                <YieldVisual />
+                <SceneParallax className="order-2 lg:order-1">
+                  <YieldVisual />
+                </SceneParallax>
                 <div className="lg:order-2">
                   <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
                     Yield Token · YT
@@ -208,7 +213,9 @@ export function Landing(): ReactElement {
                     maturity, with a transparent 30 bps fee on each trade.
                   </p>
                 </div>
-                <LiquidityVisual />
+                <SceneParallax>
+                  <LiquidityVisual />
+                </SceneParallax>
               </SceneBody>
             </ScrollScene>
 

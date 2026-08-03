@@ -15,6 +15,13 @@ export const SCENE_LENGTH_VH = 1.6
 /** Viewport heights the final panel holds before the stage unpins. */
 export const TAIL_VH = 0.6
 
+/**
+ * Fraction of a `length={1}` segment spent on the entrance. The remainder is
+ * dwell: the panel holds, settled, before the next one starts covering it.
+ * Without this a panel is complete only for the instant before it is replaced.
+ */
+const ENTRANCE_FRACTION = 0.62
+
 /** Fraction of a scene's entrance spent un-clipping, before it expands. */
 const REVEAL_SPLIT = 0.72
 const GUTTER_PX = 24
@@ -84,7 +91,7 @@ export function trackHeightVh(lengths: Record<number, number>, sceneCount: numbe
 export function paintEntrance(scene: SceneRegistration, rawProgress: number): void {
   // A scene's entrance always costs the same scroll distance; a `length` above
   // 1 buys dwell time on the far side, not a slower wipe.
-  const progress = clamp01(rawProgress * Math.max(1, scene.length))
+  const progress = clamp01(rawProgress / entranceSpan(scene))
   const reveal = clamp01(progress / REVEAL_SPLIT)
   const expand = clamp01((progress - REVEAL_SPLIT) / (1 - REVEAL_SPLIT))
   const gutter = GUTTER_PX * (1 - expand)
@@ -105,9 +112,13 @@ export function paintEntrance(scene: SceneRegistration, rawProgress: number): vo
  * start from the beginning once the scene is actually on screen.
  */
 export function dwellProgress(scene: SceneRegistration, rawProgress: number): number {
-  const entrance = 1 / Math.max(1, scene.length)
-  if (entrance >= 1) return rawProgress
+  const entrance = entranceSpan(scene)
   return clamp01((rawProgress - entrance) / (1 - entrance))
+}
+
+/** Fraction of this scene's segment its entrance occupies. */
+function entranceSpan(scene: SceneRegistration): number {
+  return Math.min(1, ENTRANCE_FRACTION / Math.max(1, scene.length))
 }
 
 /** Paints the layer being covered: it settles back instead of sitting flat. */
