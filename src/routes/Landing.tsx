@@ -96,17 +96,14 @@ export function Landing(): ReactElement {
             >
               <OpeningScene
                 stats={facts}
-                headline={(dotRef) => (
+                headline={
                   <h1 className="mx-auto w-full max-w-[96rem] px-5 text-center text-[clamp(4rem,9.2vw,9rem)] font-normal leading-[0.88] tracking-[-0.065em] sm:px-8 lg:whitespace-nowrap lg:px-10">
-                    Yield, on your terms
-                    <span ref={dotRef} className="text-accent-500">
-                      .
-                    </span>
+                    Yield, on your terms<span className="text-accent-500">.</span>
                   </h1>
-                )}
+                }
               >
                 <SceneBody className="max-w-[96rem] text-center">
-                  <p className="mx-auto mt-10 max-w-2xl text-lg leading-relaxed text-neutral-600 sm:text-xl">
+                  <p className="mx-auto mt-14 max-w-2xl text-xl leading-relaxed text-neutral-600 sm:text-2xl">
                     Separate principal from yield. Choose the rate exposure you want to hold, then
                     settle on-chain at maturity.
                   </p>
@@ -318,9 +315,13 @@ function SceneBody({
   )
 }
 
+/**
+ * Fixed, not sticky: in flow the header pushed the scroll stage down by its own
+ * height, and that offset became dead scroll before the opening could start.
+ */
 function SiteHeader({ onNavigate }: { onNavigate: (scene: number) => void }): ReactElement {
   return (
-    <header className="sticky top-0 z-40 border-b border-neutral-950/10 bg-neutral-50/95 backdrop-blur-md">
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-neutral-950/10 bg-neutral-50/95 backdrop-blur-md">
       <div className="mx-auto flex h-[4.5rem] w-full max-w-[96rem] items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
         <Link
           to="/"
