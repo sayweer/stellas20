@@ -28,6 +28,7 @@ import { EarnPanel } from './components/EarnPanel'
 import { MorePanel, type MoreView } from './components/MorePanel'
 import { ConnectionBanner } from './components/ConnectionBanner'
 import { AlertTriangleIcon } from './components/icons'
+import { DataUnavailable } from './components/DataUnavailable'
 
 function App(): ReactElement {
   useSurface('app')
@@ -117,6 +118,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
     undefined,
     isConnected && address !== null ? address : null,
   )
+  const dataError = error ?? pools.error
 
   function refreshAll(): void {
     refresh()
@@ -259,7 +261,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                 pools={pools.pools}
                 rateInfo={portfolio.rateInfo}
                 liveRate={liveRate}
-                error={error}
+                error={dataError}
                 onRetry={refreshAll}
                 onEarn={chooseStrategy}
                 onConvert={goConvert}
@@ -268,7 +270,9 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
             )}
 
             {tab === 'earn' &&
-              (connected ? (
+              (connected && dataError ? (
+                <DataUnavailable error={dataError} onRetry={refreshAll} tab="earn" />
+              ) : connected ? (
                 <EarnPanel
                   strategy={strategy}
                   onStrategyChange={(next) => chooseStrategy(next)}
@@ -298,8 +302,8 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                   address={address}
                   portfolio={portfolio}
                   pools={pools.pools}
-                  loading={loading}
-                  error={error}
+                  loading={loading || pools.loading}
+                  error={dataError}
                   liveRate={liveRate}
                   isWrongNetwork={isWrongNetwork}
                   onRefresh={refreshAll}
@@ -330,6 +334,8 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                 activityLoading={activity.loading}
                 activityError={activity.error}
                 onRetryActivity={activity.retry}
+                dataError={dataError}
+                onRetryData={refreshAll}
               />
             )}
           </main>

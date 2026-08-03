@@ -158,7 +158,7 @@ export function useTxRunner(): UseTxRunnerResult {
         }))
       }
       let result: { hash: string } | AppError
-      let timeoutId: ReturnType<typeof window.setTimeout> | undefined
+      let timeoutId: number | undefined
       try {
         result = await Promise.race([
           fn(onPhase),
@@ -178,15 +178,16 @@ export function useTxRunner(): UseTxRunnerResult {
         if (timeoutId !== undefined) window.clearTimeout(timeoutId)
       }
       setPending(false)
+      const finalPhase = lastPhase as TxPhase
 
       if (isAppError(result)) {
-        if (result.code === 'user_declined' && lastPhase === 'signing' && submittedHash === null) {
+        if (result.code === 'user_declined' && finalPhase === 'signing' && submittedHash === null) {
           clearTrackedTransaction()
           setOutcome(null)
           return
         }
         const safetyPhase: TxPhase =
-          result.code === 'transaction_timeout' && lastPhase === 'building' ? 'signing' : lastPhase
+          result.code === 'transaction_timeout' && finalPhase === 'building' ? 'signing' : finalPhase
         const failedOutcome: TxOutcome = {
           status: 'error',
           label,

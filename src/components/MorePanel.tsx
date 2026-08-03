@@ -6,6 +6,7 @@ import { ActivityFeed } from './ActivityFeed'
 import { AdvancedPanel } from './AdvancedPanel'
 import { ConnectPrompt } from './ConnectPrompt'
 import { TabToggle } from './forms'
+import { DataUnavailable } from './DataUnavailable'
 
 export type MoreView = 'convert' | 'activity'
 
@@ -22,6 +23,8 @@ interface MorePanelProps {
   activityLoading: boolean
   activityError: AppError | null
   onRetryActivity: () => void
+  dataError: AppError | null
+  onRetryData: () => void
 }
 
 /** Secondary tools are available without competing with the four primary destinations. */
@@ -38,6 +41,8 @@ export function MorePanel({
   activityLoading,
   activityError,
   onRetryActivity,
+  dataError,
+  onRetryData,
 }: MorePanelProps): ReactElement {
   return (
     <section id="panel-more" role="tabpanel" aria-labelledby="tab-more" className="space-y-8">
@@ -62,7 +67,9 @@ export function MorePanel({
         onChange={(id) => onViewChange(id as MoreView)}
       />
 
-      {view === 'convert' && address !== null ? (
+      {view === 'convert' && address !== null && dataError ? (
+        <DataUnavailable error={dataError} onRetry={onRetryData} />
+      ) : view === 'convert' && address !== null ? (
         <AdvancedPanel
           address={address}
           portfolio={portfolio}

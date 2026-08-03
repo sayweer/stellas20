@@ -52,6 +52,7 @@ export default {
           500: 'rgb(var(--warning-500) / <alpha-value>)',
         },
         onAccent: 'rgb(var(--on-accent) / <alpha-value>)',
+        boundary: 'rgb(var(--boundary) / <alpha-value>)',
       },
       fontFamily: {
         sans: [

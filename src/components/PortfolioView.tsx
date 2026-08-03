@@ -50,14 +50,18 @@ export function PortfolioView({
         liveRate={liveRate}
         onRefresh={onRefresh}
       />
-      <MaturityPanel
-        address={address}
-        positions={portfolio.positions}
-        rateInfo={portfolio.rateInfo}
-        isWrongNetwork={isWrongNetwork}
-        onSuccess={onRefresh}
-      />
-      <LpPositions pools={pools} onManage={onManagePool} />
+      {!loading && !error ? (
+        <>
+          <MaturityPanel
+            address={address}
+            positions={portfolio.positions}
+            rateInfo={portfolio.rateInfo}
+            isWrongNetwork={isWrongNetwork}
+            onSuccess={onRefresh}
+          />
+          <LpPositions pools={pools} onManage={onManagePool} />
+        </>
+      ) : null}
       <ActivityFeed
         events={events}
         address={address}
