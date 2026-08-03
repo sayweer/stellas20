@@ -8,7 +8,7 @@ import {
   type RefObject,
 } from 'react'
 import { StatBand, type Stat } from './StatBand'
-import { clamp01, useSceneProgress } from './scroll/stageContext'
+import { clamp01, useSceneProgress, useStage } from './scroll/stageContext'
 
 /* ─────────────────────────────────────────────────────────
  * OPENING
@@ -59,6 +59,7 @@ export function OpeningScene({
   const dotYPct = useRef(50)
   const [active, setActive] = useState(0)
   const [statsHidden, setStatsHidden] = useState(true)
+  const pinned = useStage()?.pinned ?? false
 
   /**
    * Reads the dot's position with the zoom reset, since a measurement taken
@@ -117,6 +118,33 @@ export function OpeningScene({
     setActive(Math.min(stats.length - 1, Math.floor(dwell * stats.length)))
     setStatsHidden(open < 0.85 || expand > 0.15)
   })
+
+  // Without the stage there is no progress to paint from, so the zoom and the
+  // band never run. The figures still have to reach the reader: they become an
+  // ordinary dark panel under the hero.
+  if (!pinned) {
+    return (
+      <>
+        <div className="w-full">
+          {headline(dot)}
+          {children}
+        </div>
+        <dl className="mt-20 grid grid-cols-1 gap-px bg-neutral-50/15 sm:grid-cols-2">
+          {stats.map((stat) => (
+            <div key={stat.label} className="min-w-0 bg-neutral-950 px-5 py-10 text-neutral-50">
+              <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
+                {stat.note}
+              </dt>
+              <dd className="mt-4 break-words text-4xl font-medium tracking-[-0.045em] tabular-nums">
+                {stat.value}
+              </dd>
+              <dd className="mt-2 text-sm text-accent-300">{stat.label}</dd>
+            </div>
+          ))}
+        </dl>
+      </>
+    )
+  }
 
   return (
     <>
