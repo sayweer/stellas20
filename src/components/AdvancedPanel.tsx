@@ -26,12 +26,14 @@ export function AdvancedPanel({
   const hasSplit = portfolio.positions.some((p) => p.position.pt > 0n || p.position.yt > 0n)
 
   return (
-    <div id="panel-advanced" role="tabpanel" aria-labelledby="tab-advanced" className="space-y-6">
+    <div className="space-y-6">
       <header>
-        <h2 className="text-lg font-medium tracking-[-0.02em] text-neutral-100">Advanced</h2>
+        <h2 className="text-lg font-medium tracking-[-0.02em] text-neutral-100">
+          Convert and split assets
+        </h2>
         <p className="mt-1 text-sm text-neutral-400">
-          The raw protocol primitives. Wrap {activeMarket().underlyingSymbol} into SY, then split SY
-          into PT + YT — the building blocks the Markets and Trade tabs sit on top of.
+          Prepare {activeMarket().underlyingSymbol} for Everspan, or manually separate principal and
+          yield. Most people can start from Earn instead.
         </p>
       </header>
 

@@ -34,7 +34,8 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
             { ptReserve: pool.ptReserve, syReserve: pool.syReserve, lpTotal: pool.lpTotal },
             mp.lpBalance,
           )
-          const share = pool.lpTotal > 0n ? Number((mp.lpBalance * 10_000n) / pool.lpTotal) / 100 : 0
+          const share =
+            pool.lpTotal > 0n ? Number((mp.lpBalance * 10_000n) / pool.lpTotal) / 100 : 0
           return (
             <li
               key={mp.maturity.toString()}
@@ -69,7 +70,7 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
                 onClick={() => {
                   onManage(mp.maturity)
                 }}
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-neutral-700 px-3 py-1.5 text-xs font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-neutral-700 px-3 py-2 text-xs font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
               >
                 Manage in Pool
                 <ArrowRightIcon className="h-3.5 w-3.5" />

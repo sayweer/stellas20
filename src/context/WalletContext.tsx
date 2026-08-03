@@ -4,7 +4,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import { config } from '../config'
-import { disconnectWallet, getWalletNetwork, onWalletAddressChange, openWalletPicker } from '../lib/wallet'
+import {
+  disconnectWallet,
+  getWalletNetwork,
+  onWalletAddressChange,
+  openWalletPicker,
+} from '../lib/wallet'
 import { isAppError, type AppError, type WalletState } from '../types'
 
 const INITIAL_STATE: WalletState = {
@@ -50,11 +55,21 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
         return
       }
       setNetworkChecked(false)
-      setState((prev) => ({ ...prev, status: 'connected', address, network: null, networkPassphrase: null }))
+      setState((prev) => ({
+        ...prev,
+        status: 'connected',
+        address,
+        network: null,
+        networkPassphrase: null,
+      }))
       void getWalletNetwork().then((net) => {
         setState((prev) =>
           prev.address === address
-            ? { ...prev, network: net?.network ?? null, networkPassphrase: net?.networkPassphrase ?? null }
+            ? {
+                ...prev,
+                network: net?.network ?? null,
+                networkPassphrase: net?.networkPassphrase ?? null,
+              }
             : prev,
         )
         setNetworkChecked(true)
@@ -86,7 +101,9 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
       ...state,
       isConnected,
       isWrongNetwork:
-        isConnected && state.networkPassphrase !== null && state.networkPassphrase !== config.networkPassphrase,
+        isConnected &&
+        state.networkPassphrase !== null &&
+        state.networkPassphrase !== config.networkPassphrase,
       networkUnknown: isConnected && networkChecked && state.networkPassphrase === null,
       connect,
       disconnect,

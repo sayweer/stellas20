@@ -3,7 +3,13 @@
  * Sole point of contact with the kit — components and other services must
  * never import `@creit.tech/stellar-wallets-kit` directly.
  */
-import { KitEventType, Networks as KitNetworks, StellarWalletsKit } from '@creit.tech/stellar-wallets-kit'
+import {
+  KitEventType,
+  Networks as KitNetworks,
+  StellarWalletsKit,
+  SwkAppDarkTheme,
+  SwkAppLightTheme,
+} from '@creit.tech/stellar-wallets-kit'
 import { AlbedoModule } from '@creit.tech/stellar-wallets-kit/modules/albedo'
 import { FreighterModule } from '@creit.tech/stellar-wallets-kit/modules/freighter'
 import { LobstrModule } from '@creit.tech/stellar-wallets-kit/modules/lobstr'
@@ -57,9 +63,7 @@ export function hasMobileWalletSupport(): boolean {
  * the full list.
  */
 const baseModules =
-  isMobileBrowser() && !hasInjectedProvider()
-    ? WEB_MODULES
-    : [...EXTENSION_MODULES, ...WEB_MODULES]
+  isMobileBrowser() && !hasInjectedProvider() ? WEB_MODULES : [...EXTENSION_MODULES, ...WEB_MODULES]
 
 /**
  * WalletConnect is the only route to a wallet held in a phone's own app, and is
@@ -74,9 +78,8 @@ const baseModules =
 const modules = await (async () => {
   if (!config.walletConnectProjectId || !isMobileBrowser()) return baseModules
   try {
-    const { WalletConnectModule, WalletConnectTargetChain } = await import(
-      '@creit.tech/stellar-wallets-kit/modules/wallet-connect'
-    )
+    const { WalletConnectModule, WalletConnectTargetChain } =
+      await import('@creit.tech/stellar-wallets-kit/modules/wallet-connect')
     return [
       ...baseModules,
       new WalletConnectModule({
@@ -100,6 +103,11 @@ StellarWalletsKit.init({
   modules,
   network: KitNetworks.TESTNET,
 })
+
+/** Keep the wallet picker visually consistent with Everspan's active app theme. */
+export function setWalletTheme(theme: 'light' | 'dark'): void {
+  StellarWalletsKit.setTheme(theme === 'dark' ? SwkAppDarkTheme : SwkAppLightTheme)
+}
 
 /** Result of a successful connection or session restore. */
 export interface ConnectedWallet {
@@ -170,9 +178,10 @@ export async function signXdr(
 }
 
 /** Read the connected wallet's reported network, or null if it can't be determined. */
-export async function getWalletNetwork(): Promise<
-  { network: string; networkPassphrase: string } | null
-> {
+export async function getWalletNetwork(): Promise<{
+  network: string
+  networkPassphrase: string
+} | null> {
   try {
     return await StellarWalletsKit.getNetwork()
   } catch {

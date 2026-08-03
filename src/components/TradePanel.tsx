@@ -19,40 +19,42 @@ import {
 } from '../lib/amm'
 import { splitSy } from '../lib/contracts/splitter'
 import { swapExactIn } from '../lib/contracts/amm'
-import { AmountField, ActionButton, TabToggle } from './forms'
+import { AmountField, ActionButton } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
 import { TxStatus } from './TxStatus'
 import { AlertTriangleIcon, LockIcon } from './icons'
 
 interface TradePanelProps {
+  mode: 'lock' | 'long'
   address: string
   isWrongNetwork: boolean
   pools: MaturityPool[]
+  loading: boolean
   syBalance: bigint
   liveRate: bigint | null
   /** A maturity to preselect (e.g. clicked from Markets). */
   initialMaturity: bigint | null
+  onMaturityChange: (maturity: bigint) => void
   onSuccess: () => void
   /** Jump to the Advanced tab — the only place SY can be minted. */
   onGoAdvanced: () => void
 }
 
-type Mode = 'lock' | 'long'
-
 export function TradePanel({
+  mode,
   address,
   isWrongNetwork,
   pools,
+  loading,
   syBalance,
   liveRate,
   initialMaturity,
+  onMaturityChange,
   onSuccess,
   onGoAdvanced,
 }: TradePanelProps): ReactElement {
   const now = useNow()
-  const [mode, setMode] = useState<Mode>('lock')
-  const [maturity, setMaturity] = useState<bigint | null>(null)
 
   // Only maturities with a funded, unexpired pool are tradeable.
   const tradeable = pools.filter(
@@ -70,22 +72,30 @@ export function TradePanel({
     (initialMaturity !== null && tradeable.some((p) => p.maturity === initialMaturity)
       ? initialMaturity
       : tradeable[0]?.maturity) ?? null
-  const selected =
-    maturity !== null && tradeable.some((p) => p.maturity === maturity) ? maturity : preselect
+  const selected = preselect
   const selectedPool = tradeable.find((p) => p.maturity === selected)?.pool ?? null
 
   return (
-    <section id="panel-trade" role="tabpanel" aria-labelledby="tab-trade">
+    <div>
       <header>
-        <h2 className="text-lg font-medium tracking-[-0.02em] text-neutral-100">Trade</h2>
+        <h2 className="text-lg font-medium tracking-[-0.02em] text-neutral-100">
+          {mode === 'lock' ? 'Lock a fixed return' : 'Increase yield exposure'}
+        </h2>
         <p className="mt-1 text-sm text-neutral-400">
-          Lock a fixed rate to maturity, or take the other side and go long the yield.
+          {mode === 'lock'
+            ? 'Buy PT at today’s price and redeem its maturity value later.'
+            : 'Split SY, sell the principal side, and keep the variable yield side.'}
         </p>
       </header>
 
-      {tradeable.length === 0 ? (
+      {loading && pools.length === 0 ? (
+        <div aria-label="Loading active maturities" className="mt-5 space-y-3">
+          <div className="h-11 animate-pulse rounded-lg bg-neutral-850" />
+          <div className="h-28 animate-pulse rounded-xl bg-neutral-850" />
+        </div>
+      ) : tradeable.length === 0 ? (
         <p className="mt-4 text-sm text-neutral-400">
-          No active pools to trade yet. A maturity needs a seeded pool before you can lock a rate.
+          No active maturity is available right now. Try again after a pool has been funded.
         </p>
       ) : (
         <>
@@ -93,22 +103,9 @@ export function TradePanel({
             <MaturitySelect
               options={tradeable.map((p) => ({ maturity: p.maturity, matured: false }))}
               value={selected}
-              onChange={setMaturity}
+              onChange={onMaturityChange}
             />
           </div>
-
-          <TabToggle
-            className="mt-4"
-            label="Trade direction"
-            options={[
-              { id: 'lock', label: 'Lock fixed rate' },
-              { id: 'long', label: 'Long yield' },
-            ]}
-            active={mode}
-            onChange={(id) => {
-              setMode(id as Mode)
-            }}
-          />
 
           {selected !== null && selectedPool !== null && (
             <div className="mt-5">
@@ -141,7 +138,7 @@ export function TradePanel({
           )}
         </>
       )}
-    </section>
+    </div>
   )
 }
 
@@ -194,12 +191,13 @@ function LockRateForm({
   const [amount, setAmount] = useState('')
   const [slippageBps, setSlippageBps] = useState(50)
   const [acceptsLoss, setAcceptsLoss] = useState(false)
-  const { outcome, pending, run, reset } = useTxRunner()
+  const { outcome, pending, blocked, run, reset } = useTxRunner()
 
   // A new amount is a new trade — never carry an acknowledgement across it.
   function changeAmount(next: string): void {
     setAmount(next)
     setAcceptsLoss(false)
+    reset()
   }
 
   const valid = isValidTokenAmount(amount, syBalance, { label: 'SY' })
@@ -218,7 +216,7 @@ function LockRateForm({
   const locksLoss = lockedApy !== null && lockedApy < 0
 
   function submit(): void {
-    if (!valid.ok || pending || ptOut <= 0n || (locksLoss && !acceptsLoss)) return
+    if (!valid.ok || pending || blocked || ptOut <= 0n || (locksLoss && !acceptsLoss)) return
     void run(
       'Lock rate',
       (onPhase) => swapExactIn(address, maturity, 'SyToPt', syIn, minOut, onPhase),
@@ -251,8 +249,9 @@ function LockRateForm({
         hint={`Available: ${formatAmount(syBalance)} SY`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
         onEnter={submit}
+        disabled={blocked}
         onMax={
-          syBalance > 0n
+          syBalance > 0n && !blocked
             ? () => {
                 setAmount(stroopsToXlm(syBalance))
               }
@@ -266,24 +265,45 @@ function LockRateForm({
           <button
             type="button"
             onClick={onGoAdvanced}
-            className="rounded font-medium text-neutral-100 underline underline-offset-2 transition-colors hover:text-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+            className="ml-1 inline-flex min-h-11 items-center rounded-md border border-neutral-700 px-3 font-medium text-neutral-100 transition-colors hover:bg-neutral-800 hover:text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
           >
-            Go to Advanced
+            Open Convert
           </button>
         </p>
       )}
 
       {ptOut > 0n && (
-        <div className="space-y-2 rounded-xl border border-neutral-800 bg-neutral-950/40 p-3.5">
-          <SummaryRow label="You receive" accent>
-            {formatAmount(ptOut)} PT
-          </SummaryRow>
-          <SummaryRow label="Locked APY">{formatPercent(lockedApy)}</SummaryRow>
-          <SummaryRow label="Price impact">{formatPercent(impact)}</SummaryRow>
-          <SummaryRow label="Min received">{formatAmount(minOut)} PT</SummaryRow>
-          <div className="border-t border-neutral-800 pt-2">
-            <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
+        <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+          <p className="text-sm font-semibold text-neutral-100">Review fixed return</p>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-400">
+            Check the outcome below before your wallet opens.
+          </p>
+          <div className="mt-4 space-y-2.5">
+            <SummaryRow label="You pay">{formatAmount(syIn)} SY</SummaryRow>
+            <SummaryRow label="You receive at least" accent>
+              {formatAmount(minOut)} PT
+            </SummaryRow>
+            <SummaryRow label="Fixed APY">{formatPercent(lockedApy)}</SummaryRow>
+            <SummaryRow label="Maturity">{formatMaturity(maturity)}</SummaryRow>
           </div>
+          <p className="mt-4 border-t border-neutral-800 pt-3 text-xs leading-relaxed text-neutral-400">
+            Hold PT until maturity for its displayed redemption outcome. Selling earlier may return
+            less.
+          </p>
+          <details className="mt-3 border-t border-neutral-800 pt-3 text-xs">
+            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400">
+              Price and slippage details
+            </summary>
+            <div className="mt-2 space-y-2.5 pb-1">
+              <SummaryRow label="Quoted PT">{formatAmount(ptOut)} PT</SummaryRow>
+              <SummaryRow label="Price impact">{formatPercent(impact)}</SummaryRow>
+              <SummaryRow label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</SummaryRow>
+              <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
+              <p className="text-neutral-500">
+                Your wallet shows the final Stellar network fee before approval.
+              </p>
+            </div>
+          </details>
         </div>
       )}
 
@@ -304,14 +324,14 @@ function LockRateForm({
               </p>
             </div>
           </div>
-          <label className="mt-3 flex items-center gap-2.5 text-xs font-medium">
+          <label className="mt-3 flex min-h-11 items-center gap-2.5 text-xs font-medium">
             <input
               type="checkbox"
               checked={acceptsLoss}
               onChange={(e) => {
                 setAcceptsLoss(e.target.checked)
               }}
-              className="h-4 w-4 shrink-0 rounded border-warning-500/40 bg-transparent accent-warning-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-400/60"
+              className="h-6 w-6 shrink-0 rounded border-warning-500/40 bg-transparent accent-warning-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-400/60"
             />
             I understand this locks a negative rate
           </label>
@@ -320,11 +340,13 @@ function LockRateForm({
 
       <ActionButton
         onClick={submit}
-        disabled={isWrongNetwork || !valid.ok || ptOut <= 0n || (locksLoss && !acceptsLoss)}
+        disabled={
+          isWrongNetwork || blocked || !valid.ok || ptOut <= 0n || (locksLoss && !acceptsLoss)
+        }
         pending={pending}
         pendingLabel="Locking rate…"
       >
-        Lock fixed rate
+        Confirm fixed return in wallet
       </ActionButton>
 
       <p className="text-center text-[11px] text-neutral-500">
@@ -341,7 +363,7 @@ function LockRateForm({
           <button type="button" onClick={reset} className="sr-only">
             Dismiss status
           </button>
-          <TxStatus outcome={outcome} />
+          <TxStatus outcome={outcome} onRetry={submit} />
         </div>
       )}
     </div>
@@ -386,7 +408,7 @@ function LongYieldForm({
   const netCost = syIn > sellBack ? syIn - sellBack : 0n
 
   function doSplit(): void {
-    if (!valid.ok || split.pending || projected <= 0n) return
+    if (!valid.ok || split.pending || split.blocked || projected <= 0n) return
     let captured: bigint | null = null
     void split.run(
       'Split',
@@ -402,7 +424,7 @@ function LongYieldForm({
   }
 
   function doSell(): void {
-    if (ptToSell === null || ptToSell <= 0n || sell.pending) return
+    if (ptToSell === null || ptToSell <= 0n || sell.pending || sell.blocked) return
     const minOut = minOutFromSlippage(quoteSwap(pool, 'PtToSy', ptToSell), slippageBps)
     void sell.run(
       'Sell PT',
@@ -435,7 +457,7 @@ function LongYieldForm({
         unit="SY"
         hint={`Available: ${formatAmount(syBalance)} SY`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
-        disabled={step2}
+        disabled={step2 || split.blocked || sell.blocked}
         onMax={
           syBalance > 0n && !step2
             ? () => {
@@ -446,15 +468,35 @@ function LongYieldForm({
       />
 
       {projected > 0n && (
-        <div className="space-y-2 rounded-xl border border-neutral-800 bg-neutral-950/40 p-3.5">
-          <SummaryRow label="YT you keep" accent>
-            {formatAmount(projected)} YT
-          </SummaryRow>
-          <SummaryRow label="PT sold back for">≈ {formatAmount(sellBack)} SY</SummaryRow>
-          <SummaryRow label="Net cost">≈ {formatAmount(netCost)} SY</SummaryRow>
-          <div className="border-t border-neutral-800 pt-2">
-            <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
+        <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+          <p className="text-sm font-semibold text-neutral-100">Review yield exposure</p>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-400">
+            This strategy needs two wallet approvals. The progress stays visible below.
+          </p>
+          <div className="mt-4 space-y-2.5">
+            <SummaryRow label="You use">{formatAmount(syIn)} SY</SummaryRow>
+            <SummaryRow label="YT you keep" accent>
+              {formatAmount(projected)} YT
+            </SummaryRow>
+            <SummaryRow label="PT sold for">≈ {formatAmount(sellBack)} SY</SummaryRow>
+            <SummaryRow label="Estimated net cost">≈ {formatAmount(netCost)} SY</SummaryRow>
           </div>
+          <p className="mt-4 border-t border-neutral-800 pt-3 text-xs leading-relaxed text-neutral-400">
+            YT captures realized yield until maturity. Its remaining opportunity falls as maturity
+            approaches, and returns depend on the yield actually earned.
+          </p>
+          <details className="mt-3 border-t border-neutral-800 pt-3 text-xs">
+            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400">
+              Slippage and fee details
+            </summary>
+            <div className="mt-2 space-y-2.5 pb-1">
+              <SummaryRow label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</SummaryRow>
+              <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
+              <p className="text-neutral-500">
+                Your wallet shows the final Stellar network fee before each approval.
+              </p>
+            </div>
+          </details>
         </div>
       )}
 
@@ -468,20 +510,20 @@ function LongYieldForm({
       {!step2 ? (
         <ActionButton
           onClick={doSplit}
-          disabled={isWrongNetwork || !valid.ok || projected <= 0n}
+          disabled={isWrongNetwork || split.blocked || !valid.ok || projected <= 0n}
           pending={split.pending}
           pendingLabel="Splitting…"
         >
-          Step 1 — Split SY
+          Approve 1 of 2 — Separate yield
         </ActionButton>
       ) : (
         <ActionButton
           onClick={doSell}
-          disabled={isWrongNetwork || ptToSell === null || ptToSell <= 0n}
+          disabled={isWrongNetwork || sell.blocked || ptToSell === null || ptToSell <= 0n}
           pending={sell.pending}
           pendingLabel="Selling PT…"
         >
-          Step 2 — Sell {formatAmount(ptToSell ?? 0n)} PT
+          Approve 2 of 2 — Sell {formatAmount(ptToSell ?? 0n)} PT
         </ActionButton>
       )}
 
@@ -490,8 +532,8 @@ function LongYieldForm({
           Switch your wallet to Testnet to continue.
         </p>
       )}
-      {split.outcome && <TxStatus outcome={split.outcome} />}
-      {sell.outcome && <TxStatus outcome={sell.outcome} />}
+      {split.outcome && <TxStatus outcome={split.outcome} onRetry={doSplit} />}
+      {sell.outcome && <TxStatus outcome={sell.outcome} onRetry={doSell} />}
     </div>
   )
 }
@@ -520,7 +562,7 @@ function StageChip({
       <span
         className={`grid h-4 w-4 place-items-center rounded-full text-[10px] ${
           done
-            ? 'bg-accent-500 text-neutral-50'
+            ? 'bg-accent-500 text-onAccent'
             : active
               ? 'bg-neutral-700 text-neutral-100'
               : 'bg-neutral-800 text-neutral-500'

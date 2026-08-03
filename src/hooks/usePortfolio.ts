@@ -65,7 +65,12 @@ export function usePortfolio(address: string | null): UsePortfolioResult {
         setLoading(false)
         return
       }
-      const rateInfo = isAppError(rateRes) ? null : rateRes
+      if (isAppError(rateRes)) {
+        setError(rateRes)
+        setLoading(false)
+        return
+      }
+      const rateInfo = rateRes
 
       if (!address) {
         setPortfolio({ underlying: 0n, sy: 0n, rateInfo, maturities: maturitiesRes, positions: [] })
@@ -88,6 +93,16 @@ export function usePortfolio(address: string | null): UsePortfolioResult {
       }
 
       const positions: MaturityPosition[] = []
+      const positionError = positionResults.find(isAppError)
+      if (positionError) {
+        setError({
+          code: 'positions_unavailable',
+          message:
+            'Everspan could not verify every position. Financial actions are paused until the data is refreshed.',
+        })
+        setLoading(false)
+        return
+      }
       maturitiesRes.forEach((maturity, i) => {
         const pos = positionResults[i]
         if (!isAppError(pos)) positions.push({ maturity, position: pos })

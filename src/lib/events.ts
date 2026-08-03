@@ -1,5 +1,5 @@
 /** Soroban event polling for the active market's live activity feed. */
-import { scValToNative } from '@stellar/stellar-sdk'
+import { Address, scValToNative } from '@stellar/stellar-sdk'
 import { Api, Server } from '@stellar/stellar-sdk/rpc'
 import { config } from '../config'
 import { noteChainTime } from './chainTime'
@@ -54,21 +54,27 @@ export interface FetchEventsResult {
  */
 const LOOKBACK_LEDGERS = 2000
 
-/** Fetch recent protocol events from the active market's contracts (fresh window or from a cursor). */
-export async function fetchProtocolEvents(cursor?: string): Promise<FetchEventsResult | AppError> {
+/** Fetch recent protocol events from the active market's contracts. When an
+ * address is supplied, filter at the RPC before the result limit is applied. */
+export async function fetchProtocolEvents(
+  cursor?: string,
+  address?: string,
+): Promise<FetchEventsResult | AppError> {
   try {
     const market = activeMarket()
-    const filters: Api.EventFilter[] = [
-      {
-        type: 'contract',
-        contractIds: [
-          market.underlyingContractId,
-          market.syVaultContractId,
-          market.splitterContractId,
-          market.ammContractId,
-        ],
-      },
-    ]
+    const filter: Api.EventFilter = {
+      type: 'contract',
+      contractIds: [
+        market.underlyingContractId,
+        market.syVaultContractId,
+        market.splitterContractId,
+        market.ammContractId,
+      ],
+    }
+    if (address) {
+      filter.topics = [['*', new Address(address).toScVal().toXDR('base64')]]
+    }
+    const filters: Api.EventFilter[] = [filter]
     const request: Api.GetEventsRequest = cursor
       ? { filters, cursor, limit: 50 }
       : { filters, startLedger: await resolveStartLedger(), limit: 50 }

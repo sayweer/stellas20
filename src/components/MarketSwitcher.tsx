@@ -35,7 +35,7 @@ export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): React
               onClick={() => {
                 onChange(market.key)
               }}
-              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 ${
+              className={`min-h-11 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 ${
                 selected
                   ? 'bg-neutral-800 text-neutral-50'
                   : 'text-neutral-400 hover:text-neutral-200'

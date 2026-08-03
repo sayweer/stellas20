@@ -3,7 +3,7 @@ import type { ReactElement, ReactNode } from 'react'
 import { Spinner } from './icons'
 
 const inputClass =
-  'w-full rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-500 font-mono tabular-nums transition-colors focus:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/30 aria-[invalid=true]:border-negative-500/70'
+  'w-full min-h-12 rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-3 text-sm text-neutral-100 placeholder:text-neutral-500 font-mono tabular-nums transition-[color,background-color,border-color,box-shadow] duration-100 focus:border-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 aria-[invalid=true]:border-negative-500/70'
 
 interface AmountFieldProps {
   id: string
@@ -61,7 +61,7 @@ export function AmountField({
               type="button"
               onClick={onMax}
               disabled={disabled}
-              className="pointer-events-auto rounded border border-neutral-700 px-1.5 py-0.5 text-[11px] font-semibold text-accent-300 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 disabled:opacity-50"
+              className="pointer-events-auto inline-flex min-h-11 items-center rounded-md border border-neutral-700 px-2 text-[11px] font-semibold text-accent-300 transition-colors duration-100 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 disabled:opacity-50"
             >
               MAX
             </button>
@@ -70,7 +70,7 @@ export function AmountField({
         </div>
       </div>
       {error !== null ? (
-        <p id={`${id}-error`} aria-live="polite" className="text-xs text-negative-400">
+        <p id={`${id}-error`} aria-live="polite" className="text-xs text-negative-300">
           {error}
         </p>
       ) : (
@@ -113,7 +113,7 @@ export function TabToggle({
             onChange(opt.id)
           }}
           aria-pressed={active === opt.id}
-          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 ${
+          className={`min-h-11 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${
             active === opt.id
               ? 'bg-neutral-800 text-neutral-100'
               : 'text-neutral-400 hover:text-neutral-200'
@@ -147,10 +147,10 @@ export function ActionButton({
   className = '',
 }: ActionButtonProps): ReactElement {
   const base =
-    'inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed'
+    'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-[color,background-color,border-color,transform] duration-100 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:translate-y-px disabled:cursor-not-allowed disabled:transform-none'
   const styles =
     variant === 'primary'
-      ? 'bg-accent-500 text-neutral-50 hover:bg-accent-400 focus-visible:ring-accent-400 active:bg-accent-600 disabled:bg-neutral-800 disabled:text-neutral-600'
+      ? 'bg-accent-500 text-onAccent hover:bg-accent-400 focus-visible:ring-accent-400 active:bg-accent-600 disabled:bg-neutral-800 disabled:text-neutral-600'
       : 'border border-neutral-700 text-neutral-200 hover:bg-neutral-800 focus-visible:ring-accent-500/60 disabled:border-neutral-800 disabled:text-neutral-600'
   return (
     <button

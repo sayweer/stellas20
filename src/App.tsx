@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useWallet } from './context/WalletContext'
+import { useTransactionSafety } from './context/TransactionSafetyContext'
 import { useSurface } from './hooks/useSurface'
 import { useDocumentTitle } from './hooks/useDocumentTitle'
 import { useBalance } from './hooks/useBalance'
@@ -19,20 +20,21 @@ import { WalletButton } from './components/WalletButton'
 import { BrandMark } from './components/BrandMark'
 import { MarketSwitcher } from './components/MarketSwitcher'
 import { BottomNav, SideNav, type TabId } from './components/SideNav'
-import { MarketsList } from './components/MarketsList'
-import { TradePanel } from './components/TradePanel'
-import { PoolPanel } from './components/PoolPanel'
 import { PortfolioView } from './components/PortfolioView'
-import { AdvancedPanel } from './components/AdvancedPanel'
 import { ConnectPrompt } from './components/ConnectPrompt'
-import { ActivityFeed } from './components/ActivityFeed'
-import { Toast } from './components/Toast'
+import { ThemeToggle } from './components/ThemeToggle'
+import { OverviewPanel, type EarnStrategy } from './components/OverviewPanel'
+import { EarnPanel } from './components/EarnPanel'
+import { MorePanel, type MoreView } from './components/MorePanel'
+import { ConnectionBanner } from './components/ConnectionBanner'
 import { AlertTriangleIcon } from './components/icons'
 
 function App(): ReactElement {
   useSurface('app')
   useDocumentTitle('App — Everspan')
   const [marketKey, setMarketKey] = useState<MarketKey>(markets[0].key)
+  const { address } = useWallet()
+  const { resolutionVersion } = useTransactionSafety()
   const configured = isContractsConfigured()
 
   function switchMarket(key: MarketKey): void {
@@ -45,6 +47,7 @@ function App(): ReactElement {
   return (
     <div className="flex min-h-screen flex-col">
       <NetworkBanner />
+      <ConnectionBanner />
 
       {!configured && (
         <div role="alert" className="border-b border-warning-500/30 bg-warning-500/10">
@@ -61,23 +64,11 @@ function App(): ReactElement {
       {/* Each market is an independent deployment — its own vault, Market,
           pools and balances. Remounting on a switch is what guarantees that
           no read, position or form value survives from the previous one. */}
-      <MarketContent key={marketKey} marketKey={marketKey} onSwitchMarket={switchMarket} />
-
-      {/* Desktop only. Below lg the same link lives in the header instead: the
-          content column is full-width there, so a floating button sits on top
-          of each panel's primary action and swallows taps meant for it. */}
-      {config.feedbackFormUrl && (
-        <a
-          href={config.feedbackFormUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-6 right-6 z-40 hidden min-h-11 items-center justify-center rounded-full bg-neutral-50 px-5 py-2.5 text-sm font-semibold text-neutral-950 shadow-lg shadow-black/30 transition-[transform,background-color,box-shadow] duration-100 ease-out hover:-translate-y-0.5 hover:bg-white hover:shadow-xl hover:shadow-black/40 active:translate-y-0 active:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-50 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 motion-reduce:transform-none motion-reduce:transition-none lg:inline-flex"
-        >
-          Share feedback
-        </a>
-      )}
-
-      <Toast />
+      <MarketContent
+        key={`${marketKey}:${address ?? 'disconnected'}:${resolutionVersion}`}
+        marketKey={marketKey}
+        onSwitchMarket={switchMarket}
+      />
     </div>
   )
 }
@@ -95,16 +86,37 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
   const pools = usePools(address, portfolio.maturities)
   const liveRate = useLiveRate(portfolio.rateInfo)
 
-  const [tab, setTab] = useState<TabId>('markets')
-  const [tradeMaturity, setTradeMaturity] = useState<bigint | null>(null)
-  const [poolMaturity, setPoolMaturity] = useState<bigint | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedTab = searchParams.get('view')
+  const tab: TabId =
+    requestedTab === 'earn' ||
+    requestedTab === 'portfolio' ||
+    requestedTab === 'more' ||
+    requestedTab === 'overview'
+      ? requestedTab
+      : 'overview'
+  const requestedStrategy = searchParams.get('strategy')
+  const strategy: EarnStrategy =
+    requestedStrategy === 'yield' || requestedStrategy === 'liquidity' ? requestedStrategy : 'fixed'
+  const moreView: MoreView = searchParams.get('tool') === 'activity' ? 'activity' : 'convert'
+  const maturity = parseMaturity(searchParams.get('maturity'))
+
+  // A primary destination should start at its heading even when it is chosen
+  // from the pinned mobile navigation after scrolling another long panel.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }, [tab])
 
   // A new event (ours or anyone's) may make reads stale — refresh both the
   // portfolio and pool reads in the background (no spinner flash).
-  const events = useProtocolEvents(() => {
+  const activity = useProtocolEvents(() => {
     refreshSilent()
     pools.refreshSilent()
   })
+  const personalActivity = useProtocolEvents(
+    undefined,
+    isConnected && address !== null ? address : null,
+  )
 
   function refreshAll(): void {
     refresh()
@@ -112,14 +124,34 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
     balance.refresh()
   }
 
-  function goTrade(maturity: bigint): void {
-    setTradeMaturity(maturity)
-    setTab('trade')
+  function updateLocation(next: {
+    tab?: TabId
+    strategy?: EarnStrategy
+    tool?: MoreView
+    maturity?: bigint
+  }): void {
+    const params = new URLSearchParams(searchParams)
+    if (next.tab) params.set('view', next.tab)
+    if (next.strategy) params.set('strategy', next.strategy)
+    if (next.tool) params.set('tool', next.tool)
+    if (next.maturity !== undefined) params.set('maturity', next.maturity.toString())
+    setSearchParams(params)
+  }
+
+  function setTab(next: TabId): void {
+    updateLocation({ tab: next })
+  }
+
+  function chooseStrategy(next: EarnStrategy, maturity?: bigint): void {
+    updateLocation({ tab: 'earn', strategy: next, maturity })
   }
 
   function goPool(maturity: bigint): void {
-    setPoolMaturity(maturity)
-    setTab('pool')
+    updateLocation({ tab: 'earn', strategy: 'liquidity', maturity })
+  }
+
+  function goConvert(): void {
+    updateLocation({ tab: 'more', tool: 'convert' })
   }
 
   const connected = isConnected && address !== null
@@ -130,7 +162,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
         <aside className="hidden w-52 shrink-0 flex-col py-6 lg:flex">
           <Link
             to="/"
-            className="flex items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+            className="flex min-h-11 items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
           >
             <BrandMark className="h-6 w-6 text-neutral-50" />
             <span className="text-base font-medium tracking-[-0.02em] text-neutral-50">
@@ -144,6 +176,16 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
 
           <div className="mt-auto space-y-4 pt-8">
             <RateTicker rateInfo={portfolio.rateInfo} />
+            {config.feedbackFormUrl && (
+              <a
+                href={config.feedbackFormUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-850 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+              >
+                Share feedback
+              </a>
+            )}
             <p className="text-[11px] leading-relaxed text-neutral-600">
               Testnet only. Never share your secret key.
             </p>
@@ -158,23 +200,24 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
             <Link
               to="/"
               aria-label="Everspan home"
-              className="order-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:hidden"
+              className="order-1 -ml-2 grid h-11 w-11 place-items-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:hidden"
             >
               <BrandMark className="h-6 w-6 text-neutral-50" />
             </Link>
-            <div className="order-2 ml-auto flex items-center gap-2 sm:order-3">
-              {/* Phone-width stand-in for the floating button, which is hidden
-                  below lg because it would cover the panels' primary action. */}
+            <div className="order-2 ml-auto flex max-w-full flex-wrap items-center justify-end gap-2 sm:order-3">
+              {/* The sidebar owns this link on desktop; the compact header is
+                  the stable, non-overlapping home for it below lg. */}
               {config.feedbackFormUrl && (
                 <a
                   href={config.feedbackFormUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="whitespace-nowrap rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:hidden"
+                  className={`${connected ? 'hidden sm:inline-flex' : 'inline-flex'} min-h-11 items-center whitespace-nowrap rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:hidden`}
                 >
                   Feedback
                 </a>
               )}
+              <ThemeToggle />
               <WalletButton />
             </div>
             <div className="order-3 w-full sm:order-2 sm:ml-0 sm:w-auto">
@@ -195,7 +238,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
             )}
 
             {/* An unfunded account can't pay tx fees — surface funding prominently. */}
-            {connected && !balance.funded && !balance.loading && !balance.error && (
+            {connected && !balance.funded && !balance.loading && (
               <BalanceCard
                 address={address}
                 balance={balance.balance}
@@ -206,55 +249,47 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
               />
             )}
 
-            {tab === 'markets' && (
-              <MarketsList
-                pools={pools.pools}
-                /* The maturity list arrives first, and until it does `usePools`
-                   has nothing to fetch — so it reports "done" with an empty
-                   result and the list flashed "No maturities exist yet" on
-                   every load and every market switch. The panel is loading
-                   while either read is still in flight. */
+            {tab === 'overview' && (
+              <OverviewPanel
+                connected={connected}
+                underlying={portfolio.underlying}
+                sy={portfolio.sy}
+                positions={portfolio.positions}
                 loading={pools.loading || loading}
+                pools={pools.pools}
                 rateInfo={portfolio.rateInfo}
                 liveRate={liveRate}
-                onTrade={goTrade}
+                error={error}
+                onRetry={refreshAll}
+                onEarn={chooseStrategy}
+                onConvert={goConvert}
+                onPortfolio={() => setTab('portfolio')}
               />
             )}
 
-            {tab === 'trade' &&
+            {tab === 'earn' &&
               (connected ? (
-                <TradePanel
+                <EarnPanel
+                  strategy={strategy}
+                  onStrategyChange={(next) => chooseStrategy(next)}
                   address={address}
                   isWrongNetwork={isWrongNetwork}
                   pools={pools.pools}
-                  syBalance={portfolio.sy}
-                  liveRate={liveRate}
-                  initialMaturity={tradeMaturity}
-                  onSuccess={refreshAll}
-                  onGoAdvanced={() => {
-                    setTab('advanced')
-                  }}
-                />
-              ) : (
-                <ConnectPrompt tab="trade" message="Connect a Testnet wallet to lock a fixed rate or go long yield." />
-              ))}
-
-            {tab === 'pool' &&
-              (connected ? (
-                <PoolPanel
-                  address={address}
-                  isWrongNetwork={isWrongNetwork}
-                  pools={pools.pools}
+                  poolsLoading={pools.loading || loading}
                   positions={portfolio.positions}
                   syBalance={portfolio.sy}
-                  initialMaturity={poolMaturity}
+                  liveRate={liveRate}
+                  tradeMaturity={maturity}
+                  poolMaturity={maturity}
+                  onMaturityChange={(next) => updateLocation({ maturity: next })}
                   onSuccess={refreshAll}
-                  onGoAdvanced={() => {
-                    setTab('advanced')
-                  }}
+                  onConvert={goConvert}
                 />
               ) : (
-                <ConnectPrompt tab="pool" message="Connect a Testnet wallet to provide liquidity and earn swap fees." />
+                <ConnectPrompt
+                  tab="earn"
+                  message="Connect a Testnet wallet to lock a fixed return, hold yield exposure, or earn trading fees."
+                />
               ))}
 
             {tab === 'portfolio' &&
@@ -269,26 +304,34 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                   isWrongNetwork={isWrongNetwork}
                   onRefresh={refreshAll}
                   onManagePool={goPool}
+                  events={personalActivity.events}
+                  activityLoading={personalActivity.loading}
+                  activityError={personalActivity.error}
+                  onRetryActivity={personalActivity.retry}
                 />
               ) : (
-                <ConnectPrompt tab="portfolio" message="Connect a Testnet wallet to see your positions and claimable yield." />
-              ))}
-
-            {tab === 'activity' && <ActivityFeed events={events} />}
-
-            {tab === 'advanced' &&
-              (connected ? (
-                <AdvancedPanel
-                  address={address}
-                  portfolio={portfolio}
-                  liveRate={liveRate}
-                  loading={loading}
-                  isWrongNetwork={isWrongNetwork}
-                  onSuccess={refreshAll}
+                <ConnectPrompt
+                  tab="portfolio"
+                  message="Connect a Testnet wallet to see your positions and claimable yield."
                 />
-              ) : (
-                <ConnectPrompt tab="advanced" message="Connect a Testnet wallet to wrap the underlying and split SY into PT + YT." />
               ))}
+
+            {tab === 'more' && (
+              <MorePanel
+                view={moreView}
+                onViewChange={(next) => updateLocation({ tab: 'more', tool: next })}
+                address={connected ? address : null}
+                portfolio={portfolio}
+                liveRate={liveRate}
+                loading={loading}
+                isWrongNetwork={isWrongNetwork}
+                onSuccess={refreshAll}
+                events={activity.events}
+                activityLoading={activity.loading}
+                activityError={activity.error}
+                onRetryActivity={activity.retry}
+              />
+            )}
           </main>
         </div>
       </div>
@@ -299,3 +342,12 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
 }
 
 export default App
+
+function parseMaturity(value: string | null): bigint | null {
+  if (!value || !/^\d+$/.test(value)) return null
+  try {
+    return BigInt(value)
+  } catch {
+    return null
+  }
+}

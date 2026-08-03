@@ -89,7 +89,7 @@ function MaturityCard({
   onSuccess,
 }: MaturityCardProps): ReactElement {
   const { maturity, position } = item
-  const { outcome, pending, run } = useTxRunner()
+  const { outcome, pending, blocked, run } = useTxRunner()
   const countdown = maturityCountdown(maturity, nowMs)
   // Freeze the rate at this position's maturity so a matured position's claimable
   // plateaus instead of ticking up forever. `null` (rate unknown) shows "—".
@@ -102,11 +102,11 @@ function MaturityCard({
   const canClaim = claimable !== null && claimable > 0n
 
   function claim(): void {
-    if (pending) return
+    if (pending || blocked) return
     void run('Claim', (onPhase) => claimYield(address, maturity, onPhase), onSuccess)
   }
   function redeem(): void {
-    if (pending) return
+    if (pending || blocked) return
     void run('Redeem', (onPhase) => redeemPt(address, maturity, position.pt, onPhase), onSuccess)
   }
 
@@ -158,7 +158,7 @@ function MaturityCard({
           <div className="mt-3 flex gap-2">
             <ActionButton
               onClick={claim}
-              disabled={isWrongNetwork || pending || !canClaim}
+              disabled={isWrongNetwork || pending || blocked || !canClaim}
               pending={pending && outcome?.status === 'pending' && outcome.label === 'Claim'}
               pendingLabel="Claiming…"
             >
@@ -167,7 +167,9 @@ function MaturityCard({
             <ActionButton
               variant="secondary"
               onClick={redeem}
-              disabled={isWrongNetwork || pending || !countdown.matured || position.pt <= 0n}
+              disabled={
+                isWrongNetwork || pending || blocked || !countdown.matured || position.pt <= 0n
+              }
               pending={pending && outcome?.status === 'pending' && outcome.label === 'Redeem'}
               pendingLabel="Redeeming…"
             >
@@ -195,7 +197,7 @@ function MaturityCard({
 
       {outcome && (
         <div className="mt-4">
-          <TxStatus outcome={outcome} />
+          <TxStatus outcome={outcome} onRetry={outcome.label === 'Claim' ? claim : redeem} />
         </div>
       )}
     </div>

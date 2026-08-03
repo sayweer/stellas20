@@ -34,7 +34,12 @@ export function WalletBar({
   const market = activeMarket()
 
   function runFaucet(): void {
-    void faucet.run('Faucet', (onPhase) => requestFaucet(address, FAUCET_AMOUNT, onPhase), onRefresh)
+    if (faucet.blocked) return
+    void faucet.run(
+      'Faucet',
+      (onPhase) => requestFaucet(address, FAUCET_AMOUNT, onPhase),
+      onRefresh,
+    )
   }
 
   return (
@@ -46,7 +51,11 @@ export function WalletBar({
         </div>
         <div className="ml-auto flex items-center gap-2">
           {market.source === 'mock' ? (
-            <FaucetButton pending={faucet.pending} disabled={isWrongNetwork} onClick={runFaucet} />
+            <FaucetButton
+              pending={faucet.pending}
+              disabled={isWrongNetwork || faucet.blocked}
+              onClick={runFaucet}
+            />
           ) : (
             market.fundingHint && (
               <p className="max-w-xs text-xs text-neutral-400">{market.fundingHint}</p>
@@ -57,7 +66,7 @@ export function WalletBar({
             onClick={onRefresh}
             disabled={loading}
             aria-label="Refresh balances"
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 disabled:opacity-50"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 disabled:opacity-50"
           >
             {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
           </button>
@@ -65,7 +74,7 @@ export function WalletBar({
       </div>
       {faucet.outcome && (
         <div className="mt-3">
-          <TxStatus outcome={faucet.outcome} />
+          <TxStatus outcome={faucet.outcome} onRetry={runFaucet} />
         </div>
       )}
     </div>

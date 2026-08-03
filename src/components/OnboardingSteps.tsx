@@ -22,16 +22,24 @@ export function OnboardingSteps({ gotTokens, wrapped, split }: OnboardingStepsPr
     {
       n: 1,
       title: `Get ${market.underlyingSymbol}`,
-      detail: market.source === 'mock' ? 'Use the faucet for demo yield tokens.' : 'Fund the account with Friendbot.',
+      detail:
+        market.source === 'mock'
+          ? 'Use the faucet for demo yield tokens.'
+          : 'Fund the account with Friendbot.',
       done: gotTokens,
     },
     {
       n: 2,
-      title: 'Wrap into SY',
-      detail: `Standardize ${market.underlyingSymbol} into SY shares.`,
+      title: 'Prepare for Everspan',
+      detail: `Convert ${market.underlyingSymbol} into the SY format used by every strategy.`,
       done: wrapped,
     },
-    { n: 3, title: 'Split SY', detail: 'Mint PT (principal) + YT (yield).', done: split },
+    {
+      n: 3,
+      title: 'Choose an outcome',
+      detail: 'Keep principal, yield, or both — Everspan handles the matching positions.',
+      done: split,
+    },
   ]
 
   return (
@@ -39,7 +47,7 @@ export function OnboardingSteps({ gotTokens, wrapped, split }: OnboardingStepsPr
       aria-label="Getting started"
       className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6"
     >
-      <h2 className="text-sm font-medium text-neutral-300">Get started in 3 steps</h2>
+      <h2 className="text-sm font-medium text-neutral-300">Your setup progress</h2>
       <ol className="mt-4 grid gap-3 sm:grid-cols-3">
         {steps.map((step) => (
           <li

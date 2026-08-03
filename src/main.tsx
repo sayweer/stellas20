@@ -11,6 +11,10 @@ import { NotFound } from './routes/NotFound.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 import { ToastProvider } from './context/ToastContext.tsx'
 import { WalletProvider } from './context/WalletContext.tsx'
+import { ThemeProvider } from './context/ThemeContext.tsx'
+import { TransactionSafetyProvider } from './context/TransactionSafetyContext.tsx'
+import { TransactionSafetyBanner } from './components/TransactionSafetyBanner.tsx'
+import { Toast } from './components/Toast.tsx'
 
 if (config.sentryDsn) {
   Sentry.init({ dsn: config.sentryDsn })
@@ -25,17 +29,23 @@ createRoot(rootElement).render(
   <StrictMode>
     <ErrorBoundary>
       <ToastProvider>
-        {/* The wallet provider wraps both routes so a session restored while
-            reading the marketing page is already connected on /app. */}
-        <WalletProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/app" element={<App />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </WalletProvider>
+        <ThemeProvider>
+          <TransactionSafetyProvider>
+            {/* The wallet provider wraps both routes so a session restored while
+                reading the marketing page is already connected on /app. */}
+            <WalletProvider>
+              <BrowserRouter>
+                <TransactionSafetyBanner />
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/app" element={<App />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toast />
+              </BrowserRouter>
+            </WalletProvider>
+          </TransactionSafetyProvider>
+        </ThemeProvider>
       </ToastProvider>
     </ErrorBoundary>
     <Analytics />

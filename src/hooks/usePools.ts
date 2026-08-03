@@ -1,7 +1,7 @@
 /** Hook that batch-reads every maturity's AMM pool state + the account's LP. */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { readLpBalance, readPool, type PoolView } from '../lib/contracts/amm'
-import { isAppError } from '../types'
+import { isAppError, type AppError } from '../types'
 
 /** A maturity, its pool (null if none created), and the account's LP shares. */
 export interface MaturityPool {
@@ -22,6 +22,7 @@ export interface MaturityPool {
 export interface UsePoolsResult {
   pools: MaturityPool[]
   loading: boolean
+  error: AppError | null
   refresh: () => void
   refreshSilent: () => void
 }
@@ -39,6 +40,7 @@ const PERIODIC_MS = 60_000
 export function usePools(address: string | null, maturities: bigint[]): UsePoolsResult {
   const [pools, setPools] = useState<MaturityPool[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<AppError | null>(null)
   const requestId = useRef(0)
   // Stable key so the effect doesn't re-run on a fresh array with equal values.
   const maturitiesKey = maturities.map((m) => m.toString()).join(',')
@@ -48,25 +50,37 @@ export function usePools(address: string | null, maturities: bigint[]): UsePools
       const id = requestId.current + 1
       requestId.current = id
       if (!background) setLoading(true)
+      setError(null)
 
       const list = maturitiesKey === '' ? [] : maturitiesKey.split(',').map((s) => BigInt(s))
-      const results = await Promise.all(
-        list.map(async (maturity): Promise<MaturityPool> => {
+      const reads = await Promise.all(
+        list.map(async (maturity) => {
           const [poolRes, lpRes] = await Promise.all([
             readPool(maturity),
             address ? readLpBalance(address, maturity) : Promise.resolve(0n),
           ])
           const absent = isAppError(poolRes) && poolRes.code === 'pool_not_found'
-          return {
-            maturity,
-            pool: isAppError(poolRes) ? null : poolRes,
-            unavailable: isAppError(poolRes) && !absent,
-            lpBalance: isAppError(lpRes) ? 0n : lpRes,
-          }
+          return { maturity, poolRes, lpRes, absent }
         }),
       )
       if (id !== requestId.current) return
+      const partialFailure = reads.some(
+        ({ poolRes, lpRes, absent }) => (isAppError(poolRes) && !absent) || isAppError(lpRes),
+      )
+      const results: MaturityPool[] = reads.map(({ maturity, poolRes, lpRes, absent }) => ({
+        maturity,
+        pool: isAppError(poolRes) ? null : poolRes,
+        unavailable: isAppError(poolRes) && !absent,
+        lpBalance: isAppError(lpRes) ? 0n : lpRes,
+      }))
       setPools(results)
+      if (partialFailure) {
+        setError({
+          code: 'pool_data_unavailable',
+          message:
+            'Everspan could not verify every pool or LP balance. Financial actions are paused until the data is refreshed.',
+        })
+      }
       setLoading(false)
     },
     [address, maturitiesKey],
@@ -91,5 +105,5 @@ export function usePools(address: string | null, maturities: bigint[]): UsePools
     void fetchAll(true)
   }, [fetchAll])
 
-  return { pools, loading, refresh, refreshSilent }
+  return { pools, loading, error, refresh, refreshSilent }
 }

@@ -5,7 +5,10 @@ interface IconProps {
   className?: string
 }
 
-function Icon({ className = 'h-4 w-4', children }: IconProps & { children: ReactNode }): ReactElement {
+function Icon({
+  className = 'h-4 w-4',
+  children,
+}: IconProps & { children: ReactNode }): ReactElement {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -166,12 +169,40 @@ export function ClockIcon({ className }: IconProps): ReactElement {
   )
 }
 
+export function SunIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2" />
+      <path d="M12 20v2" />
+      <path d="m4.93 4.93 1.42 1.42" />
+      <path d="m17.66 17.66 1.41 1.41" />
+      <path d="M2 12h2" />
+      <path d="M20 12h2" />
+      <path d="m6.34 17.66-1.41 1.41" />
+      <path d="m19.07 4.93-1.41 1.41" />
+    </Icon>
+  )
+}
+
+export function MoonIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z" />
+    </Icon>
+  )
+}
 
 export function Spinner({ className = 'h-4 w-4' }: IconProps): ReactElement {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={`animate-spin ${className}`} aria-hidden="true">
       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4" />
-      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+      <path
+        d="M12 2a10 10 0 0 1 10 10"
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
     </svg>
   )
 }

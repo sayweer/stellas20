@@ -6,6 +6,8 @@ import type { AppError } from '../types'
 import { PortfolioPanel } from './PortfolioPanel'
 import { MaturityPanel } from './MaturityPanel'
 import { LpPositions } from './LpPositions'
+import { ActivityFeed } from './ActivityFeed'
+import type { ProtocolEvent } from '../lib/events'
 
 interface PortfolioViewProps {
   address: string
@@ -17,6 +19,10 @@ interface PortfolioViewProps {
   isWrongNetwork: boolean
   onRefresh: () => void
   onManagePool: (maturity: bigint) => void
+  events: ProtocolEvent[]
+  activityLoading: boolean
+  activityError: AppError | null
+  onRetryActivity: () => void
 }
 
 export function PortfolioView({
@@ -29,14 +35,13 @@ export function PortfolioView({
   isWrongNetwork,
   onRefresh,
   onManagePool,
+  events,
+  activityLoading,
+  activityError,
+  onRetryActivity,
 }: PortfolioViewProps): ReactElement {
   return (
-    <div
-      id="panel-portfolio"
-      role="tabpanel"
-      aria-labelledby="tab-portfolio"
-      className="space-y-6"
-    >
+    <div id="panel-portfolio" role="tabpanel" aria-labelledby="tab-portfolio" className="space-y-6">
       <PortfolioPanel
         address={address}
         portfolio={portfolio}
@@ -53,6 +58,13 @@ export function PortfolioView({
         onSuccess={onRefresh}
       />
       <LpPositions pools={pools} onManage={onManagePool} />
+      <ActivityFeed
+        events={events}
+        address={address}
+        loading={activityLoading}
+        error={activityError}
+        onRetry={onRetryActivity}
+      />
     </div>
   )
 }

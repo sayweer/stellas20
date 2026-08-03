@@ -13,8 +13,10 @@ export function NetworkBanner(): ReactElement | null {
         <AlertTriangleIcon className="h-5 w-5 shrink-0 text-warning-400" />
         {isWrongNetwork ? (
           <p>
-            <span className="font-semibold">Wrong network{network ? ` (${network})` : ''}.</span>{' '}
-            Switch your wallet to Testnet to continue.
+            <span className="font-semibold">
+              Everspan uses Stellar Testnet; your wallet is on {network ?? 'another network'}.
+            </span>{' '}
+            Switch the active network in your wallet. Financial actions are paused until it matches.
           </p>
         ) : (
           <p>

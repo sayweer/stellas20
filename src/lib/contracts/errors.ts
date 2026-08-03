@@ -27,7 +27,10 @@ export function classifyContractError(e: unknown, errorTable: ErrorTable): AppEr
     const known = errorTable[Number(match[1])]
     if (known) return known
   }
-  if (e instanceof AssembledTransaction.Errors.UserRejected || /declin|reject|cancel/i.test(message)) {
+  // Only trust the SDK's typed wallet rejection. Matching words such as
+  // "rejected" in an RPC/contract message can happen after submission, where
+  // classifying it as a user cancel would enable a dangerous blind retry.
+  if (e instanceof AssembledTransaction.Errors.UserRejected) {
     return { code: 'user_declined', message: 'You cancelled the transaction.' }
   }
   if (/account.*not.*found|not.*exist/i.test(message)) {

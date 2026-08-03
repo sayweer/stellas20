@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { AssembledTransaction } from '@stellar/stellar-sdk/contract'
 import {
   AMM_ERRORS,
   classifyContractError,
@@ -25,8 +26,13 @@ describe('classifyContractError', () => {
   })
 
   it('detects a user-rejected signature', () => {
-    expect(classifyContractError(new Error('User declined the request'), MYT_ERRORS).code).toBe(
-      'user_declined',
+    const rejected = new AssembledTransaction.Errors.UserRejected('User declined the request')
+    expect(classifyContractError(rejected, MYT_ERRORS).code).toBe('user_declined')
+  })
+
+  it('does not mistake an untyped post-submit rejection message for a wallet cancel', () => {
+    expect(classifyContractError(new Error('Transaction rejected by RPC'), MYT_ERRORS).code).toBe(
+      'contract_error',
     )
   })
 

@@ -14,16 +14,17 @@ import { AmountField, ActionButton, TabToggle } from './forms'
 import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
 import { TxStatus } from './TxStatus'
-import {  } from './icons'
 
 interface PoolPanelProps {
   address: string
   isWrongNetwork: boolean
   pools: MaturityPool[]
+  loading: boolean
   positions: MaturityPosition[]
   syBalance: bigint
   /** A maturity to preselect (e.g. "Manage" clicked from Portfolio). */
   initialMaturity: bigint | null
+  onMaturityChange: (maturity: bigint) => void
   onSuccess: () => void
   /** Jump to the Advanced tab — the only place SY can be split into PT. */
   onGoAdvanced: () => void
@@ -35,33 +36,30 @@ export function PoolPanel({
   address,
   isWrongNetwork,
   pools,
+  loading,
   positions,
   syBalance,
   initialMaturity,
+  onMaturityChange,
   onSuccess,
   onGoAdvanced,
 }: PoolPanelProps): ReactElement {
   const now = useNow()
   const [mode, setMode] = useState<Mode>('add')
-  const [maturity, setMaturity] = useState<bigint | null>(null)
 
   const withPool = pools.filter((p) => p.pool !== null)
+  const firstActive = withPool.find((p) => Number(p.maturity) * 1000 > now)?.maturity
   const preselect =
     (initialMaturity !== null && withPool.some((p) => p.maturity === initialMaturity)
       ? initialMaturity
-      : withPool[0]?.maturity) ?? null
-  const selected =
-    maturity !== null && withPool.some((p) => p.maturity === maturity) ? maturity : preselect
+      : (firstActive ?? withPool[0]?.maturity)) ?? null
+  const selected = preselect
   const mp = withPool.find((p) => p.maturity === selected) ?? null
   const ptBalance = positions.find((p) => p.maturity === selected)?.position.pt ?? 0n
   const matured = selected !== null && Number(selected) * 1000 <= now
 
   return (
-    <section
-      id="panel-pool"
-      role="tabpanel"
-      aria-labelledby="tab-pool"
-    >
+    <div>
       <header>
         <h2 className="text-lg font-medium tracking-[-0.02em] text-neutral-100">
           Provide liquidity
@@ -71,8 +69,13 @@ export function PoolPanel({
         </p>
       </header>
 
-      {withPool.length === 0 || mp === null || selected === null ? (
-        <p className="mt-4 text-sm text-neutral-400">No pools exist yet.</p>
+      {loading && pools.length === 0 ? (
+        <div aria-label="Loading liquidity pools" className="mt-5 space-y-3">
+          <div className="h-11 animate-pulse rounded-lg bg-neutral-850" />
+          <div className="h-28 animate-pulse rounded-xl bg-neutral-850" />
+        </div>
+      ) : withPool.length === 0 || mp === null || selected === null ? (
+        <p className="mt-4 text-sm text-neutral-400">No liquidity pool is available right now.</p>
       ) : (
         <>
           <div className="mt-4">
@@ -82,7 +85,7 @@ export function PoolPanel({
                 matured: Number(p.maturity) * 1000 <= now,
               }))}
               value={selected}
-              onChange={setMaturity}
+              onChange={onMaturityChange}
             />
           </div>
 
@@ -126,7 +129,7 @@ export function PoolPanel({
           </div>
         </>
       )}
-    </section>
+    </div>
   )
 }
 
@@ -165,7 +168,7 @@ function AddForm({
 }: AddFormProps): ReactElement {
   const [amount, setAmount] = useState('')
   const [slippageBps, setSlippageBps] = useState(50)
-  const { outcome, pending, run } = useTxRunner()
+  const { outcome, pending, blocked, run } = useTxRunner()
   const pool = mp.pool
   if (pool === null) return <></>
 
@@ -182,7 +185,7 @@ function AddForm({
   const canSubmit = valid.ok && syIn > 0n && quote.lpMinted > 0n && enoughPt && !matured
 
   function submit(): void {
-    if (!canSubmit || pending) return
+    if (!canSubmit || pending || blocked) return
     const ptMin = minOutFromSlippage(quote.ptIn, slippageBps)
     const syMin = minOutFromSlippage(quote.syIn, slippageBps)
     void run(
@@ -205,18 +208,44 @@ function AddForm({
         hint={`Available: ${formatAmount(syBalance)} SY · your PT: ${formatAmount(ptBalance)}`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
         onEnter={submit}
-        disabled={matured}
-        onMax={syBalance > 0n && !matured ? () => { setAmount(stroopsToXlm(syBalance)) } : undefined}
+        disabled={matured || blocked}
+        onMax={
+          syBalance > 0n && !matured && !blocked
+            ? () => {
+                setAmount(stroopsToXlm(syBalance))
+              }
+            : undefined
+        }
       />
 
       {syIn > 0n && (
-        <div className="space-y-2 rounded-xl border border-neutral-800 bg-neutral-950/40 p-3.5">
-          <Row label="PT required">{formatAmount(ptNeeded)} PT</Row>
-          <Row label="SY deposited">{formatAmount(quote.syIn)} SY</Row>
-          <Row label="LP shares">{formatAmount(quote.lpMinted)}</Row>
-          <div className="border-t border-neutral-800 pt-2">
-            <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
+        <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+          <p className="text-sm font-semibold text-neutral-100">Review liquidity deposit</p>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-400">
+            Both assets enter the same maturity pool in one transaction.
+          </p>
+          <div className="mt-4 space-y-2.5">
+            <Row label="You provide">{formatAmount(quote.syIn)} SY</Row>
+            <Row label="PT paired">{formatAmount(ptNeeded)} PT</Row>
+            <Row label="LP shares received">{formatAmount(quote.lpMinted)} LP</Row>
+            <Row label="Pool swap fee rate">0.30%</Row>
           </div>
+          <p className="mt-4 border-t border-neutral-800 pt-3 text-xs leading-relaxed text-neutral-400">
+            Future swaps pay a 0.30% fee shared pro-rata among liquidity providers. The value and
+            PT/SY mix of your position can change before you withdraw.
+          </p>
+          <details className="mt-3 border-t border-neutral-800 pt-3 text-xs">
+            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400">
+              Slippage and fee details
+            </summary>
+            <div className="mt-2 space-y-2.5 pb-1">
+              <Row label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</Row>
+              <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
+              <p className="text-neutral-500">
+                Your wallet shows the final Stellar network fee before approval.
+              </p>
+            </div>
+          </details>
         </div>
       )}
 
@@ -226,9 +255,9 @@ function AddForm({
           <button
             type="button"
             onClick={onGoAdvanced}
-            className="rounded font-medium underline underline-offset-2 transition-colors hover:text-warning-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+            className="ml-1 inline-flex min-h-11 items-center rounded-md border border-neutral-700 px-3 font-medium transition-colors hover:bg-neutral-800 hover:text-warning-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
           >
-            split more SY in Advanced
+            prepare PT in Convert
           </button>
           .
         </p>
@@ -236,17 +265,19 @@ function AddForm({
 
       <ActionButton
         onClick={submit}
-        disabled={isWrongNetwork || !canSubmit}
+        disabled={isWrongNetwork || blocked || !canSubmit}
         pending={pending}
         pendingLabel="Adding…"
       >
-        {matured ? 'Pool matured — adds closed' : 'Add liquidity'}
+        {matured ? 'Pool matured — adds closed' : 'Confirm liquidity deposit'}
       </ActionButton>
 
       {isWrongNetwork && (
-        <p className="text-center text-xs text-warning-300">Switch your wallet to Testnet to continue.</p>
+        <p className="text-center text-xs text-warning-300">
+          Switch your wallet to Testnet to continue.
+        </p>
       )}
-      {outcome && <TxStatus outcome={outcome} />}
+      {outcome && <TxStatus outcome={outcome} onRetry={submit} />}
     </div>
   )
 }
@@ -269,7 +300,7 @@ function RemoveForm({
 }: RemoveFormProps): ReactElement {
   const [amount, setAmount] = useState('')
   const [slippageBps, setSlippageBps] = useState(50)
-  const { outcome, pending, run } = useTxRunner()
+  const { outcome, pending, blocked, run } = useTxRunner()
   const pool = mp.pool
   if (pool === null) return <></>
 
@@ -281,7 +312,7 @@ function RemoveForm({
   )
 
   function submit(): void {
-    if (!valid.ok || lp <= 0n || pending) return
+    if (!valid.ok || lp <= 0n || pending || blocked) return
     const ptMin = minOutFromSlippage(quote.ptOut, slippageBps)
     const syMin = minOutFromSlippage(quote.syOut, slippageBps)
     void run(
@@ -304,16 +335,36 @@ function RemoveForm({
         hint={`Your LP shares: ${formatAmount(mp.lpBalance)}`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
         onEnter={submit}
-        onMax={mp.lpBalance > 0n ? () => { setAmount(stroopsToXlm(mp.lpBalance)) } : undefined}
+        disabled={blocked}
+        onMax={
+          mp.lpBalance > 0n && !blocked
+            ? () => {
+                setAmount(stroopsToXlm(mp.lpBalance))
+              }
+            : undefined
+        }
       />
 
       {lp > 0n && (
-        <div className="space-y-2 rounded-xl border border-neutral-800 bg-neutral-950/40 p-3.5">
-          <Row label="PT returned">{formatAmount(quote.ptOut)} PT</Row>
-          <Row label="SY returned">{formatAmount(quote.syOut)} SY</Row>
-          <div className="border-t border-neutral-800 pt-2">
-            <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
+        <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+          <p className="text-sm font-semibold text-neutral-100">Review withdrawal</p>
+          <div className="mt-4 space-y-2.5">
+            <Row label="LP shares burned">{formatAmount(lp)} LP</Row>
+            <Row label="PT returned">{formatAmount(quote.ptOut)} PT</Row>
+            <Row label="SY returned">{formatAmount(quote.syOut)} SY</Row>
           </div>
+          <details className="mt-3 border-t border-neutral-800 pt-3 text-xs">
+            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400">
+              Slippage and fee details
+            </summary>
+            <div className="mt-2 space-y-2.5 pb-1">
+              <Row label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</Row>
+              <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
+              <p className="text-neutral-500">
+                Your wallet shows the final Stellar network fee before approval.
+              </p>
+            </div>
+          </details>
         </div>
       )}
 
@@ -325,17 +376,19 @@ function RemoveForm({
 
       <ActionButton
         onClick={submit}
-        disabled={isWrongNetwork || !valid.ok || lp <= 0n}
+        disabled={isWrongNetwork || blocked || !valid.ok || lp <= 0n}
         pending={pending}
         pendingLabel="Removing…"
       >
-        Remove liquidity
+        Confirm withdrawal
       </ActionButton>
 
       {isWrongNetwork && (
-        <p className="text-center text-xs text-warning-300">Switch your wallet to Testnet to continue.</p>
+        <p className="text-center text-xs text-warning-300">
+          Switch your wallet to Testnet to continue.
+        </p>
       )}
-      {outcome && <TxStatus outcome={outcome} />}
+      {outcome && <TxStatus outcome={outcome} onRetry={submit} />}
     </div>
   )
 }

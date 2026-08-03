@@ -45,7 +45,7 @@ export function SplitCard({
   const [amount, setAmount] = useState('')
   const [maturity, setMaturity] = useState<bigint | null>(null)
   const [nowMs, setNowMs] = useState(() => chainNowMs())
-  const { outcome, pending, run, reset } = useTxRunner()
+  const { outcome, pending, blocked, run, reset } = useTxRunner()
 
   useEffect(() => {
     const t = window.setInterval(() => {
@@ -96,7 +96,7 @@ export function SplitCard({
   }
 
   function submit(): void {
-    if (!valid.ok || pending || selected === null || selectedMatured) return
+    if (!valid.ok || pending || blocked || selected === null || selectedMatured) return
     const stroops = valid.stroops
     const label = tab === 'split' ? 'Split' : 'Merge'
     void run(
@@ -116,7 +116,7 @@ export function SplitCard({
     <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <SplitIcon className="h-4 w-4 text-neutral-400" />
-        <h2 className="text-sm font-medium text-neutral-400">Split / Merge</h2>
+        <h2 className="text-sm font-medium text-neutral-100">Separate principal and yield</h2>
       </div>
 
       {positions.length === 0 ? (
@@ -140,8 +140,8 @@ export function SplitCard({
             className="mt-4"
             label="Split or merge mode"
             options={[
-              { id: 'split', label: 'Split → PT + YT' },
-              { id: 'merge', label: 'Merge → SY' },
+              { id: 'split', label: 'Separate into PT + YT' },
+              { id: 'merge', label: 'Recombine into SY' },
             ]}
             active={tab}
             onChange={(id) => {
@@ -164,9 +164,9 @@ export function SplitCard({
               }
               error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
               onEnter={submit}
-              disabled={selectedMatured}
+              disabled={selectedMatured || blocked}
               onMax={
-                !selectedMatured && balance > 0n
+                !selectedMatured && !blocked && balance > 0n
                   ? () => {
                       setAmount(stroopsToXlm(balance))
                     }
@@ -175,31 +175,43 @@ export function SplitCard({
             />
           </div>
 
-          {/* Reserve the line so the submit button doesn't jump as validity toggles. */}
-          <p className="mt-2 min-h-[1rem] text-xs text-neutral-400">
-            {preview !== null &&
-              (tab === 'split' ? (
-                <>
-                  You’ll receive ≈{' '}
-                  <span className="font-mono text-neutral-100">{formatAmount(preview)}</span> PT and the
-                  same amount of YT.
-                </>
-              ) : (
-                <>
-                  You’ll receive ≈{' '}
-                  <span className="font-mono text-neutral-100">{formatAmount(preview)}</span> SY.
-                </>
-              ))}
-          </p>
+          {preview !== null && valid.ok && (
+            <div className="mt-4 rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+              <p className="text-sm font-semibold text-neutral-100">
+                {tab === 'split' ? 'Review separation' : 'Review recombination'}
+              </p>
+              <div className="mt-3 space-y-2 text-sm">
+                <p className="flex items-center justify-between gap-4">
+                  <span className="text-neutral-400">You use</span>
+                  <span className="font-mono tabular-nums text-neutral-200">
+                    {formatAmount(valid.stroops)} {tab === 'split' ? 'SY' : 'PT + YT'}
+                  </span>
+                </p>
+                <p className="flex items-center justify-between gap-4">
+                  <span className="text-neutral-400">You receive</span>
+                  <span className="text-right font-mono font-medium tabular-nums text-neutral-100">
+                    {tab === 'split'
+                      ? `≈ ${formatAmount(preview)} PT + ${formatAmount(preview)} YT`
+                      : `≈ ${formatAmount(preview)} SY`}
+                  </span>
+                </p>
+              </div>
+              <p className="mt-3 border-t border-neutral-800 pt-3 text-xs leading-relaxed text-neutral-400">
+                {tab === 'split'
+                  ? 'One SY position becomes matching principal and yield positions with the same maturity. Separating alone does not create extra value.'
+                  : 'Matching PT and YT are burned together and returned as SY. Your wallet shows the final network fee before approval.'}
+              </p>
+            </div>
+          )}
 
           <ActionButton
             className="mt-4"
             onClick={submit}
-            disabled={isWrongNetwork || selectedMatured || !valid.ok}
+            disabled={isWrongNetwork || selectedMatured || blocked || !valid.ok}
             pending={pending}
             pendingLabel={tab === 'split' ? 'Splitting…' : 'Merging…'}
           >
-            {tab === 'split' ? 'Split SY' : 'Merge back to SY'}
+            {tab === 'split' ? 'Confirm separation' : 'Confirm recombination'}
           </ActionButton>
 
           {selectedMatured ? (
@@ -217,7 +229,7 @@ export function SplitCard({
 
           {outcome && (
             <div className="mt-5">
-              <TxStatus outcome={outcome} />
+              <TxStatus outcome={outcome} onRetry={submit} />
             </div>
           )}
         </>

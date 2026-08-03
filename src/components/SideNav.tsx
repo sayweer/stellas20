@@ -1,8 +1,8 @@
 /** Primary product navigation — a vertical rail on desktop, a bottom bar on mobile. */
 import type { ReactElement } from 'react'
-import { ChartBarIcon, ClockIcon, LayersIcon, SlidersIcon, SwapIcon, WalletIcon } from './icons'
+import { ChartBarIcon, SlidersIcon, SwapIcon, WalletIcon } from './icons'
 
-export type TabId = 'markets' | 'trade' | 'pool' | 'portfolio' | 'activity' | 'advanced'
+export type TabId = 'overview' | 'earn' | 'portfolio' | 'more'
 
 interface TabDef {
   id: TabId
@@ -11,12 +11,10 @@ interface TabDef {
 }
 
 const TABS: TabDef[] = [
-  { id: 'markets', label: 'Markets', Icon: ChartBarIcon },
-  { id: 'trade', label: 'Trade', Icon: SwapIcon },
-  { id: 'pool', label: 'Pool', Icon: LayersIcon },
+  { id: 'overview', label: 'Overview', Icon: ChartBarIcon },
+  { id: 'earn', label: 'Earn', Icon: SwapIcon },
   { id: 'portfolio', label: 'Portfolio', Icon: WalletIcon },
-  { id: 'activity', label: 'Activity', Icon: ClockIcon },
-  { id: 'advanced', label: 'Advanced', Icon: SlidersIcon },
+  { id: 'more', label: 'More', Icon: SlidersIcon },
 ]
 
 interface SideNavProps {
@@ -46,7 +44,7 @@ export function SideNav({ active, onChange }: SideNavProps): ReactElement {
               active={active}
               onChange={onChange}
               idPrefix="tab-"
-              className={`group flex w-full items-center gap-3 rounded-lg py-2 pl-3 pr-3 text-sm transition-colors ${
+              className={`group flex min-h-11 w-full items-center gap-3 rounded-lg py-2 pl-3 pr-3 text-sm transition-colors ${
                 tab.id === active
                   ? 'bg-neutral-800 font-medium text-neutral-50'
                   : 'text-neutral-500 hover:bg-neutral-900 hover:text-neutral-200'
@@ -76,7 +74,7 @@ export function BottomNav({ active, onChange }: SideNavProps): ReactElement {
       aria-label="Product sections"
       className="sticky bottom-0 z-30 border-t border-neutral-800 bg-neutral-950/95 backdrop-blur lg:hidden"
     >
-      <ul className="grid grid-cols-6">
+      <ul className="grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
         {TABS.map((tab, i) => (
           <li key={tab.id}>
             <TabButton
@@ -85,8 +83,8 @@ export function BottomNav({ active, onChange }: SideNavProps): ReactElement {
               active={active}
               onChange={onChange}
               idPrefix="tab-mobile-"
-              className={`flex w-full flex-col items-center gap-1 px-1 py-2.5 text-[10px] font-medium transition-colors ${
-                tab.id === active ? 'text-accent-400' : 'text-neutral-500 hover:text-neutral-200'
+              className={`flex min-h-14 w-full flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium transition-colors ${
+                tab.id === active ? 'text-accent-300' : 'text-neutral-500 hover:text-neutral-200'
               }`}
             >
               <tab.Icon className="h-[18px] w-[18px] shrink-0" />
@@ -106,8 +104,7 @@ interface TabButtonProps {
   onChange: (id: TabId) => void
   /**
    * Both rails render the same tabs, so their ids have to differ. The desktop
-   * rail keeps the bare `tab-` prefix because the panels point back at it with
-   * `aria-labelledby="tab-markets"`.
+   * rail keeps the bare `tab-` prefix because the panels point back at it.
    */
   idPrefix: string
   className: string
