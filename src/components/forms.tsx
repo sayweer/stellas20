@@ -3,7 +3,7 @@ import type { ReactElement, ReactNode } from 'react'
 import { Spinner } from './icons'
 
 const inputClass =
-  'w-full min-h-12 rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-3 text-sm text-neutral-100 placeholder:text-neutral-500 font-mono tabular-nums transition-[color,background-color,border-color,box-shadow] duration-100 focus:border-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 aria-[invalid=true]:border-negative-500/70'
+  'w-full min-h-12 rounded-lg border border-boundary bg-neutral-950 px-3 py-3 text-sm text-neutral-100 placeholder:text-neutral-500 font-mono tabular-nums transition-[color,background-color,border-color,box-shadow] duration-100 focus:border-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 aria-[invalid=true]:border-negative-300'
 
 interface AmountFieldProps {
   id: string
@@ -61,7 +61,7 @@ export function AmountField({
               type="button"
               onClick={onMax}
               disabled={disabled}
-              className="pointer-events-auto inline-flex min-h-11 items-center rounded-md border border-neutral-700 px-2 text-[11px] font-semibold text-accent-300 transition-colors duration-100 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 disabled:opacity-50"
+              className="pointer-events-auto inline-flex min-h-11 items-center rounded-md border border-boundary px-2 text-[11px] font-semibold text-accent-300 transition-colors duration-100 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
             >
               MAX
             </button>
@@ -103,7 +103,7 @@ export function TabToggle({
     <div
       role="group"
       aria-label={label}
-      className={`inline-flex rounded-lg border border-neutral-800 bg-neutral-950 p-1 ${className}`}
+      className={`grid w-full rounded-lg border border-boundary bg-neutral-950 p-1 sm:inline-flex sm:w-auto ${className}`}
     >
       {options.map((opt) => (
         <button
@@ -113,7 +113,7 @@ export function TabToggle({
             onChange(opt.id)
           }}
           aria-pressed={active === opt.id}
-          className={`min-h-11 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 ${
+          className={`min-h-11 whitespace-normal rounded-md px-3 py-2 text-sm font-medium leading-snug transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 ${
             active === opt.id
               ? 'bg-neutral-800 text-neutral-100'
               : 'text-neutral-400 hover:text-neutral-200'
@@ -150,8 +150,8 @@ export function ActionButton({
     'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-[color,background-color,border-color,transform] duration-100 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:translate-y-px disabled:cursor-not-allowed disabled:transform-none'
   const styles =
     variant === 'primary'
-      ? 'bg-accent-500 text-onAccent hover:bg-accent-400 focus-visible:ring-accent-400 active:bg-accent-600 disabled:bg-neutral-800 disabled:text-neutral-600'
-      : 'border border-neutral-700 text-neutral-200 hover:bg-neutral-800 focus-visible:ring-accent-500/60 disabled:border-neutral-800 disabled:text-neutral-600'
+      ? 'bg-accent-500 text-onAccent hover:bg-accent-400 focus-visible:ring-accent-300 active:bg-accent-600 disabled:bg-neutral-800 disabled:text-neutral-600'
+      : 'border border-boundary text-neutral-200 hover:bg-neutral-800 focus-visible:ring-accent-300 disabled:border-neutral-800 disabled:text-neutral-600'
   return (
     <button
       type="button"

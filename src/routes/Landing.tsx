@@ -65,233 +65,237 @@ export function Landing(): ReactElement {
   return (
     <div className="min-h-screen overflow-clip bg-neutral-50 text-neutral-950">
       <WelcomeIntro />
-      <SiteHeader />
+      <div id="landing-content">
+        <a
+          href="#landing-main"
+          className="fixed left-4 top-4 z-50 -translate-y-24 rounded-full bg-neutral-950 px-4 py-3 text-sm font-medium text-neutral-50 transition-transform focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:ring-offset-neutral-50 motion-reduce:transition-none"
+        >
+          Skip to main content
+        </a>
+        <SiteHeader />
 
-      <main>
-        <section className="relative border-b border-neutral-950/10">
-          <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] w-full max-w-[96rem] flex-col items-center justify-center px-5 py-20 text-center sm:px-8 lg:px-10">
-            <h1 className="text-[clamp(4rem,9.2vw,9rem)] font-normal leading-[0.88] tracking-[-0.065em] lg:whitespace-nowrap">
-              Yield, on your terms<span className="text-accent-500">.</span>
-            </h1>
-            <p className="mt-10 max-w-2xl text-lg leading-relaxed text-neutral-600 sm:text-xl">
-              Separate principal from yield. Choose the rate exposure you want to hold, then settle
-              on-chain at maturity.
-            </p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              <PrimaryLink>Launch App</PrimaryLink>
+        <main id="landing-main" tabIndex={-1}>
+          <section className="relative border-b border-neutral-950/10">
+            <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] w-full max-w-[96rem] flex-col items-center justify-center px-5 py-20 text-center sm:px-8 lg:px-10">
+              <h1 className="text-[clamp(4rem,9.2vw,9rem)] font-normal leading-[0.88] tracking-[-0.065em] lg:whitespace-nowrap">
+                Yield, on your terms<span className="text-accent-500">.</span>
+              </h1>
+              <p className="mt-10 max-w-2xl text-lg leading-relaxed text-neutral-600 sm:text-xl">
+                Separate principal from yield. Choose the rate exposure you want to hold, then
+                settle on-chain at maturity.
+              </p>
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                <PrimaryLink>Launch App</PrimaryLink>
+                <a
+                  href="#story"
+                  className="inline-flex min-h-11 items-center rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-neutral-50 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 motion-reduce:transform-none"
+                >
+                  See how it works
+                </a>
+              </div>
+
               <a
                 href="#story"
-                className="inline-flex min-h-11 items-center rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-neutral-50 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 motion-reduce:transform-none"
+                aria-label="Scroll to discover Everspan"
+                className="absolute bottom-5 inline-flex min-h-11 items-center gap-3 rounded-full px-4 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 sm:bottom-8"
               >
-                See how it works
+                <span aria-hidden="true" className="h-8 w-px bg-neutral-950/30" />
+                Scroll to discover
               </a>
             </div>
+          </section>
 
-            <a
-              href="#story"
-              aria-label="Scroll to discover Everspan"
-              className="absolute bottom-5 inline-flex min-h-11 items-center gap-3 rounded-full px-4 font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 sm:bottom-8"
-            >
-              <span aria-hidden="true" className="h-8 w-px bg-neutral-950/30" />
-              Scroll to discover
-            </a>
-          </div>
-        </section>
-
-        <section
-          id="story"
-          className="scroll-mt-16 bg-neutral-950 pb-16 pt-24 text-neutral-50 sm:pt-32 lg:pb-24 lg:pt-40"
-        >
-          <ScrollReveal className="mx-auto w-full max-w-7xl px-5 text-center sm:px-8 lg:px-10">
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-300">
-              The Everspan primitive
-            </p>
-            <h2 className="mx-auto mt-7 max-w-5xl text-[clamp(3.25rem,7vw,7rem)] font-medium leading-[0.88] tracking-[-0.06em]">
-              One deposit becomes a market.
-            </h2>
-            <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-neutral-300">
-              Move through the three steps. The position changes as you scroll.
-            </p>
-          </ScrollReveal>
-
-          <div className="mt-20 sm:mt-28 lg:mt-36">
-            <YieldJourney />
-          </div>
-        </section>
-
-        <section
-          aria-label="Protocol at a glance"
-          className="border-b border-neutral-950/10 bg-neutral-50"
-        >
-          <ScrollReveal>
-            <dl className="mx-auto grid w-full max-w-7xl grid-cols-2 lg:grid-cols-4">
-              {facts.map((fact, index) => (
-                <div
-                  key={fact.label}
-                  className={`px-5 py-10 sm:px-8 sm:py-12 lg:px-10 ${
-                    index % 2 === 1 ? 'border-l border-neutral-950/10' : ''
-                  } ${index >= 2 ? 'border-t border-neutral-950/10 lg:border-t-0' : ''} ${
-                    index > 0 ? 'lg:border-l' : ''
-                  }`}
-                >
-                  <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600">
-                    {fact.note}
-                  </dt>
-                  <dd className="mt-4 text-4xl font-medium tracking-[-0.045em] tabular-nums sm:text-5xl">
-                    {fact.value}
-                  </dd>
-                  <dd className="mt-2 text-sm text-neutral-600">{fact.label}</dd>
-                </div>
-              ))}
-            </dl>
-          </ScrollReveal>
-        </section>
-
-        <section id="markets" className="scroll-mt-16 bg-accent-500 text-neutral-50">
-          <ScrollReveal className="mx-auto grid min-h-[88svh] w-full max-w-7xl items-center gap-14 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[0.92fr_1.08fr] lg:px-10 lg:py-40">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-50/70">
-                Principal Token · PT
-              </p>
-              <h2 className="mt-7 max-w-3xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
-                Know what comes back.
-              </h2>
-              <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-50/80">
-                PT trades below its maturity value. The difference between what you pay and what you
-                redeem defines the implied rate for your position.
-              </p>
-            </div>
-            <FixedRateVisual />
-          </ScrollReveal>
-        </section>
-
-        <section className="bg-neutral-50">
-          <ScrollReveal className="mx-auto grid min-h-[88svh] w-full max-w-7xl items-center gap-14 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[1.08fr_0.92fr] lg:px-10 lg:py-40">
-            <YieldVisual />
-            <div className="lg:order-2">
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
-                Yield Token · YT
-              </p>
-              <h2 className="mt-7 max-w-3xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
-                Hold the rate itself.
-              </h2>
-              <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
-                YT receives the yield released before maturity. When it moves, Everspan settles both
-                holders first—accrued yield always follows the time it was earned.
-              </p>
-            </div>
-          </ScrollReveal>
-        </section>
-
-        <section className="border-y border-neutral-950/10 bg-neutral-200">
-          <ScrollReveal className="mx-auto grid min-h-[82svh] w-full max-w-7xl items-center gap-14 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-2 lg:px-10 lg:py-40">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-600">
-                PT / SY Market
-              </p>
-              <h2 className="mt-7 max-w-3xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
-                Make the market.
-              </h2>
-              <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
-                Swap PT and SY or provide both sides as liquidity. Every pool is tied to one
-                maturity, with a transparent 30 bps fee on each trade.
-              </p>
-            </div>
-            <LiquidityVisual />
-          </ScrollReveal>
-        </section>
-
-        <section className="bg-neutral-950 text-neutral-50">
-          <ScrollReveal className="mx-auto grid min-h-[80svh] w-full max-w-7xl items-center gap-16 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-2 lg:px-10 lg:py-40">
-            <div>
+          <section
+            id="story"
+            className="scroll-mt-16 bg-neutral-950 pb-16 pt-24 text-neutral-50 sm:pt-32 lg:pb-24 lg:pt-40"
+          >
+            <ScrollReveal className="mx-auto w-full max-w-7xl px-5 text-center sm:px-8 lg:px-10">
               <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-300">
-                Yield sources
+                The Everspan primitive
               </p>
-              <h2 className="mt-7 text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
-                One standard interface.
+              <h2 className="mx-auto mt-7 max-w-5xl text-[clamp(3.25rem,7vw,7rem)] font-medium leading-[0.88] tracking-[-0.06em]">
+                One deposit becomes a market.
               </h2>
-              <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-300">
-                Start with deterministic mUSDY or use a live Blend-backed XLM position. The same
-                split, settlement and market mechanics run across both.
+              <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-neutral-300">
+                Move through the three steps. The position changes as you scroll.
               </p>
-            </div>
-            <div className="grid gap-px overflow-hidden rounded-2xl bg-neutral-50/15 sm:grid-cols-2">
-              <YieldSource
-                label="mUSDY"
-                title="Deterministic yield"
-                body="A ledger-time exchange rate built for repeatable protocol testing."
-              />
-              <YieldSource
-                label="XLM · BLEND"
-                title="Live lending yield"
-                body="A real Blend v2 lending position behind the same SY interface."
-              />
-            </div>
-          </ScrollReveal>
-        </section>
+            </ScrollReveal>
 
-        <section id="security" className="scroll-mt-16 bg-neutral-50">
-          <ScrollReveal className="mx-auto flex min-h-[82svh] w-full max-w-7xl flex-col justify-center px-5 py-24 sm:px-8 sm:py-32 lg:px-10 lg:py-40">
-            <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
-                  Protocol assurance
-                </p>
-                <h2 className="mt-7 max-w-5xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
-                  Your wallet stays in control.
-                </h2>
-              </div>
-              <p className="max-w-xl text-lg leading-relaxed text-neutral-600">
-                Signing happens inside your wallet. Contracts are open source and deployed on
-                Stellar Testnet. There is no admin path into user balances.
-              </p>
+            <div className="mt-20 sm:mt-28 lg:mt-36">
+              <YieldJourney />
             </div>
+          </section>
 
-            <div className="mt-20 grid border-y border-neutral-950/10 sm:grid-cols-3">
-              <Assurance
-                number="01"
-                title="Self-custodial"
-                body="Your secret key never enters Everspan."
-              />
-              <Assurance
-                number="02"
-                title="Open source"
-                body="Seven Soroban contracts, documented and tested."
-              />
-              <Assurance
-                number="03"
-                title="Explicit settlement"
-                body="Maturity and redemption rules execute on-chain."
-              />
-            </div>
-          </ScrollReveal>
-        </section>
-
-        <section className="bg-accent-500 text-neutral-50">
-          <div className="mx-auto flex min-h-[72svh] w-full max-w-7xl flex-col justify-between gap-16 px-5 py-20 sm:px-8 sm:py-28 lg:px-10">
-            <BrandMark className="h-12 w-12" />
+          <section
+            aria-label="Protocol at a glance"
+            className="border-b border-neutral-950/10 bg-neutral-50"
+          >
             <ScrollReveal>
-              <h2 className="max-w-6xl text-[clamp(3.75rem,9vw,8.75rem)] font-medium leading-[0.84] tracking-[-0.065em]">
-                Put your yield to work.
-              </h2>
-              <div className="mt-10 flex flex-wrap items-center gap-4">
-                <Link
-                  to="/app"
-                  className="group inline-flex min-h-12 items-center gap-2 rounded-full bg-neutral-50 px-7 py-3 text-sm font-medium text-neutral-950 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-50 focus-visible:ring-offset-2 focus-visible:ring-offset-accent-500 motion-reduce:transform-none"
-                >
-                  Launch App
-                  <ArrowRightIcon className="h-4 w-4 transition-transform duration-100 group-hover:translate-x-1 motion-reduce:transform-none" />
-                </Link>
-                <span className="text-sm text-neutral-50/75">
-                  No account. Connect a Stellar wallet.
-                </span>
+              <dl className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-px bg-neutral-950/10 sm:grid-cols-2 lg:grid-cols-4">
+                {facts.map((fact) => (
+                  <div
+                    key={fact.label}
+                    className="min-w-0 bg-neutral-50 px-5 py-10 sm:px-8 sm:py-12 lg:px-10"
+                  >
+                    <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600">
+                      {fact.note}
+                    </dt>
+                    <dd className="mt-4 break-words text-4xl font-medium tracking-[-0.045em] tabular-nums sm:text-5xl">
+                      {fact.value}
+                    </dd>
+                    <dd className="mt-2 text-sm text-neutral-600">{fact.label}</dd>
+                  </div>
+                ))}
+              </dl>
+            </ScrollReveal>
+          </section>
+
+          <section id="markets" className="scroll-mt-16 bg-accent-500 text-neutral-50">
+            <ScrollReveal className="mx-auto grid min-h-[88svh] w-full max-w-7xl items-center gap-14 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[0.92fr_1.08fr] lg:px-10 lg:py-40">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-50/90">
+                  Principal Token · PT
+                </p>
+                <h2 className="mt-7 max-w-3xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                  Know what comes back.
+                </h2>
+                <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-50/80">
+                  PT trades below its maturity value. The difference between what you pay and what
+                  you redeem defines the implied rate for your position.
+                </p>
+              </div>
+              <FixedRateVisual />
+            </ScrollReveal>
+          </section>
+
+          <section className="bg-neutral-50">
+            <ScrollReveal className="mx-auto grid min-h-[88svh] w-full max-w-7xl items-center gap-14 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[1.08fr_0.92fr] lg:px-10 lg:py-40">
+              <YieldVisual />
+              <div className="lg:order-2">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
+                  Yield Token · YT
+                </p>
+                <h2 className="mt-7 max-w-3xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                  Hold the rate itself.
+                </h2>
+                <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
+                  YT receives the yield released before maturity. When it moves, Everspan settles
+                  both holders first—accrued yield always follows the time it was earned.
+                </p>
               </div>
             </ScrollReveal>
-          </div>
-        </section>
-      </main>
+          </section>
 
-      <SiteFooter />
+          <section className="border-y border-neutral-950/10 bg-neutral-200">
+            <ScrollReveal className="mx-auto grid min-h-[82svh] w-full max-w-7xl items-center gap-14 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-2 lg:px-10 lg:py-40">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-600">
+                  PT / SY Market
+                </p>
+                <h2 className="mt-7 max-w-3xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                  Make the market.
+                </h2>
+                <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-600">
+                  Swap PT and SY or provide both sides as liquidity. Every pool is tied to one
+                  maturity, with a transparent 30 bps fee on each trade.
+                </p>
+              </div>
+              <LiquidityVisual />
+            </ScrollReveal>
+          </section>
+
+          <section className="bg-neutral-950 text-neutral-50">
+            <ScrollReveal className="mx-auto grid min-h-[80svh] w-full max-w-7xl items-center gap-16 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-2 lg:px-10 lg:py-40">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-300">
+                  Yield sources
+                </p>
+                <h2 className="mt-7 text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                  One standard interface.
+                </h2>
+                <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-300">
+                  Start with deterministic mUSDY or use a live Blend-backed XLM position. The same
+                  split, settlement and market mechanics run across both.
+                </p>
+              </div>
+              <div className="grid gap-px overflow-hidden rounded-2xl bg-neutral-50/15 sm:grid-cols-2">
+                <YieldSource
+                  label="mUSDY"
+                  title="Deterministic yield"
+                  body="A ledger-time exchange rate built for repeatable protocol testing."
+                />
+                <YieldSource
+                  label="XLM · BLEND"
+                  title="Live lending yield"
+                  body="A real Blend v2 lending position behind the same SY interface."
+                />
+              </div>
+            </ScrollReveal>
+          </section>
+
+          <section id="security" className="scroll-mt-16 bg-neutral-50">
+            <ScrollReveal className="mx-auto flex min-h-[82svh] w-full max-w-7xl flex-col justify-center px-5 py-24 sm:px-8 sm:py-32 lg:px-10 lg:py-40">
+              <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+                <div>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
+                    Protocol assurance
+                  </p>
+                  <h2 className="mt-7 max-w-5xl text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[0.87] tracking-[-0.06em]">
+                    Your wallet stays in control.
+                  </h2>
+                </div>
+                <p className="max-w-xl text-lg leading-relaxed text-neutral-600">
+                  Signing happens inside your wallet. Contracts are open source and deployed on
+                  Stellar Testnet. There is no admin path into user balances.
+                </p>
+              </div>
+
+              <div className="mt-20 grid border-y border-neutral-950/10 sm:grid-cols-3">
+                <Assurance
+                  number="01"
+                  title="Self-custodial"
+                  body="Your secret key never enters Everspan."
+                />
+                <Assurance
+                  number="02"
+                  title="Open source"
+                  body="Seven Soroban contracts, documented and tested."
+                />
+                <Assurance
+                  number="03"
+                  title="Explicit settlement"
+                  body="Maturity and redemption rules execute on-chain."
+                />
+              </div>
+            </ScrollReveal>
+          </section>
+
+          <section className="bg-accent-500 text-neutral-50">
+            <div className="mx-auto flex min-h-[72svh] w-full max-w-7xl flex-col justify-between gap-16 px-5 py-20 sm:px-8 sm:py-28 lg:px-10">
+              <BrandMark className="h-12 w-12" />
+              <ScrollReveal>
+                <h2 className="max-w-6xl text-[clamp(3.75rem,9vw,8.75rem)] font-medium leading-[0.84] tracking-[-0.065em]">
+                  Put your yield to work.
+                </h2>
+                <div className="mt-10 flex flex-wrap items-center gap-4">
+                  <Link
+                    to="/app"
+                    className="group inline-flex min-h-12 items-center gap-2 rounded-full bg-neutral-50 px-7 py-3 text-sm font-medium text-neutral-950 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-50 focus-visible:ring-offset-2 focus-visible:ring-offset-accent-500 motion-reduce:transform-none"
+                  >
+                    Launch App
+                    <ArrowRightIcon className="h-4 w-4 transition-transform duration-100 group-hover:translate-x-1 motion-reduce:transform-none" />
+                  </Link>
+                  <span className="text-sm text-neutral-50/90">
+                    No account. Connect a Stellar wallet.
+                  </span>
+                </div>
+              </ScrollReveal>
+            </div>
+          </section>
+        </main>
+
+        <SiteFooter />
+      </div>
     </div>
   )
 }
@@ -454,7 +458,7 @@ function TokenTile({
       className={`rounded-2xl p-5 ${accent ? 'bg-accent-500 text-neutral-50' : 'bg-neutral-950 text-neutral-50'}`}
     >
       <p className="text-4xl font-medium tracking-[-0.045em]">{label}</p>
-      <p className="mt-2 text-xs opacity-60">{value}</p>
+      <p className="mt-2 text-xs opacity-90">{value}</p>
     </div>
   )
 }

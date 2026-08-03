@@ -47,7 +47,7 @@ export function YieldJourney(): ReactElement {
 
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-5 sm:gap-12 sm:px-8 md:grid-cols-[1.02fr_0.98fr] md:gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-20 lg:px-10">
-      <div className="sticky top-[4.5rem] z-10 flex items-center bg-neutral-950 py-4 sm:static sm:py-0 md:sticky md:top-20 md:h-[calc(100svh-5rem)]">
+      <div className="relative z-10 flex items-center bg-neutral-950 py-4 sm:py-0 md:sticky md:top-20 md:h-[calc(100svh-5rem)]">
         <JourneyVisual activeStep={activeStep} />
       </div>
 
@@ -59,7 +59,7 @@ export function YieldJourney(): ReactElement {
               stepRefs.current[index] = element
             }}
             data-step={index}
-            className="flex min-h-[100svh] items-end border-b border-neutral-50/15 pb-12 pt-32 last:border-b-0 sm:min-h-[72svh] sm:items-center sm:py-20 md:min-h-[88svh]"
+            className="flex items-center border-b border-neutral-50/15 py-20 last:border-b-0 sm:min-h-[72svh] md:min-h-[88svh]"
           >
             <div className={`journey-copy ${activeStep === index ? 'is-active' : ''}`}>
               <div className="flex items-center justify-between gap-6 text-neutral-400">
@@ -80,7 +80,10 @@ export function YieldJourney(): ReactElement {
 
 function JourneyVisual({ activeStep }: { activeStep: number }): ReactElement {
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-xl overflow-hidden rounded-3xl border border-neutral-50/15 bg-neutral-900 p-5 sm:p-8 lg:mx-0">
+    <div
+      aria-hidden="true"
+      className="relative mx-auto aspect-square w-full max-w-xl overflow-hidden rounded-3xl border border-neutral-50/15 bg-neutral-900 p-5 sm:p-8 lg:mx-0"
+    >
       <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
         <span>Position architecture</span>
         <span>0{activeStep + 1} / 03</span>
@@ -139,12 +142,14 @@ function PositionCard({
   note: string
 }): ReactElement {
   return (
-    <div className={`flex min-h-48 flex-col rounded-2xl p-5 sm:min-h-56 sm:p-6 ${className}`}>
-      <p className="font-mono text-[10px] uppercase tracking-[0.16em] opacity-60">{label}</p>
+    <div
+      className={`flex min-h-48 flex-col rounded-2xl p-5 pb-16 sm:min-h-56 sm:p-6 sm:pb-16 ${className}`}
+    >
+      <p className="font-mono text-[10px] uppercase tracking-[0.16em] opacity-90">{label}</p>
       <p className="mt-auto text-2xl font-medium tracking-[-0.04em] tabular-nums sm:text-3xl">
         {amount}
       </p>
-      <p className="mt-1 text-xs opacity-60">{note}</p>
+      <p className="mt-1 text-xs opacity-90">{note}</p>
     </div>
   )
 }

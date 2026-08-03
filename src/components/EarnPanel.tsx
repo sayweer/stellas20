@@ -85,7 +85,11 @@ export function EarnPanel({
     <section id="panel-earn" role="tabpanel" aria-labelledby="tab-earn" className="space-y-8">
       <header className="max-w-2xl">
         <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">Earn</p>
-        <h1 className="mt-3 text-3xl font-medium tracking-[-0.045em] text-neutral-50 sm:text-4xl">
+        <h1
+          data-panel-heading
+          tabIndex={-1}
+          className="mt-3 text-3xl font-medium tracking-[-0.045em] text-neutral-50 outline-none sm:text-4xl"
+        >
           Choose the outcome.
         </h1>
         <p className="mt-3 text-base leading-relaxed text-neutral-400">
@@ -109,10 +113,10 @@ export function EarnPanel({
                 tabIndex={selected ? 0 : -1}
                 onClick={() => onStrategyChange(id)}
                 onKeyDown={(event) => moveStrategyFocus(index, event)}
-                className={`min-h-28 rounded-2xl border p-4 text-left transition-[color,background-color,border-color] duration-100 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 ${
+                className={`min-h-28 rounded-2xl border p-4 text-left transition-[color,background-color,border-color] duration-100 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 ${
                   selected
                     ? 'border-accent-500 bg-accent-500 text-onAccent'
-                    : 'border-neutral-800 bg-neutral-900 text-neutral-100 hover:bg-neutral-850'
+                    : 'border-boundary bg-neutral-900 text-neutral-100 hover:bg-neutral-850'
                 }`}
               >
                 <span className="flex items-center justify-between gap-3">
@@ -137,13 +141,15 @@ export function EarnPanel({
       </fieldset>
 
       <details className="max-w-2xl rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm">
-        <summary className="flex min-h-11 cursor-pointer items-center rounded font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400">
+        <summary className="flex min-h-11 cursor-pointer items-center rounded font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
           What do SY, PT, and YT mean?
         </summary>
         <dl className="grid gap-4 border-t border-neutral-800 py-4 text-xs leading-relaxed text-neutral-400 sm:grid-cols-3">
           <div>
             <dt className="font-mono font-semibold text-neutral-200">SY</dt>
-            <dd className="mt-1">The yield-bearing asset format used by every Everspan strategy.</dd>
+            <dd className="mt-1">
+              The yield-bearing asset format used by every Everspan strategy.
+            </dd>
           </div>
           <div>
             <dt className="font-mono font-semibold text-neutral-200">PT</dt>
@@ -159,7 +165,7 @@ export function EarnPanel({
       <div className="max-w-2xl rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6">
         {strategy === 'liquidity' ? (
           <PoolPanel
-            key={`liquidity-${poolMaturity?.toString() ?? 'default'}`}
+            key="liquidity"
             address={address}
             isWrongNetwork={isWrongNetwork}
             pools={pools}
@@ -173,7 +179,7 @@ export function EarnPanel({
           />
         ) : (
           <TradePanel
-            key={`${strategy}-${tradeMaturity?.toString() ?? 'default'}`}
+            key={strategy}
             mode={strategy === 'fixed' ? 'lock' : 'long'}
             address={address}
             isWrongNetwork={isWrongNetwork}

@@ -87,7 +87,7 @@ export function TxStatus({
                   href={explorerTxUrl(outcome.hash)}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded font-medium text-warning-100 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-400"
+                  className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded font-medium text-warning-100 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
                 >
                   Check on Stellar Expert
                   <ExternalLinkIcon className="h-3.5 w-3.5" />
@@ -97,7 +97,7 @@ export function TxStatus({
               <button
                 type="button"
                 onClick={onRetry}
-                className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-negative-500/40 px-3 py-2 text-xs font-semibold text-negative-100 transition-colors duration-100 hover:bg-negative-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-negative-400"
+                className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-negative-300 px-3 py-2 text-xs font-semibold text-negative-100 transition-colors duration-100 hover:bg-negative-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-negative-300"
               >
                 Try again
               </button>
@@ -182,10 +182,13 @@ export function TxStatus({
                       void copyHash()
                     }}
                     aria-label={copied ? 'Hash copied' : 'Copy transaction hash'}
-                    className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-positive-500/30 text-positive-300 transition-colors hover:bg-positive-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-500/60"
+                    className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-positive-300 text-positive-300 transition-colors hover:bg-positive-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-300"
                   >
                     {copied ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
                   </button>
+                  <span role="status" aria-live="polite" className="sr-only">
+                    {copied ? 'Transaction hash copied.' : ''}
+                  </span>
                 </div>
               </div>
 
@@ -193,7 +196,7 @@ export function TxStatus({
                 href={explorerUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded font-medium text-positive-300 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-500/60"
+                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded font-medium text-positive-300 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-300"
               >
                 View on Stellar Expert
                 <ExternalLinkIcon className="h-3.5 w-3.5" />

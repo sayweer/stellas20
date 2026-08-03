@@ -26,7 +26,11 @@ export function ConnectPrompt({ message, tab, embedded = false }: ConnectPromptP
       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-850 text-neutral-400">
         <WalletIcon className="h-6 w-6" />
       </div>
-      <h2 className="mt-5 text-lg font-medium tracking-[-0.02em] text-neutral-50">
+      <h2
+        data-panel-heading
+        tabIndex={-1}
+        className="mt-5 text-lg font-medium tracking-[-0.02em] text-neutral-50 outline-none"
+      >
         Connect to start
       </h2>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-neutral-400">{message}</p>

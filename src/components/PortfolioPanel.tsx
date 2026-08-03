@@ -57,30 +57,33 @@ export function PortfolioPanel({
   return (
     <section aria-labelledby="portfolio-heading">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2
+        <h1
           id="portfolio-heading"
-          className="text-lg font-medium tracking-[-0.02em] text-neutral-100"
+          data-panel-heading
+          tabIndex={-1}
+          className="text-lg font-medium tracking-[-0.02em] text-neutral-100 outline-none"
         >
           Portfolio
-        </h2>
+        </h1>
         <button
           type="button"
           onClick={onRefresh}
           disabled={loading}
           aria-label="Refresh portfolio"
-          className="grid h-11 w-11 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 disabled:opacity-50"
+          aria-busy={loading}
+          className="grid h-11 w-11 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
         >
           {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
         </button>
       </div>
 
       {error ? (
-        <div className="mt-4 space-y-3">
+        <div role="alert" className="mt-4 space-y-3">
           <p className="text-sm text-neutral-300">{error.message}</p>
           <button
             type="button"
             onClick={onRefresh}
-            className="inline-flex min-h-11 items-center rounded-lg border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+            className="inline-flex min-h-11 items-center rounded-lg border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
           >
             Try again
           </button>
@@ -113,6 +116,11 @@ export function PortfolioPanel({
           ))}
         </dl>
       )}
+      {loading && address ? (
+        <span role="status" aria-live="polite" className="sr-only">
+          Loading portfolio
+        </span>
+      ) : null}
     </section>
   )
 }

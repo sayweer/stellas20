@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useWallet } from './context/WalletContext'
@@ -37,18 +37,35 @@ function App(): ReactElement {
   const { address } = useWallet()
   const { resolutionVersion } = useTransactionSafety()
   const configured = isContractsConfigured()
+  const mountedScope = useRef(false)
+
+  useEffect(() => {
+    if (!mountedScope.current) {
+      mountedScope.current = true
+      return
+    }
+    focusActivePanel()
+  }, [address, resolutionVersion])
 
   function switchMarket(key: MarketKey): void {
     // The contract services resolve addresses from module state, so point them
     // at the new deployment before the remount below refetches everything.
     setActiveMarket(key)
     setMarketKey(key)
+    window.requestAnimationFrame(() => {
+      document.getElementById(`market-${key}`)?.focus()
+    })
   }
 
   return (
     <div className="flex min-h-screen flex-col">
       <NetworkBanner />
       <ConnectionBanner />
+      <span role="status" aria-live="polite" className="sr-only">
+        {address
+          ? `Wallet connected to ${marketKey}. Account ${address.slice(0, 4)}…${address.slice(-4)}.`
+          : 'Wallet disconnected.'}
+      </span>
 
       {!configured && (
         <div role="alert" className="border-b border-warning-500/30 bg-warning-500/10">
@@ -148,12 +165,24 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
     updateLocation({ tab: 'earn', strategy: next, maturity })
   }
 
+  function openStrategy(next: EarnStrategy, maturity?: bigint): void {
+    chooseStrategy(next, maturity)
+    focusPanel('earn')
+  }
+
   function goPool(maturity: bigint): void {
     updateLocation({ tab: 'earn', strategy: 'liquidity', maturity })
+    focusPanel('earn')
   }
 
   function goConvert(): void {
     updateLocation({ tab: 'more', tool: 'convert' })
+    focusPanel('more')
+  }
+
+  function goPortfolio(): void {
+    updateLocation({ tab: 'portfolio' })
+    focusPanel('portfolio')
   }
 
   const connected = isConnected && address !== null
@@ -164,7 +193,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
         <aside className="hidden w-52 shrink-0 flex-col py-6 lg:flex">
           <Link
             to="/"
-            className="flex min-h-11 items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+            className="flex min-h-11 items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
           >
             <BrandMark className="h-6 w-6 text-neutral-50" />
             <span className="text-base font-medium tracking-[-0.02em] text-neutral-50">
@@ -183,7 +212,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                 href={config.feedbackFormUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-850 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-boundary bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-850 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
               >
                 Share feedback
               </a>
@@ -202,7 +231,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
             <Link
               to="/"
               aria-label="Everspan home"
-              className="order-1 -ml-2 grid h-11 w-11 place-items-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:hidden"
+              className="order-1 -ml-2 grid h-11 w-11 place-items-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 lg:hidden"
             >
               <BrandMark className="h-6 w-6 text-neutral-50" />
             </Link>
@@ -214,7 +243,7 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                   href={config.feedbackFormUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`${connected ? 'hidden sm:inline-flex' : 'inline-flex'} min-h-11 items-center whitespace-nowrap rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 lg:hidden`}
+                  className={`${connected ? 'hidden sm:inline-flex' : 'inline-flex'} min-h-11 items-center whitespace-nowrap rounded-xl border border-boundary bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 lg:hidden`}
                 >
                   Feedback
                 </a>
@@ -263,9 +292,9 @@ function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): React
                 liveRate={liveRate}
                 error={dataError}
                 onRetry={refreshAll}
-                onEarn={chooseStrategy}
+                onEarn={openStrategy}
                 onConvert={goConvert}
-                onPortfolio={() => setTab('portfolio')}
+                onPortfolio={goPortfolio}
               />
             )}
 
@@ -356,4 +385,22 @@ function parseMaturity(value: string | null): bigint | null {
   } catch {
     return null
   }
+}
+
+function focusPanel(tab: TabId): void {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLElement>(`#panel-${tab} [data-panel-heading]`)
+        ?.focus({ preventScroll: true })
+    })
+  })
+}
+
+function focusActivePanel(): void {
+  window.requestAnimationFrame(() => {
+    document
+      .querySelector<HTMLElement>('[role="tabpanel"] [data-panel-heading]')
+      ?.focus({ preventScroll: true })
+  })
 }

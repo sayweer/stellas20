@@ -131,20 +131,33 @@ function MaturityCard({
       </div>
 
       <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-        <div>
+        <div className="min-w-0">
           <dt className="text-[11px] uppercase tracking-wide text-neutral-400">PT (principal)</dt>
-          <dd className="font-mono tabular-nums text-neutral-100">{formatAmount(position.pt)}</dd>
+          <dd
+            title={formatAmount(position.pt)}
+            className="truncate font-mono tabular-nums text-neutral-100"
+          >
+            {formatAmount(position.pt)}
+          </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-[11px] uppercase tracking-wide text-neutral-400">YT (yield)</dt>
-          <dd className="font-mono tabular-nums text-neutral-100">{formatAmount(position.yt)}</dd>
+          <dd
+            title={formatAmount(position.yt)}
+            className="truncate font-mono tabular-nums text-neutral-100"
+          >
+            {formatAmount(position.yt)}
+          </dd>
         </div>
       </dl>
 
       <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-neutral-800 bg-neutral-950/60 px-3 py-2">
         <CoinsIcon className="h-4 w-4 text-positive-400" />
         <span className="text-xs text-neutral-300">Claimable now</span>
-        <span className="ml-auto font-mono text-sm font-semibold tabular-nums text-positive-300">
+        <span
+          title={claimable === null ? undefined : `${formatAmount(claimable, 6)} SY`}
+          className="ml-auto min-w-0 truncate text-right font-mono text-sm font-semibold tabular-nums text-positive-300"
+        >
           {claimable === null ? '—' : `${formatAmount(claimable, 6)} SY`}
         </span>
       </div>

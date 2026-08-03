@@ -125,9 +125,15 @@ function TabButton({
   function onKeyDown(e: React.KeyboardEvent): void {
     const forward = e.key === 'ArrowDown' || e.key === 'ArrowRight'
     const back = e.key === 'ArrowUp' || e.key === 'ArrowLeft'
-    if (!forward && !back) return
+    const first = e.key === 'Home'
+    const last = e.key === 'End'
+    if (!forward && !back && !first && !last) return
     e.preventDefault()
-    const next = (index + (forward ? 1 : -1) + TABS.length) % TABS.length
+    const next = first
+      ? 0
+      : last
+        ? TABS.length - 1
+        : (index + (forward ? 1 : -1) + TABS.length) % TABS.length
     onChange(TABS[next].id)
     document.getElementById(`${idPrefix}${TABS[next].id}`)?.focus()
   }
@@ -144,7 +150,7 @@ function TabButton({
         onChange(tab.id)
       }}
       onKeyDown={onKeyDown}
-      className={`${className} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60`}
+      className={`${className} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300`}
     >
       {children}
     </button>

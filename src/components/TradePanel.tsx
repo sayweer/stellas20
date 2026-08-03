@@ -88,8 +88,13 @@ export function TradePanel({
         </p>
       </header>
 
-      {loading && pools.length === 0 ? (
-        <div aria-label="Loading active maturities" className="mt-5 space-y-3">
+      {loading ? (
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label="Loading active maturities"
+          className="mt-5 space-y-3"
+        >
           <div className="h-11 animate-pulse rounded-lg bg-neutral-850" />
           <div className="h-28 animate-pulse rounded-xl bg-neutral-850" />
         </div>
@@ -153,10 +158,10 @@ function SummaryRow({
   accent?: boolean
 }): ReactElement {
   return (
-    <div className="flex items-center justify-between text-sm">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] items-start gap-3 text-sm">
       <span className="text-neutral-400">{label}</span>
       <span
-        className={`font-mono tabular-nums ${accent ? 'font-medium text-positive-300' : 'text-neutral-200'}`}
+        className={`min-w-0 break-all text-right font-mono tabular-nums ${accent ? 'font-medium text-positive-300' : 'text-neutral-200'}`}
       >
         {children}
       </span>
@@ -265,7 +270,7 @@ function LockRateForm({
           <button
             type="button"
             onClick={onGoAdvanced}
-            className="ml-1 inline-flex min-h-11 items-center rounded-md border border-neutral-700 px-3 font-medium text-neutral-100 transition-colors hover:bg-neutral-800 hover:text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+            className="ml-1 inline-flex min-h-11 items-center rounded-md border border-boundary px-3 font-medium text-neutral-100 transition-colors hover:bg-neutral-800 hover:text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
           >
             Open Convert
           </button>
@@ -291,7 +296,7 @@ function LockRateForm({
             less.
           </p>
           <details className="mt-3 border-t border-neutral-800 pt-3 text-xs">
-            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400">
+            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
               Price and slippage details
             </summary>
             <div className="mt-2 space-y-2.5 pb-1">
@@ -331,7 +336,7 @@ function LockRateForm({
               onChange={(e) => {
                 setAcceptsLoss(e.target.checked)
               }}
-              className="h-6 w-6 shrink-0 rounded border-warning-500/40 bg-transparent accent-warning-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-400/60"
+              className="h-6 w-6 shrink-0 rounded border-warning-300 bg-transparent accent-warning-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
             />
             I understand this locks a negative rate
           </label>
@@ -486,7 +491,7 @@ function LongYieldForm({
             approaches, and returns depend on the yield actually earned.
           </p>
           <details className="mt-3 border-t border-neutral-800 pt-3 text-xs">
-            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400">
+            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
               Slippage and fee details
             </summary>
             <div className="mt-2 space-y-2.5 pb-1">

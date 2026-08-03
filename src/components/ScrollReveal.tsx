@@ -14,7 +14,9 @@ export function ScrollReveal({
 }): ReactElement {
   const elementRef = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(
-    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () =>
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      !('IntersectionObserver' in window),
   )
 
   useEffect(() => {
@@ -32,7 +34,12 @@ export function ScrollReveal({
   }, [visible])
 
   return (
-    <div ref={elementRef} className={`scroll-reveal ${className}`} data-visible={visible}>
+    <div
+      ref={elementRef}
+      className={`scroll-reveal ${className}`}
+      data-visible={visible}
+      onFocusCapture={() => setVisible(true)}
+    >
       {children}
     </div>
   )

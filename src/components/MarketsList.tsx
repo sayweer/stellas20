@@ -49,7 +49,12 @@ export function MarketsList({
       </header>
 
       {loading && pools.length === 0 ? (
-        <div className="mt-6 space-y-px">
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label="Loading available maturities"
+          className="mt-6 space-y-px"
+        >
           {[0, 1, 2].map((i) => (
             <div key={i} aria-hidden="true" className="h-[4.5rem] animate-pulse bg-neutral-850" />
           ))}
@@ -87,7 +92,7 @@ export function MarketsList({
                   setShowMatured((v) => !v)
                 }}
                 aria-expanded={showMatured}
-                className="inline-flex min-h-11 items-center rounded px-1 text-xs font-medium uppercase tracking-[0.14em] text-neutral-500 transition-colors hover:text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+                className="inline-flex min-h-11 items-center rounded px-1 text-xs font-medium uppercase tracking-[0.14em] text-neutral-500 transition-colors hover:text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
               >
                 {showMatured ? 'Hide' : 'Show'} matured ({matured.length})
               </button>
@@ -215,7 +220,7 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
                 ? 'This maturity has no liquidity yet'
                 : undefined
           }
-          className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-accent-500 px-4 py-2.5 text-sm font-medium text-onAccent transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-600 sm:w-auto"
+          className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-accent-500 px-4 py-2.5 text-sm font-medium text-onAccent transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-600 sm:w-auto"
         >
           Lock rate
           <ArrowRightIcon className="h-3.5 w-3.5" />

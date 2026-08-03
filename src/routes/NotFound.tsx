@@ -30,7 +30,7 @@ export function NotFound(): ReactElement {
         </Link>
         <Link
           to="/app"
-          className="inline-flex items-center rounded-full border border-neutral-950/15 px-6 py-3.5 text-sm font-medium transition-colors hover:border-neutral-950/30 hover:bg-neutral-950/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
+          className="inline-flex items-center rounded-full border border-boundary px-6 py-3.5 text-sm font-medium transition-colors hover:bg-neutral-950/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
         >
           Launch App
         </Link>

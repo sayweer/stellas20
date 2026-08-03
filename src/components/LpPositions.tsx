@@ -49,20 +49,33 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
                   {share.toFixed(2)}% of pool
                 </span>
               </div>
-              <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
-                <div>
+              <dl className="mt-3 grid grid-cols-1 gap-2 text-sm min-[360px]:grid-cols-3">
+                <div className="min-w-0">
                   <dt className="text-[11px] uppercase tracking-wide text-neutral-500">Shares</dt>
-                  <dd className="font-mono tabular-nums text-neutral-100">
+                  <dd
+                    title={formatAmount(mp.lpBalance)}
+                    className="truncate font-mono tabular-nums text-neutral-100"
+                  >
                     {formatAmount(mp.lpBalance)}
                   </dd>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <dt className="text-[11px] uppercase tracking-wide text-neutral-500">PT value</dt>
-                  <dd className="font-mono tabular-nums text-neutral-100">{formatAmount(ptOut)}</dd>
+                  <dd
+                    title={formatAmount(ptOut)}
+                    className="truncate font-mono tabular-nums text-neutral-100"
+                  >
+                    {formatAmount(ptOut)}
+                  </dd>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <dt className="text-[11px] uppercase tracking-wide text-neutral-500">SY value</dt>
-                  <dd className="font-mono tabular-nums text-neutral-100">{formatAmount(syOut)}</dd>
+                  <dd
+                    title={formatAmount(syOut)}
+                    className="truncate font-mono tabular-nums text-neutral-100"
+                  >
+                    {formatAmount(syOut)}
+                  </dd>
                 </div>
               </dl>
               <button
@@ -70,7 +83,7 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
                 onClick={() => {
                   onManage(mp.maturity)
                 }}
-                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-neutral-700 px-3 py-2 text-xs font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-boundary px-3 py-2 text-xs font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
               >
                 Manage in Pool
                 <ArrowRightIcon className="h-3.5 w-3.5" />

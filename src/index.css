@@ -107,6 +107,9 @@
 
   .surface-site {
     color-scheme: light;
+    /* Marketing copy uses neutral-600 on paper and pale cards. Keep it dark
+       enough for AA without weakening the dark app's muted-text ramp. */
+    --neutral-600: 91 84 75;
     @apply bg-neutral-50 text-neutral-950;
   }
 
@@ -189,7 +192,7 @@
   }
 
   .journey-copy {
-    opacity: 0.38;
+    opacity: 1;
     transform: translate3d(0, 12px, 0);
     transition:
       opacity 300ms cubic-bezier(0, 0, 0.2, 1),

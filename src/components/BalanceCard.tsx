@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 import { fundTestnetAccount } from '../lib/friendbot'
 import { isAppError, type AppError } from '../types'
 import { useToast } from '../hooks/useToast'
+import { useTransactionSafety } from '../context/TransactionSafetyContext'
 import { RefreshIcon, Spinner } from './icons'
 
 interface BalanceCardProps {
@@ -35,9 +36,12 @@ export function BalanceCard({
   onRefresh,
 }: BalanceCardProps): ReactElement {
   const { notify } = useToast()
+  const { online, trackedTransaction } = useTransactionSafety()
   const [funding, setFunding] = useState(false)
+  const fundingBlocked = !online || trackedTransaction !== null
 
   async function handleFund(): Promise<void> {
+    if (funding || fundingBlocked) return
     setFunding(true)
     const result = await fundTestnetAccount(address)
     setFunding(false)
@@ -64,7 +68,8 @@ export function BalanceCard({
           onClick={onRefresh}
           disabled={loading}
           aria-label="Refresh balance"
-          className="grid h-11 w-11 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 disabled:opacity-50"
+          aria-busy={loading}
+          className="grid h-11 w-11 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
         >
           {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
         </button>
@@ -72,16 +77,16 @@ export function BalanceCard({
 
       <div className="mt-4">
         {loading ? (
-          <div className="space-y-2" aria-hidden="true">
-            <div className="h-11 w-52 animate-pulse rounded-lg bg-neutral-800" />
+          <div role="status" aria-live="polite" aria-label="Loading XLM balance">
+            <div aria-hidden="true" className="h-11 w-52 animate-pulse rounded-lg bg-neutral-800" />
           </div>
         ) : error ? (
-          <div className="space-y-3">
+          <div role="alert" className="space-y-3">
             <p className="text-sm text-neutral-300">{error.message}</p>
             <button
               type="button"
               onClick={onRefresh}
-              className="inline-flex min-h-11 items-center rounded-lg border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+              className="inline-flex min-h-11 items-center rounded-lg border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
             >
               Try again
             </button>
@@ -104,9 +109,9 @@ export function BalanceCard({
               onClick={() => {
                 void handleFund()
               }}
-              disabled={funding}
+              disabled={funding || fundingBlocked}
               aria-busy={funding}
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-semibold text-onAccent transition-colors duration-100 hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-semibold text-onAccent transition-colors duration-100 hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {funding ? (
                 <>
@@ -117,6 +122,13 @@ export function BalanceCard({
                 'Fund with Friendbot'
               )}
             </button>
+            {fundingBlocked ? (
+              <p className="text-xs text-neutral-400">
+                {online
+                  ? 'Funding is paused until the current transaction is resolved.'
+                  : 'Reconnect to the internet before funding this account.'}
+              </p>
+            ) : null}
           </div>
         )}
       </div>

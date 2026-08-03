@@ -66,7 +66,8 @@ export function WalletBar({
             onClick={onRefresh}
             disabled={loading}
             aria-label="Refresh balances"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-neutral-800 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 disabled:opacity-50"
+            aria-busy={loading}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
           >
             {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
           </button>
@@ -77,6 +78,11 @@ export function WalletBar({
           <TxStatus outcome={faucet.outcome} onRetry={runFaucet} />
         </div>
       )}
+      {loading ? (
+        <span role="status" aria-live="polite" className="sr-only">
+          Loading wallet balances
+        </span>
+      ) : null}
     </div>
   )
 }

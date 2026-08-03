@@ -36,6 +36,7 @@ function contrast(a: [number, number, number], b: [number, number, number]): num
 describe('app theme contrast', () => {
   const dark = declarations(':root')
   const light = `${dark}\n${declarations(".surface-app[data-theme='light']")}`
+  const site = `${dark}\n${declarations('.surface-site')}`
 
   it.each([
     ['dark primary text', dark, '--neutral-100', '--neutral-950', 4.5],
@@ -52,6 +53,9 @@ describe('app theme contrast', () => {
     ['light success text', light, '--positive-100', '--neutral-900', 4.5],
     ['light warning text', light, '--warning-100', '--neutral-900', 4.5],
     ['light danger text', light, '--negative-100', '--neutral-900', 4.5],
+    ['site muted text on paper', site, '--neutral-600', '--neutral-50', 4.5],
+    ['site muted text on pale card', site, '--neutral-600', '--neutral-200', 4.5],
+    ['site control boundary', site, '--boundary', '--neutral-50', 3],
   ])('%s passes its minimum ratio', (_label, source, foreground, background, minimum) => {
     expect(contrast(rgb(source, foreground), rgb(source, background))).toBeGreaterThanOrEqual(
       minimum,

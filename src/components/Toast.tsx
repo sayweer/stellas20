@@ -28,7 +28,7 @@ const VARIANTS: Record<ToastVariant, VariantStyle> = {
     Icon: AlertTriangleIcon,
   },
   info: {
-    border: 'border-neutral-700',
+    border: 'border-boundary',
     icon: 'text-neutral-300',
     role: 'status',
     live: 'polite',
@@ -41,7 +41,10 @@ export function Toast(): ReactElement | null {
   if (toasts.length === 0) return null
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-2 p-4 sm:items-end">
+    <div
+      id="toast-region"
+      className="pointer-events-none fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-center gap-2 p-4 sm:items-end lg:bottom-0"
+    >
       {toasts.map((toast) => {
         const variant = VARIANTS[toast.variant]
         const Icon = variant.Icon
@@ -60,7 +63,7 @@ export function Toast(): ReactElement | null {
                 dismiss(toast.id)
               }}
               aria-label="Dismiss notification"
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
             >
               <XIcon className="h-4 w-4" />
             </button>

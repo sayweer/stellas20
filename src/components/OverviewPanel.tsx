@@ -64,40 +64,40 @@ export function OverviewPanel({
           actionLabel: 'Try again',
         }
       : underlying === 0n && sy === 0n && !hasPosition
-      ? {
-          label: 'Your next step',
-          title: 'Fund your test wallet.',
-          body:
-            market.source === 'mock'
-              ? `Use the faucet in the wallet bar above to receive ${market.underlyingSymbol}. No real funds are used.`
-              : (market.fundingHint ??
-                `Add ${market.underlyingSymbol} to this Testnet wallet before continuing.`),
-          action: null,
-          actionLabel: null,
-        }
-      : underlying > 0n && sy === 0n
         ? {
-            label: 'Recommended next',
-            title: 'Prepare your asset once.',
-            body: `Convert ${market.underlyingSymbol} into SY before choosing a fixed return or yield exposure.`,
-            action: onConvert,
-            actionLabel: 'Convert to SY',
+            label: 'Your next step',
+            title: 'Fund your test wallet.',
+            body:
+              market.source === 'mock'
+                ? `Use the faucet in the wallet bar above to receive ${market.underlyingSymbol}. No real funds are used.`
+                : (market.fundingHint ??
+                  `Add ${market.underlyingSymbol} to this Testnet wallet before continuing.`),
+            action: null,
+            actionLabel: null,
           }
-        : sy > 0n && !hasPosition
+        : underlying > 0n && sy === 0n
           ? {
               label: 'Recommended next',
-              title: 'Choose your return.',
-              body: 'Use your SY to lock a maturity-based rate or keep exposure to the variable yield.',
-              action: () => onEarn('fixed'),
-              actionLabel: 'Compare fixed returns',
+              title: 'Prepare your asset once.',
+              body: `Convert ${market.underlyingSymbol} into SY before choosing a fixed return or yield exposure.`,
+              action: onConvert,
+              actionLabel: 'Convert to SY',
             }
-          : {
-              label: 'Position ready',
-              title: 'Your position is working.',
-              body: 'Review what you hold, claim available yield, or manage an existing liquidity position.',
-              action: onPortfolio,
-              actionLabel: 'Open portfolio',
-            }
+          : sy > 0n && !hasPosition
+            ? {
+                label: 'Recommended next',
+                title: 'Choose your return.',
+                body: 'Use your SY to lock a maturity-based rate or keep exposure to the variable yield.',
+                action: () => onEarn('fixed'),
+                actionLabel: 'Compare fixed returns',
+              }
+            : {
+                label: 'Position ready',
+                title: 'Your position is working.',
+                body: 'Review what you hold, claim available yield, or manage an existing liquidity position.',
+                action: onPortfolio,
+                actionLabel: 'Open portfolio',
+              }
 
   return (
     <section
@@ -110,7 +110,11 @@ export function OverviewPanel({
         <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">
           Overview
         </p>
-        <h1 className="mt-3 text-3xl font-medium tracking-[-0.045em] text-neutral-50 sm:text-4xl">
+        <h1
+          data-panel-heading
+          tabIndex={-1}
+          className="mt-3 text-3xl font-medium tracking-[-0.045em] text-neutral-50 outline-none sm:text-4xl"
+        >
           What do you want your yield to do?
         </h1>
         <p className="mt-3 text-base leading-relaxed text-neutral-400">
@@ -124,7 +128,12 @@ export function OverviewPanel({
             {recommendation.label}
           </p>
           {loading && connected ? (
-            <div aria-label="Loading your next step" className="mt-5 space-y-3">
+            <div
+              role="status"
+              aria-live="polite"
+              aria-label="Loading your next step"
+              className="mt-5 space-y-3"
+            >
               <div className="h-9 w-3/4 animate-pulse rounded bg-neutral-800" />
               <div className="h-4 w-full animate-pulse rounded bg-neutral-800" />
               <div className="h-4 w-2/3 animate-pulse rounded bg-neutral-800" />
@@ -141,7 +150,7 @@ export function OverviewPanel({
                 <button
                   type="button"
                   onClick={recommendation.action}
-                  className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-500 px-5 py-2.5 text-sm font-semibold text-onAccent transition-[transform,background-color] duration-100 ease-out hover:-translate-y-0.5 hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 active:translate-y-px motion-reduce:transform-none"
+                  className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-500 px-5 py-2.5 text-sm font-semibold text-onAccent transition-[transform,background-color] duration-100 ease-out hover:-translate-y-0.5 hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 active:translate-y-px motion-reduce:transform-none"
                 >
                   {recommendation.actionLabel}
                   <ArrowRightIcon className="h-4 w-4" />
@@ -205,7 +214,7 @@ function GoalRow({
     <button
       type="button"
       onClick={onClick}
-      className="group flex min-h-24 w-full items-center gap-4 border-b border-neutral-800 px-5 py-4 text-left transition-colors duration-100 ease-out last:border-b-0 hover:bg-neutral-850 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-400 sm:px-6"
+      className="group flex min-h-24 w-full items-center gap-4 border-b border-neutral-800 px-5 py-4 text-left transition-colors duration-100 ease-out last:border-b-0 hover:bg-neutral-850 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-300 sm:px-6"
     >
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-neutral-850 text-neutral-300">
         {icon}

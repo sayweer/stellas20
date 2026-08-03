@@ -48,7 +48,11 @@ export function MorePanel({
     <section id="panel-more" role="tabpanel" aria-labelledby="tab-more" className="space-y-8">
       <header className="max-w-2xl">
         <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">More</p>
-        <h1 className="mt-3 text-3xl font-medium tracking-[-0.045em] text-neutral-50 sm:text-4xl">
+        <h1
+          data-panel-heading
+          tabIndex={-1}
+          className="mt-3 text-3xl font-medium tracking-[-0.045em] text-neutral-50 outline-none sm:text-4xl"
+        >
           Tools and activity.
         </h1>
         <p className="mt-3 text-base leading-relaxed text-neutral-400">
