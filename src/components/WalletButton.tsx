@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import type { ReactElement } from 'react'
 import { useWallet } from '../context/WalletContext'
+import { useTransactionSafety } from '../context/TransactionSafetyContext'
 import { hasMobileWalletSupport, isMobileBrowser } from '../lib/wallet'
 import { useToast } from '../hooks/useToast'
 import { CheckIcon, CopyIcon, Spinner, XIcon } from './icons'
@@ -12,6 +13,7 @@ function truncate(address: string): string {
 
 export function WalletButton(): ReactElement {
   const { status, address, isConnected, connect, disconnect } = useWallet()
+  const { trackedTransaction } = useTransactionSafety()
   const { notify } = useToast()
   const [notFound, setNotFound] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -69,8 +71,14 @@ export function WalletButton(): ReactElement {
         <button
           type="button"
           onClick={disconnect}
+          disabled={trackedTransaction?.state === 'in_flight'}
           aria-label="Disconnect wallet"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 sm:h-11 sm:w-auto sm:px-3 sm:py-2 sm:text-sm sm:font-medium"
+          title={
+            trackedTransaction?.state === 'in_flight'
+              ? 'Wait for the active transaction to finish'
+              : undefined
+          }
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-auto sm:px-3 sm:py-2 sm:text-sm sm:font-medium"
         >
           <span className="sm:hidden">
             <XIcon className="h-4 w-4" />

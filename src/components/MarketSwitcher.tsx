@@ -6,6 +6,7 @@
  */
 import type { KeyboardEvent, ReactElement } from 'react'
 import { markets, type MarketKey } from '../config'
+import { useTransactionSafety } from '../context/TransactionSafetyContext'
 
 interface MarketSwitcherProps {
   active: MarketKey
@@ -13,11 +14,14 @@ interface MarketSwitcherProps {
 }
 
 export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): ReactElement | null {
+  const { trackedTransaction } = useTransactionSafety()
+  const switchingBlocked = trackedTransaction?.state === 'in_flight'
   // With a single deployment there is nothing to switch between.
   if (markets.length < 2) return null
   const current = markets.find((m) => m.key === active) ?? markets[0]
 
   function moveFocus(currentIndex: number, event: KeyboardEvent<HTMLButtonElement>): void {
+    if (switchingBlocked) return
     let nextIndex: number | null = null
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
       nextIndex = (currentIndex + 1) % markets.length
@@ -42,6 +46,7 @@ export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): React
       <div
         role="radiogroup"
         aria-label="Yield source"
+        aria-disabled={switchingBlocked}
         className="inline-flex max-w-full shrink-0 overflow-x-auto rounded-xl border border-boundary bg-neutral-900 p-1"
       >
         {markets.map((market, index) => {
@@ -54,11 +59,17 @@ export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): React
               role="radio"
               aria-checked={selected}
               tabIndex={selected ? 0 : -1}
+              disabled={switchingBlocked && !selected}
+              title={
+                switchingBlocked && !selected
+                  ? 'Wait for the active transaction to finish'
+                  : undefined
+              }
               onClick={() => {
                 onChange(market.key)
               }}
               onKeyDown={(event) => moveFocus(index, event)}
-              className={`min-h-11 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 ${
+              className={`min-h-11 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:cursor-not-allowed disabled:opacity-50 ${
                 selected
                   ? 'bg-neutral-800 text-neutral-50'
                   : 'text-neutral-400 hover:text-neutral-200'

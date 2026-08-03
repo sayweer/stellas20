@@ -6,6 +6,23 @@ const server = new Server(config.sorobanRpcUrl)
 
 export type CheckedTransactionStatus = 'success' | 'failed' | 'not_found'
 
+/** Keep RPC status interpretation pure so every finality branch is testable. */
+export function interpretTransactionStatus(status: unknown): CheckedTransactionStatus | AppError {
+  switch (status) {
+    case Api.GetTransactionStatus.SUCCESS:
+      return 'success'
+    case Api.GetTransactionStatus.FAILED:
+      return 'failed'
+    case Api.GetTransactionStatus.NOT_FOUND:
+      return 'not_found'
+    default:
+      return {
+        code: 'transaction_status_unknown',
+        message: 'Stellar returned an unknown transaction status. Wait a moment and check again.',
+      }
+  }
+}
+
 /**
  * Ask Stellar RPC for the final state of a previously submitted transaction.
  * A missing result is intentionally distinct from failure: recent transactions
@@ -18,19 +35,7 @@ export async function checkTransactionStatus(
   try {
     const response = await server.getTransaction(hash)
 
-    switch (response.status) {
-      case Api.GetTransactionStatus.SUCCESS:
-        return 'success'
-      case Api.GetTransactionStatus.FAILED:
-        return 'failed'
-      case Api.GetTransactionStatus.NOT_FOUND:
-        return 'not_found'
-      default:
-        return {
-          code: 'transaction_status_unknown',
-          message: 'Stellar returned an unknown transaction status. Wait a moment and check again.',
-        }
-    }
+    return interpretTransactionStatus(response.status)
   } catch {
     return {
       code: 'transaction_status_unavailable',

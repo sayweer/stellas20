@@ -79,6 +79,7 @@ export function WrapCard({
         setAmount('')
         onSuccess()
       },
+      `${formatAmount(stroops)} ${tab === 'wrap' ? market.underlyingSymbol : 'SY'}`,
     )
   }
 

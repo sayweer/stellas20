@@ -14,10 +14,10 @@ export function ConnectionBanner(): ReactElement | null {
         <AlertTriangleIcon className="h-5 w-5 shrink-0 text-negative-400" />
         <p>
           <span className="font-semibold">
-            {online ? 'Secure session storage is unavailable.' : 'Connection lost.'}
+            {online ? 'Secure transaction protection is unavailable.' : 'Connection lost.'}
           </span>{' '}
           {online
-            ? 'Transactions are paused because Everspan cannot preserve a safe recovery record across reloads. Enable site storage and reload.'
+            ? 'Transactions are paused. Use a current browser, enable site storage, and reload.'
             : 'Your form is preserved. No new transaction can be submitted until you are back online.'}
         </p>
       </div>

@@ -102,7 +102,13 @@ export function addressArg(address: string): xdr.ScVal {
 
 /** Phase callback fired as a write call progresses through the tx lifecycle. */
 export type TxPhase = 'building' | 'signing' | 'pending'
-export type OnTxPhase = (phase: TxPhase, hash?: string) => void
+export type OnTxPhase = (phase: TxPhase, hash?: string) => boolean | undefined
+
+const SAFETY_GUARD_ERROR: AppError = {
+  code: 'transaction_safety_interrupted',
+  message:
+    'Everspan stopped before opening your wallet because the reload-safe transaction record changed. Review the active transaction notice before trying again.',
+}
 
 /**
  * Run a write call through the full lifecycle: build the AssembledTransaction
@@ -117,12 +123,12 @@ export async function invokeWrite<T>(
   errorTable: ErrorTable,
 ): Promise<{ hash: string; result: T } | AppError> {
   try {
-    onPhase('building')
+    if (onPhase('building') === false) return SAFETY_GUARD_ERROR
     const tx = await build({
       publicKey: address,
       signTransaction: makeSignTransactionAdapter(address),
     })
-    onPhase('signing')
+    if (onPhase('signing') === false) return SAFETY_GUARD_ERROR
     const sent = await tx.signAndSend({
       watcher: {
         onSubmitted: (response) => {

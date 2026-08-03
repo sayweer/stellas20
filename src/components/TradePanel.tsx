@@ -1,7 +1,8 @@
 /** Trade tab: lock a fixed rate (SY→PT) or go long yield (split, sell PT). */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import type { MaturityPool } from '../hooks/usePools'
+import type { MaturityPosition } from '../hooks/usePortfolio'
 import { useNow } from '../hooks/useNow'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { stroopsToXlm } from '../lib/amounts'
@@ -9,6 +10,12 @@ import { activeMarket } from '../lib/market'
 import { formatAmount, formatMaturity } from '../lib/format'
 import { isValidTokenAmount } from '../lib/validation'
 import { maturityCountdown, RATE_SCALE } from '../lib/yield'
+import {
+  clearLongYieldProgress,
+  readLongYieldProgress,
+  resolveLongYieldRecovery,
+  saveLongYieldProgress,
+} from '../lib/longYieldProgress'
 import {
   effectiveApy,
   formatPercent,
@@ -30,6 +37,7 @@ interface TradePanelProps {
   address: string
   isWrongNetwork: boolean
   pools: MaturityPool[]
+  positions: MaturityPosition[]
   loading: boolean
   syBalance: bigint
   liveRate: bigint | null
@@ -46,6 +54,7 @@ export function TradePanel({
   address,
   isWrongNetwork,
   pools,
+  positions,
   loading,
   syBalance,
   liveRate,
@@ -74,6 +83,8 @@ export function TradePanel({
       : tradeable[0]?.maturity) ?? null
   const selected = preselect
   const selectedPool = tradeable.find((p) => p.maturity === selected)?.pool ?? null
+  const selectedPtBalance =
+    positions.find((position) => position.maturity === selected)?.position.pt ?? 0n
 
   return (
     <div>
@@ -135,6 +146,7 @@ export function TradePanel({
                   maturity={selected}
                   pool={selectedPool}
                   syBalance={syBalance}
+                  existingPtBalance={selectedPtBalance}
                   liveRate={liveRate}
                   onSuccess={onSuccess}
                 />
@@ -229,6 +241,7 @@ function LockRateForm({
         setAmount('')
         onSuccess()
       },
+      `${formatAmount(syIn)} SY → at least ${formatAmount(minOut)} PT · ${formatMaturity(maturity)}`,
     )
   }
 
@@ -381,6 +394,7 @@ interface LongFormProps {
   maturity: bigint
   pool: Reserves
   syBalance: bigint
+  existingPtBalance: bigint
   liveRate: bigint | null
   onSuccess: () => void
 }
@@ -395,13 +409,24 @@ function LongYieldForm({
   maturity,
   pool,
   syBalance,
+  existingPtBalance,
   liveRate,
   onSuccess,
 }: LongFormProps): ReactElement {
-  const [amount, setAmount] = useState('')
+  const marketKey = activeMarket().key
+  const [savedProgress, setSavedProgress] = useState(() =>
+    readLongYieldProgress(address, marketKey, maturity),
+  )
+  const recovery = resolveLongYieldRecovery(savedProgress, existingPtBalance)
+  const canResumeSaved = recovery.kind === 'resume_saved'
+  const [amount, setAmount] = useState(() =>
+    recovery.kind === 'resume_saved' && recovery.syIn > 0n ? stroopsToXlm(recovery.syIn) : '',
+  )
   const [slippageBps, setSlippageBps] = useState(50)
   /** PT minted by step 1, awaiting sale in step 2 (null until split confirms). */
   const [ptToSell, setPtToSell] = useState<bigint | null>(null)
+  const [allowNewSplit, setAllowNewSplit] = useState(existingPtBalance === 0n && !canResumeSaved)
+  const [progressStorageWarning, setProgressStorageWarning] = useState(false)
   const split = useTxRunner()
   const sell = useTxRunner()
 
@@ -411,9 +436,24 @@ function LongYieldForm({
   const projected = liveRate !== null && syIn > 0n ? (syIn * liveRate) / RATE_SCALE : 0n
   const sellBack = projected > 0n ? quoteSwap(pool, 'PtToSy', projected) : 0n
   const netCost = syIn > sellBack ? syIn - sellBack : 0n
+  const step2 = ptToSell !== null
+  const step2Quote = step2 && ptToSell > 0n ? quoteSwap(pool, 'PtToSy', ptToSell) : 0n
+  const step2MinOut = minOutFromSlippage(step2Quote, slippageBps)
+  const needsRecoveryChoice = !step2 && existingPtBalance > 0n && !allowNewSplit
+
+  // A completed late sale can leave a continuation behind. Once verified
+  // holdings show no PT, discard it so it can never target future PT.
+  useEffect(() => {
+    if (!savedProgress || existingPtBalance > 0n) return
+    clearLongYieldProgress(address, marketKey, maturity)
+    // Intentional external-storage reconciliation: prevent this mounted form
+    // from reusing the record if balances later refresh in the background.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSavedProgress(null)
+  }, [address, existingPtBalance, marketKey, maturity, savedProgress])
 
   function doSplit(): void {
-    if (!valid.ok || split.pending || split.blocked || projected <= 0n) return
+    if (!allowNewSplit || !valid.ok || split.pending || split.blocked || projected <= 0n) return
     let captured: bigint | null = null
     void split.run(
       'Split',
@@ -423,26 +463,69 @@ function LongYieldForm({
           return r
         }),
       () => {
+        if (captured === null || captured <= 0n) return
+        const saved = saveLongYieldProgress({
+          address,
+          marketKey,
+          maturity,
+          ptOut: captured,
+          syIn,
+          source: 'split',
+        })
+        setProgressStorageWarning(!saved)
         setPtToSell(captured)
+        onSuccess()
       },
+      `${formatAmount(syIn)} SY · ${formatMaturity(maturity)} · step 1 of 2`,
     )
   }
 
   function doSell(): void {
-    if (ptToSell === null || ptToSell <= 0n || sell.pending || sell.blocked) return
+    if (ptToSell === null || ptToSell <= 0n || step2Quote <= 0n || sell.pending || sell.blocked)
+      return
     const minOut = minOutFromSlippage(quoteSwap(pool, 'PtToSy', ptToSell), slippageBps)
     void sell.run(
       'Sell PT',
       (onPhase) => swapExactIn(address, maturity, 'PtToSy', ptToSell, minOut, onPhase),
       () => {
+        clearLongYieldProgress(address, marketKey, maturity)
         setAmount('')
         setPtToSell(null)
+        setAllowNewSplit(existingPtBalance === ptToSell)
         onSuccess()
       },
+      `${formatAmount(ptToSell)} PT · ${formatMaturity(maturity)} · step 2 of 2`,
     )
   }
 
-  const step2 = ptToSell !== null
+  function continueWithExistingPt(): void {
+    if (existingPtBalance <= 0n) return
+    const saved = saveLongYieldProgress({
+      address,
+      marketKey,
+      maturity,
+      ptOut: existingPtBalance,
+      syIn: 0n,
+      source: 'existing',
+    })
+    setProgressStorageWarning(!saved)
+    setPtToSell(existingPtBalance)
+  }
+
+  function continueWithSavedPt(): void {
+    if (recovery.kind !== 'resume_saved') return
+    setPtToSell(recovery.ptOut)
+  }
+
+  function startNewSplit(): void {
+    clearLongYieldProgress(address, marketKey, maturity)
+    setPtToSell(null)
+    setAmount('')
+    setAllowNewSplit(true)
+    setProgressStorageWarning(false)
+    split.reset()
+    sell.reset()
+  }
 
   return (
     <div className="space-y-4">
@@ -450,6 +533,41 @@ function LongYieldForm({
         Split SY into PT + YT, then sell the PT — you keep the{' '}
         <span className="text-neutral-200">YT</span> for pure yield exposure. Two transactions.
       </p>
+
+      {needsRecoveryChoice ? (
+        <div role="status" className="rounded-xl border border-warning-300 bg-warning-500/10 p-4">
+          <p className="text-sm font-semibold text-warning-100">Existing PT needs a choice</p>
+          <p className="mt-1 text-xs leading-relaxed text-warning-200/80">
+            This wallet already holds {formatAmount(existingPtBalance)} PT for{' '}
+            {formatMaturity(maturity)}. It may be a fixed-return holding or the first half of an
+            interrupted yield strategy. Everspan will not split or sell until you choose.
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {canResumeSaved && recovery.kind === 'resume_saved' ? (
+              <ActionButton variant="secondary" onClick={continueWithSavedPt}>
+                Resume saved step — sell {formatAmount(recovery.ptOut)} PT
+              </ActionButton>
+            ) : (
+              <ActionButton variant="secondary" onClick={continueWithExistingPt}>
+                Use all {formatAmount(existingPtBalance)} PT for step 2
+              </ActionButton>
+            )}
+            <ActionButton variant="secondary" onClick={startNewSplit}>
+              Keep PT and split more SY
+            </ActionButton>
+          </div>
+        </div>
+      ) : null}
+
+      {step2 ? (
+        <div role="status" className="rounded-xl border border-positive-300 bg-positive-500/10 p-4">
+          <p className="text-sm font-semibold text-positive-100">Step 1 is already complete</p>
+          <p className="mt-1 text-xs leading-relaxed text-positive-200/80">
+            Continue by selling exactly {formatAmount(ptToSell)} PT. Everspan will not create
+            another split for this flow.
+          </p>
+        </div>
+      ) : null}
 
       <AmountField
         id="long-amount"
@@ -462,9 +580,9 @@ function LongYieldForm({
         unit="SY"
         hint={`Available: ${formatAmount(syBalance)} SY`}
         error={amount.trim() !== '' && !valid.ok ? valid.reason : null}
-        disabled={step2 || split.blocked || sell.blocked}
+        disabled={step2 || needsRecoveryChoice || split.blocked || sell.blocked}
         onMax={
-          syBalance > 0n && !step2
+          syBalance > 0n && !step2 && !needsRecoveryChoice
             ? () => {
                 setAmount(stroopsToXlm(syBalance))
               }
@@ -472,7 +590,7 @@ function LongYieldForm({
         }
       />
 
-      {projected > 0n && (
+      {!step2 && projected > 0n && (
         <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review yield exposure</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-400">
@@ -505,6 +623,36 @@ function LongYieldForm({
         </div>
       )}
 
+      {step2 && step2Quote > 0n ? (
+        <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+          <p className="text-sm font-semibold text-neutral-100">Review remaining transaction</p>
+          <div className="mt-4 space-y-2.5">
+            <SummaryRow label="PT sold">{formatAmount(ptToSell)} PT</SummaryRow>
+            <SummaryRow label="You receive at least" accent>
+              {formatAmount(step2MinOut)} SY
+            </SummaryRow>
+            <SummaryRow label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</SummaryRow>
+          </div>
+          <div className="mt-3 border-t border-neutral-800 pt-3">
+            <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
+          </div>
+        </div>
+      ) : null}
+
+      {step2 && step2Quote <= 0n ? (
+        <p role="alert" className="text-xs leading-relaxed text-warning-300">
+          The pool cannot quote this PT amount right now. Keep the saved step and try again after
+          liquidity is available.
+        </p>
+      ) : null}
+
+      {progressStorageWarning ? (
+        <p role="alert" className="text-xs leading-relaxed text-warning-300">
+          Keep this page open until step 2 finishes. Everspan could not save this continuation for a
+          reload; existing PT detection will still prevent an automatic duplicate split.
+        </p>
+      ) : null}
+
       {/* Stage indicators */}
       <ol className="flex items-center gap-2 text-xs">
         <StageChip n={1} label="Split" done={step2} active={!step2} />
@@ -515,7 +663,14 @@ function LongYieldForm({
       {!step2 ? (
         <ActionButton
           onClick={doSplit}
-          disabled={isWrongNetwork || split.blocked || !valid.ok || projected <= 0n}
+          disabled={
+            isWrongNetwork ||
+            !allowNewSplit ||
+            needsRecoveryChoice ||
+            split.blocked ||
+            !valid.ok ||
+            projected <= 0n
+          }
           pending={split.pending}
           pendingLabel="Splitting…"
         >
@@ -524,7 +679,13 @@ function LongYieldForm({
       ) : (
         <ActionButton
           onClick={doSell}
-          disabled={isWrongNetwork || sell.blocked || ptToSell === null || ptToSell <= 0n}
+          disabled={
+            isWrongNetwork ||
+            sell.blocked ||
+            ptToSell === null ||
+            ptToSell <= 0n ||
+            step2Quote <= 0n
+          }
           pending={sell.pending}
           pendingLabel="Selling PT…"
         >

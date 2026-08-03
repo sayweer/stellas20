@@ -169,8 +169,8 @@ export function EarnPanel({
             address={address}
             isWrongNetwork={isWrongNetwork}
             pools={pools}
-            loading={poolsLoading}
             positions={positions}
+            loading={poolsLoading}
             syBalance={syBalance}
             initialMaturity={poolMaturity}
             onMaturityChange={onMaturityChange}
@@ -184,6 +184,7 @@ export function EarnPanel({
             address={address}
             isWrongNetwork={isWrongNetwork}
             pools={pools}
+            positions={positions}
             loading={poolsLoading}
             syBalance={syBalance}
             liveRate={liveRate}

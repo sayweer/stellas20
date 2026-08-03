@@ -39,6 +39,7 @@ export function WalletBar({
       'Faucet',
       (onPhase) => requestFaucet(address, FAUCET_AMOUNT, onPhase),
       onRefresh,
+      `${formatAmount(FAUCET_AMOUNT)} ${market.underlyingSymbol}`,
     )
   }
 

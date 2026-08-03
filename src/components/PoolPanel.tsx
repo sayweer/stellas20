@@ -202,6 +202,7 @@ function AddForm({
         setAmount('')
         onSuccess()
       },
+      `${formatAmount(ptNeeded)} PT + ${formatAmount(syIn)} SY · ${formatMaturity(maturity)}`,
     )
   }
 
@@ -329,6 +330,7 @@ function RemoveForm({
         setAmount('')
         onSuccess()
       },
+      `${formatAmount(lp)} LP · ${formatMaturity(maturity)}`,
     )
   }
 

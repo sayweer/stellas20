@@ -35,7 +35,7 @@ function App(): ReactElement {
   useDocumentTitle('App — Everspan')
   const [marketKey, setMarketKey] = useState<MarketKey>(markets[0].key)
   const { address } = useWallet()
-  const { resolutionVersion } = useTransactionSafety()
+  const { resolutionVersion, dataVersion, trackedTransaction } = useTransactionSafety()
   const configured = isContractsConfigured()
   const mountedScope = useRef(false)
 
@@ -48,6 +48,7 @@ function App(): ReactElement {
   }, [address, resolutionVersion])
 
   function switchMarket(key: MarketKey): void {
+    if (trackedTransaction?.state === 'in_flight') return
     // The contract services resolve addresses from module state, so point them
     // at the new deployment before the remount below refetches everything.
     setActiveMarket(key)
@@ -85,6 +86,7 @@ function App(): ReactElement {
       <MarketContent
         key={`${marketKey}:${address ?? 'disconnected'}:${resolutionVersion}`}
         marketKey={marketKey}
+        dataVersion={dataVersion}
         onSwitchMarket={switchMarket}
       />
     </div>
@@ -93,16 +95,32 @@ function App(): ReactElement {
 
 interface MarketContentProps {
   marketKey: MarketKey
+  dataVersion: number
   onSwitchMarket: (key: MarketKey) => void
 }
 
 /** Everything that belongs to one market. Mounted fresh per market. */
-function MarketContent({ marketKey, onSwitchMarket }: MarketContentProps): ReactElement {
+function MarketContent({
+  marketKey,
+  dataVersion,
+  onSwitchMarket,
+}: MarketContentProps): ReactElement {
   const { isConnected, address, isWrongNetwork } = useWallet()
   const balance = useBalance(address)
   const { portfolio, loading, error, refresh, refreshSilent } = usePortfolio(address)
   const pools = usePools(address, portfolio.maturities)
   const liveRate = useLiveRate(portfolio.rateInfo)
+  const refreshPools = pools.refresh
+  const refreshBalance = balance.refresh
+  const seenDataVersion = useRef(dataVersion)
+
+  useEffect(() => {
+    if (seenDataVersion.current === dataVersion) return
+    seenDataVersion.current = dataVersion
+    refresh()
+    refreshPools()
+    refreshBalance()
+  }, [dataVersion, refresh, refreshBalance, refreshPools])
 
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedTab = searchParams.get('view')

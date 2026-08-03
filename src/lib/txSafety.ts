@@ -4,6 +4,7 @@ interface TxState {
   status: string
   hash?: string | null
   phase?: TxPhase
+  transactionId?: string
 }
 
 /** Once signing starts, the opaque wallet/send call may have reached the RPC
@@ -19,9 +20,12 @@ export function isUncertainSubmission(outcome: TxState | null): boolean {
 /** Hide a form-local uncertainty after the app-wide record was resolved. */
 export function isResolvedLocalUncertainty(
   outcome: TxState | null,
-  hasTrackedTransaction: boolean,
+  activeTransactionId: string | null,
 ): boolean {
-  return !hasTrackedTransaction && isUncertainSubmission(outcome)
+  return (
+    isUncertainSubmission(outcome) &&
+    (outcome?.transactionId === undefined || outcome.transactionId !== activeTransactionId)
+  )
 }
 
 /** Writes are globally blocked by connectivity or one active safety record. */

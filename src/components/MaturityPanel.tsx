@@ -103,11 +103,21 @@ function MaturityCard({
 
   function claim(): void {
     if (pending || blocked) return
-    void run('Claim', (onPhase) => claimYield(address, maturity, onPhase), onSuccess)
+    void run(
+      'Claim',
+      (onPhase) => claimYield(address, maturity, onPhase),
+      onSuccess,
+      `${claimable === null ? 'Available yield' : `${formatAmount(claimable, 6)} SY`} · ${formatMaturity(maturity)}`,
+    )
   }
   function redeem(): void {
     if (pending || blocked) return
-    void run('Redeem', (onPhase) => redeemPt(address, maturity, position.pt, onPhase), onSuccess)
+    void run(
+      'Redeem',
+      (onPhase) => redeemPt(address, maturity, position.pt, onPhase),
+      onSuccess,
+      `${formatAmount(position.pt)} PT · ${formatMaturity(maturity)}`,
+    )
   }
 
   return (

@@ -1,15 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import {
-  isResolvedLocalUncertainty,
-  isUncertainSubmission,
-  isWriteBlocked,
-} from './txSafety'
+import { isResolvedLocalUncertainty, isUncertainSubmission, isWriteBlocked } from './txSafety'
 
 describe('uncertain transaction safety', () => {
   it('blocks another write after submission produced a hash', () => {
-    expect(
-      isUncertainSubmission({ status: 'error', phase: 'pending', hash: 'abc123' }),
-    ).toBe(true)
+    expect(isUncertainSubmission({ status: 'error', phase: 'pending', hash: 'abc123' })).toBe(true)
   })
 
   it('blocks another write when submission began without returning a hash', () => {
@@ -29,9 +23,15 @@ describe('uncertain transaction safety', () => {
   })
 
   it('hides a stale local uncertainty after the global safety record is cleared', () => {
-    const outcome = { status: 'error', phase: 'pending' as const, hash: 'abc123' }
-    expect(isResolvedLocalUncertainty(outcome, true)).toBe(false)
-    expect(isResolvedLocalUncertainty(outcome, false)).toBe(true)
+    const outcome = {
+      status: 'error',
+      phase: 'pending' as const,
+      hash: 'abc123',
+      transactionId: 'transaction-a',
+    }
+    expect(isResolvedLocalUncertainty(outcome, 'transaction-a')).toBe(false)
+    expect(isResolvedLocalUncertainty(outcome, null)).toBe(true)
+    expect(isResolvedLocalUncertainty(outcome, 'transaction-b')).toBe(true)
   })
 
   it('uses connectivity and the global record as the write lock', () => {

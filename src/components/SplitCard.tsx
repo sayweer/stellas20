@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import { stroopsToXlm } from '../lib/amounts'
-import { formatAmount } from '../lib/format'
+import { formatAmount, formatMaturity } from '../lib/format'
 import { mergePtYt, splitSy, type AccountView } from '../lib/contracts/splitter'
 import type { MaturityPosition } from '../hooks/usePortfolio'
 import { isValidTokenAmount } from '../lib/validation'
@@ -109,6 +109,7 @@ export function SplitCard({
         setAmount('')
         onSuccess()
       },
+      `${formatAmount(stroops)} ${tab === 'split' ? 'SY' : 'PT + YT'} · ${formatMaturity(selected)}`,
     )
   }
 

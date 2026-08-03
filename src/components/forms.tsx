@@ -130,7 +130,7 @@ interface ActionButtonProps {
   onClick: () => void
   disabled?: boolean
   pending?: boolean
-  pendingLabel: string
+  pendingLabel?: string
   children: ReactNode
   variant?: 'primary' | 'secondary'
   className?: string
@@ -141,7 +141,7 @@ export function ActionButton({
   onClick,
   disabled,
   pending,
-  pendingLabel,
+  pendingLabel = 'Working…',
   children,
   variant = 'primary',
   className = '',

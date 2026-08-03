@@ -15,7 +15,13 @@ import {
 } from './icons'
 
 export type TxOutcome =
-  | { status: 'pending'; label: string; hash: string | null; phase: TxPhase }
+  | {
+      status: 'pending'
+      label: string
+      hash: string | null
+      phase: TxPhase
+      transactionId?: string
+    }
   | { status: 'success'; label: string; hash: string }
   | {
       status: 'error'
@@ -23,6 +29,7 @@ export type TxOutcome =
       error: AppError
       hash: string | null
       phase: TxPhase
+      transactionId?: string
     }
 
 export function TxStatus({

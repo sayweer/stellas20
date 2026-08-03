@@ -23,7 +23,7 @@ export function TransactionSafetyBanner(): ReactElement | null {
   const [checkFeedback, setCheckFeedback] = useState<CheckFeedback | null>(null)
 
   const transactionKey = trackedTransaction
-    ? `${trackedTransaction.label}:${trackedTransaction.address ?? 'no-address'}:${trackedTransaction.hash ?? 'no-hash'}:${trackedTransaction.updatedAt}`
+    ? `${trackedTransaction.id}:${trackedTransaction.updatedAt}`
     : ''
   const visibleFeedback =
     checkFeedback?.transactionKey === transactionKey ? checkFeedback.message : null
@@ -31,7 +31,7 @@ export function TransactionSafetyBanner(): ReactElement | null {
   async function recheckStatus(): Promise<void> {
     if (!trackedTransaction?.hash || checking) return
 
-    const { hash, label } = trackedTransaction
+    const { hash, label, id } = trackedTransaction
     const requestedTransactionKey = transactionKey
     setChecking(true)
     setCheckFeedback(null)
@@ -39,14 +39,16 @@ export function TransactionSafetyBanner(): ReactElement | null {
     const result = await checkTransactionStatus(hash)
 
     if (result === 'success') {
-      resolveTrackedTransaction()
-      notify('success', `${label} was confirmed on Stellar Testnet.`)
+      const resolved = await resolveTrackedTransaction(id)
+      if (resolved) notify('success', `${label} was confirmed on Stellar Testnet.`)
     } else if (result === 'failed') {
-      resolveTrackedTransaction()
-      notify(
-        'error',
-        `${label} failed on Stellar Testnet. Actions are unlocked; review the form before trying again.`,
-      )
+      const resolved = await resolveTrackedTransaction(id)
+      if (resolved) {
+        notify(
+          'error',
+          `${label} failed on Stellar Testnet. Actions are unlocked; review the form before trying again.`,
+        )
+      }
     } else if (result === 'not_found') {
       setCheckFeedback({
         transactionKey: requestedTransactionKey,
@@ -62,9 +64,14 @@ export function TransactionSafetyBanner(): ReactElement | null {
     setChecking(false)
   }
 
-  function unlockAfterWalletCheck(): void {
-    resolveTrackedTransaction()
-    notify('info', 'Transaction actions unlocked. Review your balances before submitting again.')
+  async function unlockAfterWalletCheck(): Promise<void> {
+    if (!trackedTransaction || checking) return
+    const resolved = await resolveTrackedTransaction(trackedTransaction.id)
+    if (resolved) {
+      notify('info', 'Transaction actions unlocked. Review your balances before submitting again.')
+    } else {
+      notify('info', 'The active transaction changed. The newer transaction remains protected.')
+    }
   }
 
   if (!trackedTransaction) return null
@@ -92,11 +99,14 @@ export function TransactionSafetyBanner(): ReactElement | null {
               : 'Confirmation needs checking'}
           </p>
           <p className="mt-1 font-mono text-xs text-warning-200/80">
-            {trackedTransaction.market}
+            {trackedTransaction.market} · {trackedTransaction.network}
             {trackedTransaction.address
               ? ` · ${truncateAddress(trackedTransaction.address)}`
               : ' · signing wallet unavailable'}
           </p>
+          {trackedTransaction.summary ? (
+            <p className="mt-1 text-xs text-warning-200/80">{trackedTransaction.summary}</p>
+          ) : null}
 
           {isInFlight ? (
             <p className="mt-1 text-warning-200/80">
@@ -149,7 +159,10 @@ export function TransactionSafetyBanner(): ReactElement | null {
               {!isInFlight ? (
                 <button
                   type="button"
-                  onClick={unlockAfterWalletCheck}
+                  disabled={checking}
+                  onClick={() => {
+                    void unlockAfterWalletCheck()
+                  }}
                   className="inline-flex min-h-11 items-center justify-center rounded-lg border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
                 >
                   I verified the result — unlock actions
@@ -164,7 +177,10 @@ export function TransactionSafetyBanner(): ReactElement | null {
               </p>
               <button
                 type="button"
-                onClick={unlockAfterWalletCheck}
+                disabled={checking}
+                onClick={() => {
+                  void unlockAfterWalletCheck()
+                }}
                 className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
               >
                 I checked my wallet — unlock actions
