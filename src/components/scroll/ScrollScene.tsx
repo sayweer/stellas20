@@ -13,12 +13,15 @@ export function ScrollScene({
   children,
   className = '',
   length = 1,
+  custom = false,
   id,
   label,
 }: {
   children: ReactNode
   className?: string
   length?: number
+  /** Opt out of the card wipe and paint from `useSceneProgress` instead. */
+  custom?: boolean
   id?: string
   label?: string
 }): ReactElement {
@@ -33,8 +36,8 @@ export function ScrollScene({
     const content = contentRef.current
     const dim = dimRef.current
     if (!stage || !element || !content || !dim) return
-    return stage.register(index, { element, content, dim, length })
-  }, [index, length, stage])
+    return stage.register(index, { element, content, dim, length, custom })
+  }, [custom, index, length, stage])
 
   const pinned = stage?.pinned ?? false
 

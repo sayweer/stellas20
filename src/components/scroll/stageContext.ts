@@ -8,8 +8,6 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react'
  * breaking fast refresh.
  * ───────────────────────────────────────────────────────── */
 
-/** Viewport heights of scroll before the first panel starts covering the hero. */
-export const HERO_DWELL_VH = 0.5
 /** Viewport heights of scroll one panel entrance consumes at `length={1}`. */
 export const SCENE_LENGTH_VH = 1.6
 /** Viewport heights the final panel holds before the stage unpins. */
@@ -44,6 +42,11 @@ export type SceneRegistration = {
   content: HTMLElement
   dim: HTMLElement
   length: number
+  /**
+   * The scene paints itself from `useSceneProgress` instead of receiving the
+   * default card wipe. Used by the opening, which zooms rather than wipes.
+   */
+  custom: boolean
 }
 
 export type StageApi = {
@@ -66,10 +69,14 @@ export function clamp01(value: number): number {
   return value
 }
 
-/** Scroll offset, in pixels from the top of the track, where scene `index` begins entering. */
+/**
+ * Scroll offset, in pixels from the top of the track, where scene `index`
+ * begins. Scene 0 owns a segment too — it is the opening, which animates in
+ * place rather than entering over something.
+ */
 export function segmentStartPx(lengths: Record<number, number>, index: number): number {
-  let vh = HERO_DWELL_VH
-  for (let i = 1; i < index; i += 1) vh += (lengths[i] ?? 1) * SCENE_LENGTH_VH
+  let vh = 0
+  for (let i = 0; i < index; i += 1) vh += (lengths[i] ?? 1) * SCENE_LENGTH_VH
   return vh * window.innerHeight
 }
 
@@ -78,8 +85,8 @@ export function segmentLengthPx(lengths: Record<number, number>, index: number):
 }
 
 export function trackHeightVh(lengths: Record<number, number>, sceneCount: number): number {
-  let vh = HERO_DWELL_VH + TAIL_VH
-  for (let index = 1; index < sceneCount; index += 1) vh += (lengths[index] ?? 1) * SCENE_LENGTH_VH
+  let vh = TAIL_VH
+  for (let index = 0; index < sceneCount; index += 1) vh += (lengths[index] ?? 1) * SCENE_LENGTH_VH
   return vh * 100
 }
 

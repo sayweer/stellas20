@@ -139,12 +139,19 @@ export function ScrollStage({
         })
 
         registry.forEach((scene, index) => {
-          if (index === 0) {
+          if (index === 0 && !scene.custom) {
             scene.element.style.clipPath = 'inset(0px round 0px)'
             return
           }
-          const previous = registry.get(index - 1)
+          const previous = index === 0 ? undefined : registry.get(index - 1)
           const apply = (progress: number): void => {
+            if (scene.custom) {
+              // The scene owns its own look; it gets raw progress so it can
+              // lay out its phases without the entrance/dwell split.
+              scene.element.style.clipPath = 'inset(0px round 0px)'
+              listeners.current.get(index)?.forEach((listener) => listener(progress))
+              return
+            }
             paintEntrance(scene, progress)
             if (previous) paintRecede(previous, progress)
             const dwell = dwellProgress(scene, progress)
