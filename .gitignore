@@ -52,3 +52,10 @@ docs/plan/*
 !docs/THREAT_MODEL.md
 !docs/RUNBOOKS.md
 !docs/plan/audit-round-2.md
+
+# ...and the reference documentation the README links to. These carry the detail
+# the README used to hold inline; if they were ignored, every link would 404.
+!docs/ARCHITECTURE.md
+!docs/TESTING.md
+!docs/USERS_AND_FEEDBACK.md
+!docs/DEPLOYMENT.md

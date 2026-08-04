@@ -1,0 +1,9 @@
+# Lock files are generated: keep them out of diffs, language stats and the
+# file lists that repository-reading tools build. They are 460 KB of noise
+# that crowds out the contract and frontend source an automated reviewer
+# needs to see.
+package-lock.json linguist-generated=true -diff
+Cargo.lock        linguist-generated=true -diff
+
+# Screenshots are evidence, not source.
+screenshots/** linguist-documentation=true
