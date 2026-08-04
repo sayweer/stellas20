@@ -30,6 +30,11 @@ const DWELL_END = 0.84
 /** Resting band height, in viewport heights. */
 const BAND_VH = 38
 /**
+ * The band reaches its resting height ahead of the punch-in rather than
+ * alongside it, so it arrives as the zoom is still opening up behind it.
+ */
+const BAND_OPEN_END = 0.18
+/**
  * Past roughly 10× the headline already covers the frame, and every further
  * step only asks the browser to re-rasterise larger text for no visible gain.
  */
@@ -113,7 +118,7 @@ export function OpeningScene({
 
     // Opens from the very first pixel of scroll — any head start reads as the
     // page moving before anything happens.
-    const open = clamp01(p / PUNCH_END)
+    const open = clamp01(p / BAND_OPEN_END)
     const expand = clamp01((p - DWELL_END) / (1 - DWELL_END))
     const height = BAND_VH * open + (100 - BAND_VH) * expand
     // Born in the gap between the two blocks of type, settling to the middle
