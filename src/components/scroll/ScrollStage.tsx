@@ -84,7 +84,15 @@ export function ScrollStage({
 
   const register = useCallback((index: number, registration: SceneRegistration) => {
     scenes.current.set(index, registration)
-    setLengths((current) => ({ ...current, [index]: registration.length }))
+    // Bail out with the same reference when the value is unchanged: a churned
+    // `api` object here feeds back into `stage` in ScrollScene's registration
+    // effect, which calls `register` again — an unguarded new object on every
+    // call turns that into an unthrottled render loop.
+    setLengths((current) =>
+      current[index] === registration.length
+        ? current
+        : { ...current, [index]: registration.length },
+    )
     return () => {
       scenes.current.delete(index)
       // `lengths` keeps the entry: geometry only ever reads indices below the
