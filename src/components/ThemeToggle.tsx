@@ -13,7 +13,7 @@ export function ThemeToggle(): ReactElement {
       onClick={toggleTheme}
       aria-label={`Use ${nextTheme} theme`}
       title={`Use ${nextTheme} theme`}
-      className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-boundary text-neutral-400 transition-[color,background-color,border-color] duration-100 ease-out hover:bg-neutral-900 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:translate-y-px"
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-boundary text-neutral-400 transition-[color,background-color,border-color] duration-100 ease-out hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:translate-y-px"
     >
       {theme === 'dark' ? (
         <SunIcon className="h-[18px] w-[18px]" />

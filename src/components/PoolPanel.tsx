@@ -76,7 +76,7 @@ export function PoolPanel({
           aria-label="Loading liquidity pools"
           className="mt-5 space-y-3"
         >
-          <div className="h-11 animate-pulse rounded-lg bg-neutral-850" />
+          <div className="h-11 animate-pulse rounded-xl bg-neutral-850" />
           <div className="h-28 animate-pulse rounded-xl bg-neutral-850" />
         </div>
       ) : withPool.length === 0 || mp === null || selected === null ? (
@@ -263,7 +263,7 @@ function AddForm({
           <button
             type="button"
             onClick={onGoAdvanced}
-            className="ml-1 inline-flex min-h-11 items-center rounded-md border border-boundary px-3 font-medium transition-colors hover:bg-raised hover:text-warning-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+            className="ml-1 inline-flex min-h-11 items-center rounded-full border border-boundary px-3 font-medium transition-colors hover:bg-raised hover:text-warning-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
           >
             prepare PT in Convert
           </button>

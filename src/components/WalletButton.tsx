@@ -55,7 +55,7 @@ export function WalletButton(): ReactElement {
             void handleCopy()
           }}
           aria-label={copied ? 'Address copied' : `Copy address ${address}`}
-          className="inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-boundary bg-neutral-900 px-3 py-2 font-mono text-sm text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+          className="inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-boundary bg-neutral-900 px-3 py-2 font-mono text-sm text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
         >
           <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-positive-400" />
           <span className="tabular-nums">{truncate(address)}</span>
@@ -78,7 +78,7 @@ export function WalletButton(): ReactElement {
               ? 'Wait for the active transaction to finish'
               : undefined
           }
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-auto sm:px-3 sm:py-2 sm:text-sm sm:font-medium"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-boundary text-neutral-400 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-auto sm:px-3 sm:py-2 sm:text-sm sm:font-medium"
         >
           <span className="sm:hidden">
             <XIcon className="h-4 w-4" />
@@ -98,7 +98,7 @@ export function WalletButton(): ReactElement {
         }}
         disabled={connecting}
         aria-busy={connecting}
-        className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-500 px-4 py-2.5 text-sm font-semibold text-onAccent transition-colors duration-100 hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-500 px-4 py-2.5 text-sm font-semibold text-onAccent transition-colors duration-100 hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {connecting ? (
           <>

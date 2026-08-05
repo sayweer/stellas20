@@ -137,7 +137,7 @@ export function TransactionSafetyBanner(): ReactElement | null {
                 href={explorerTxUrl(trackedTransaction.hash)}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 font-semibold text-warning-100 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 font-semibold text-warning-100 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
               >
                 View on Stellar Expert
                 <ExternalLinkIcon className="h-3.5 w-3.5" />
@@ -150,7 +150,7 @@ export function TransactionSafetyBanner(): ReactElement | null {
                   onClick={() => {
                     void recheckStatus()
                   }}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300 disabled:cursor-wait disabled:opacity-60"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300 disabled:cursor-wait disabled:opacity-60"
                 >
                   {checking ? <Spinner className="h-4 w-4" /> : null}
                   {checking ? 'Checking…' : 'Recheck status'}
@@ -163,7 +163,7 @@ export function TransactionSafetyBanner(): ReactElement | null {
                   onClick={() => {
                     void unlockAfterWalletCheck()
                   }}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
                 >
                   I verified the result — unlock actions
                 </button>
@@ -181,7 +181,7 @@ export function TransactionSafetyBanner(): ReactElement | null {
                 onClick={() => {
                   void unlockAfterWalletCheck()
                 }}
-                className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
+                className="mt-2 inline-flex min-h-11 items-center justify-center rounded-full border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
               >
                 I checked my wallet — unlock actions
               </button>

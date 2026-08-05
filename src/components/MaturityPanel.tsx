@@ -161,7 +161,7 @@ function MaturityCard({
         </div>
       </dl>
 
-      <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-hairline bg-neutral-950/60 px-3 py-2">
+      <div className="mt-3 flex items-center gap-1.5 rounded-xl border border-hairline bg-neutral-950/60 px-3 py-2">
         <CoinsIcon className="h-4 w-4 text-positive-400" />
         <span className="text-xs text-neutral-300">Claimable now</span>
         <span
@@ -173,7 +173,7 @@ function MaturityCard({
       </div>
 
       {settled ? (
-        <p className="mt-3 rounded-lg border border-hairline bg-neutral-900 px-3 py-2 text-center text-xs font-medium text-neutral-400">
+        <p className="mt-3 rounded-xl border border-hairline bg-neutral-900 px-3 py-2 text-center text-xs font-medium text-neutral-400">
           Settled — principal redeemed and yield claimed.
         </p>
       ) : (

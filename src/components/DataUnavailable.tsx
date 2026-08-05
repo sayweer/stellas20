@@ -35,7 +35,7 @@ export function DataUnavailable({ error, onRetry, tab }: DataUnavailableProps): 
             <button
               type="button"
               onClick={onRetry}
-              className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg border border-negative-300 px-4 py-2 text-sm font-semibold text-negative-100 transition-colors hover:bg-negative-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-negative-300"
+              className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full border border-negative-300 px-4 py-2 text-sm font-semibold text-negative-100 transition-colors hover:bg-negative-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-negative-300"
             >
               Refresh verified data
             </button>

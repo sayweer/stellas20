@@ -88,7 +88,7 @@ export function ActivityFeed({
             <div
               key={item}
               aria-hidden="true"
-              className="h-12 animate-pulse rounded-lg bg-neutral-850"
+              className="h-12 animate-pulse rounded-xl bg-neutral-850"
             />
           ))}
         </div>
@@ -103,7 +103,7 @@ export function ActivityFeed({
             <button
               type="button"
               onClick={onRetry}
-              className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-negative-300 px-3 py-2 text-xs font-semibold text-negative-100 transition-colors duration-100 hover:bg-negative-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-negative-300"
+              className="mt-3 inline-flex min-h-11 items-center rounded-full border border-negative-300 px-3 py-2 text-xs font-semibold text-negative-100 transition-colors duration-100 hover:bg-negative-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-negative-300"
             >
               Try again
             </button>
@@ -134,7 +134,7 @@ export function ActivityFeed({
               return (
                 <li
                   key={event.id}
-                  className="grid min-w-0 gap-2 rounded-lg border border-hairline/80 px-3 py-2.5 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3"
+                  className="grid min-w-0 gap-2 rounded-xl border border-hairline/80 px-3 py-2.5 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3"
                 >
                   <div className="flex min-w-0 items-center gap-2.5">
                     <span
@@ -163,7 +163,7 @@ export function ActivityFeed({
                       target="_blank"
                       rel="noreferrer"
                       aria-label="View transaction on Stellar Expert"
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-neutral-400 transition-colors hover:text-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-neutral-400 transition-colors hover:text-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
                     >
                       <ExternalLinkIcon className="h-3.5 w-3.5" />
                     </a>

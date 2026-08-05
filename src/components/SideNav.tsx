@@ -44,7 +44,7 @@ export function SideNav({ active, onChange }: SideNavProps): ReactElement {
               active={active}
               onChange={onChange}
               idPrefix="tab-"
-              className={`group flex min-h-11 w-full items-center gap-3 rounded-lg py-2 pl-3 pr-3 text-sm transition-colors ${
+              className={`group flex min-h-11 w-full items-center gap-3 rounded-full py-2 pl-3 pr-3 text-sm transition-colors ${
                 tab.id === active
                   ? 'bg-raised font-medium text-neutral-50'
                   : 'text-neutral-500 hover:bg-neutral-900 hover:text-neutral-200'

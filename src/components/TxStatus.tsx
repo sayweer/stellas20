@@ -87,7 +87,7 @@ export function TxStatus({
             </p>
             {submissionUncertain && outcome.hash ? (
               <div className="mt-3">
-                <code className="block break-all rounded-md bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-warning-100">
+                <code className="block break-all rounded-xl bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-warning-100">
                   {outcome.hash}
                 </code>
                 <a
@@ -104,7 +104,7 @@ export function TxStatus({
               <button
                 type="button"
                 onClick={onRetry}
-                className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-negative-300 px-3 py-2 text-xs font-semibold text-negative-100 transition-colors duration-100 hover:bg-negative-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-negative-300"
+                className="mt-3 inline-flex min-h-11 items-center rounded-full border border-negative-300 px-3 py-2 text-xs font-semibold text-negative-100 transition-colors duration-100 hover:bg-negative-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-negative-300"
               >
                 Try again
               </button>
@@ -131,7 +131,7 @@ export function TxStatus({
             {outcome.hash && (
               <code
                 aria-hidden="true"
-                className="mt-3 block break-all rounded-md bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-warning-100"
+                className="mt-3 block break-all rounded-xl bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-warning-100"
               >
                 {outcome.hash}
               </code>
@@ -179,7 +179,7 @@ export function TxStatus({
                 <div className="mt-1 flex items-start gap-2">
                   <code
                     aria-hidden="true"
-                    className="min-w-0 flex-1 break-all rounded-md bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-positive-100"
+                    className="min-w-0 flex-1 break-all rounded-xl bg-neutral-950/60 px-2 py-1.5 font-mono text-xs leading-relaxed text-positive-100"
                   >
                     {hash}
                   </code>
@@ -189,7 +189,7 @@ export function TxStatus({
                       void copyHash()
                     }}
                     aria-label={copied ? 'Hash copied' : 'Copy transaction hash'}
-                    className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-positive-300 text-positive-300 transition-colors hover:bg-positive-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-300"
+                    className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-positive-300 text-positive-300 transition-colors hover:bg-positive-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-300"
                   >
                     {copied ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
                   </button>

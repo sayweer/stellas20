@@ -83,7 +83,7 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
                 onClick={() => {
                   onManage(mp.maturity)
                 }}
-                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-boundary px-3 py-2 text-xs font-medium text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-full border border-boundary px-3 py-2 text-xs font-medium text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
               >
                 Manage in Pool
                 <ArrowRightIcon className="h-3.5 w-3.5" />

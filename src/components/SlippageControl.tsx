@@ -25,7 +25,7 @@ export function SlippageControl({ bps, onChange }: SlippageControlProps): ReactE
             onClick={() => {
               onChange(p.bps)
             }}
-            className={`min-h-11 rounded-md px-3 py-2 text-xs font-medium tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 ${
+            className={`min-h-11 rounded-full px-3 py-2 text-xs font-medium tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 ${
               bps === p.bps
                 ? 'bg-raised text-neutral-100'
                 : 'text-neutral-400 hover:text-neutral-200'

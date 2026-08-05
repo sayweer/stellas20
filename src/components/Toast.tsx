@@ -63,7 +63,7 @@ export function Toast(): ReactElement | null {
                 dismiss(toast.id)
               }}
               aria-label="Dismiss notification"
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-neutral-500 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-neutral-500 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
             >
               <XIcon className="h-4 w-4" />
             </button>

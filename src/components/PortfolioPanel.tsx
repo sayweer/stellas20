@@ -71,7 +71,7 @@ export function PortfolioPanel({
           disabled={loading}
           aria-label="Refresh portfolio"
           aria-busy={loading}
-          className="grid h-11 w-11 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
+          className="grid h-11 w-11 place-items-center rounded-full border border-boundary text-neutral-400 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
         >
           {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
         </button>
@@ -83,7 +83,7 @@ export function PortfolioPanel({
           <button
             type="button"
             onClick={onRefresh}
-            className="inline-flex min-h-11 items-center rounded-lg border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+            className="inline-flex min-h-11 items-center rounded-full border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
           >
             Try again
           </button>

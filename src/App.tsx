@@ -230,7 +230,7 @@ function MarketContent({
                 href={config.feedbackFormUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-boundary bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-850 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-boundary bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
               >
                 Share feedback
               </a>
@@ -249,7 +249,7 @@ function MarketContent({
             <Link
               to="/"
               aria-label="Everspan home"
-              className="order-1 -ml-2 grid h-11 w-11 place-items-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 lg:hidden"
+              className="order-1 -ml-2 grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 lg:hidden"
             >
               <BrandMark className="h-6 w-6 text-neutral-50" />
             </Link>
@@ -261,7 +261,7 @@ function MarketContent({
                   href={config.feedbackFormUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`${connected ? 'hidden sm:inline-flex' : 'inline-flex'} min-h-11 items-center whitespace-nowrap rounded-xl border border-boundary bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 lg:hidden`}
+                  className={`${connected ? 'hidden sm:inline-flex' : 'inline-flex'} min-h-11 items-center whitespace-nowrap rounded-full border border-boundary bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 lg:hidden`}
                 >
                   Feedback
                 </a>

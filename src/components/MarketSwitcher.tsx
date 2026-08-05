@@ -47,7 +47,7 @@ export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): React
         role="radiogroup"
         aria-label="Yield source"
         aria-disabled={switchingBlocked}
-        className="inline-flex max-w-full shrink-0 overflow-x-auto rounded-xl border border-boundary bg-neutral-900 p-1"
+        className="inline-flex max-w-full shrink-0 overflow-x-auto rounded-full border border-boundary bg-neutral-900 p-1"
       >
         {markets.map((market, index) => {
           const selected = market.key === active
@@ -69,7 +69,7 @@ export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): React
                 onChange(market.key)
               }}
               onKeyDown={(event) => moveFocus(index, event)}
-              className={`min-h-11 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`min-h-11 whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:cursor-not-allowed disabled:opacity-50 ${
                 selected
                   ? 'bg-raised text-neutral-50'
                   : 'text-neutral-400 hover:text-neutral-200'
