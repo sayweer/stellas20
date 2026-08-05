@@ -45,7 +45,7 @@ export function WalletBar({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-hairline bg-neutral-900 px-4 py-3">
         <div className="flex items-center gap-6">
           <Balance label={market.underlyingSymbol} value={underlying} loading={loading} />
           <Balance label="SY" value={sy} loading={loading} />
@@ -68,7 +68,7 @@ export function WalletBar({
             disabled={loading}
             aria-label="Refresh balances"
             aria-busy={loading}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
           >
             {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
           </button>
@@ -101,7 +101,7 @@ function Balance({
     <div className="min-w-0">
       <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{label}</p>
       {loading ? (
-        <div aria-hidden="true" className="mt-1 h-5 w-16 animate-pulse rounded bg-neutral-800" />
+        <div aria-hidden="true" className="mt-1 h-5 w-16 animate-pulse rounded bg-raised" />
       ) : (
         <p className="truncate font-mono text-base font-semibold tabular-nums text-neutral-50">
           {formatAmount(value)}

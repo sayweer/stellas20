@@ -114,7 +114,7 @@ export function SplitCard({
   }
 
   return (
-    <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6">
+    <section className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <SplitIcon className="h-4 w-4 text-neutral-400" />
         <h2 className="text-sm font-medium text-neutral-100">Separate principal and yield</h2>
@@ -177,7 +177,7 @@ export function SplitCard({
           </div>
 
           {preview !== null && valid.ok && (
-            <div className="mt-4 rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+            <div className="mt-4 rounded-xl border border-hairline bg-neutral-950/40 p-4">
               <p className="text-sm font-semibold text-neutral-100">
                 {tab === 'split' ? 'Review separation' : 'Review recombination'}
               </p>
@@ -197,7 +197,7 @@ export function SplitCard({
                   </span>
                 </p>
               </div>
-              <p className="mt-3 border-t border-neutral-800 pt-3 text-xs leading-relaxed text-neutral-400">
+              <p className="mt-3 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
                 {tab === 'split'
                   ? 'One SY position becomes matching principal and yield positions with the same maturity. Separating alone does not create extra value.'
                   : 'Matching PT and YT are burned together and returned as SY. Your wallet shows the final network fee before approval.'}

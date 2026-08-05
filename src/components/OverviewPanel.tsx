@@ -122,7 +122,7 @@ export function OverviewPanel({
         </p>
       </header>
 
-      <div className="grid overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 lg:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid overflow-hidden rounded-2xl border border-hairline bg-neutral-900 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="p-6 sm:p-8">
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">
             {recommendation.label}
@@ -134,9 +134,9 @@ export function OverviewPanel({
               aria-label="Loading your next step"
               className="mt-5 space-y-3"
             >
-              <div className="h-9 w-3/4 animate-pulse rounded bg-neutral-800" />
-              <div className="h-4 w-full animate-pulse rounded bg-neutral-800" />
-              <div className="h-4 w-2/3 animate-pulse rounded bg-neutral-800" />
+              <div className="h-9 w-3/4 animate-pulse rounded bg-raised" />
+              <div className="h-4 w-full animate-pulse rounded bg-raised" />
+              <div className="h-4 w-2/3 animate-pulse rounded bg-raised" />
             </div>
           ) : (
             <>
@@ -160,7 +160,7 @@ export function OverviewPanel({
           )}
         </div>
 
-        <div className="border-t border-neutral-800 lg:border-l lg:border-t-0">
+        <div className="border-t border-hairline lg:border-l lg:border-t-0">
           <GoalRow
             icon={<LockIcon className="h-5 w-5" />}
             title="Lock a fixed return"
@@ -182,7 +182,7 @@ export function OverviewPanel({
         </div>
       </div>
 
-      <div className="border-t border-neutral-800 pt-8">
+      <div className="border-t border-hairline pt-8">
         <div className="mb-2 flex items-center gap-2 text-neutral-500">
           <LayersIcon className="h-4 w-4" />
           <p className="font-mono text-[11px] uppercase tracking-[0.16em]">Live opportunities</p>
@@ -214,7 +214,7 @@ function GoalRow({
     <button
       type="button"
       onClick={onClick}
-      className="group flex min-h-24 w-full items-center gap-4 border-b border-neutral-800 px-5 py-4 text-left transition-colors duration-100 ease-out last:border-b-0 hover:bg-neutral-850 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-300 sm:px-6"
+      className="group flex min-h-24 w-full items-center gap-4 border-b border-hairline px-5 py-4 text-left transition-colors duration-100 ease-out last:border-b-0 hover:bg-neutral-850 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-300 sm:px-6"
     >
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-neutral-850 text-neutral-300">
         {icon}

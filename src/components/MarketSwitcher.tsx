@@ -71,7 +71,7 @@ export function MarketSwitcher({ active, onChange }: MarketSwitcherProps): React
               onKeyDown={(event) => moveFocus(index, event)}
               className={`min-h-11 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:cursor-not-allowed disabled:opacity-50 ${
                 selected
-                  ? 'bg-neutral-800 text-neutral-50'
+                  ? 'bg-raised text-neutral-50'
                   : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >

@@ -21,7 +21,7 @@ export function FaucetButton({ pending, disabled, onClick }: FaucetButtonProps):
       onClick={onClick}
       disabled={pending || disabled}
       aria-busy={pending}
-      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:cursor-not-allowed disabled:opacity-50"
+      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {pending ? (
         <Spinner className="h-4 w-4" />

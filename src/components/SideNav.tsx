@@ -46,7 +46,7 @@ export function SideNav({ active, onChange }: SideNavProps): ReactElement {
               idPrefix="tab-"
               className={`group flex min-h-11 w-full items-center gap-3 rounded-lg py-2 pl-3 pr-3 text-sm transition-colors ${
                 tab.id === active
-                  ? 'bg-neutral-800 font-medium text-neutral-50'
+                  ? 'bg-raised font-medium text-neutral-50'
                   : 'text-neutral-500 hover:bg-neutral-900 hover:text-neutral-200'
               }`}
             >
@@ -72,7 +72,7 @@ export function BottomNav({ active, onChange }: SideNavProps): ReactElement {
     <nav
       role="tablist"
       aria-label="Product sections"
-      className="sticky bottom-0 z-30 border-t border-neutral-800 bg-neutral-950/95 backdrop-blur lg:hidden"
+      className="sticky bottom-0 z-30 border-t border-hairline bg-neutral-950/95 backdrop-blur lg:hidden"
     >
       <ul className="grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
         {TABS.map((tab, i) => (

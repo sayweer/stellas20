@@ -14,8 +14,6 @@ export default {
           400: 'rgb(var(--neutral-400) / <alpha-value>)',
           500: 'rgb(var(--neutral-500) / <alpha-value>)',
           600: 'rgb(var(--neutral-600) / <alpha-value>)',
-          700: 'rgb(var(--neutral-700) / <alpha-value>)',
-          800: 'rgb(var(--neutral-800) / <alpha-value>)',
           850: 'rgb(var(--neutral-850) / <alpha-value>)',
           900: 'rgb(var(--neutral-900) / <alpha-value>)',
           950: 'rgb(var(--neutral-950) / <alpha-value>)',
@@ -52,7 +50,12 @@ export default {
           500: 'rgb(var(--warning-500) / <alpha-value>)',
         },
         onAccent: 'rgb(var(--on-accent) / <alpha-value>)',
+        /** Edge of an interactive control — carries the 3:1 non-text contrast. */
         boundary: 'rgb(var(--boundary) / <alpha-value>)',
+        /** Decorative edge: card outlines and dividers. */
+        hairline: 'rgb(var(--hairline) / <alpha-value>)',
+        /** Fill of a selected, hovered or placeholder control. */
+        raised: 'rgb(var(--raised) / <alpha-value>)',
       },
       fontFamily: {
         sans: [

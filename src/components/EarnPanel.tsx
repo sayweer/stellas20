@@ -140,11 +140,11 @@ export function EarnPanel({
         </div>
       </fieldset>
 
-      <details className="max-w-2xl rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm">
+      <details className="max-w-2xl rounded-xl border border-hairline bg-neutral-900 px-4 py-2 text-sm">
         <summary className="flex min-h-11 cursor-pointer items-center rounded font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
           What do SY, PT, and YT mean?
         </summary>
-        <dl className="grid gap-4 border-t border-neutral-800 py-4 text-xs leading-relaxed text-neutral-400 sm:grid-cols-3">
+        <dl className="grid gap-4 border-t border-hairline py-4 text-xs leading-relaxed text-neutral-400 sm:grid-cols-3">
           <div>
             <dt className="font-mono font-semibold text-neutral-200">SY</dt>
             <dd className="mt-1">
@@ -162,7 +162,7 @@ export function EarnPanel({
         </dl>
       </details>
 
-      <div className="max-w-2xl rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6">
+      <div className="max-w-2xl rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6">
         {strategy === 'liquidity' ? (
           <PoolPanel
             key="liquidity"

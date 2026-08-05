@@ -23,12 +23,17 @@
     --neutral-400: 159 147 131;
     --neutral-500: 150 139 124;
     --neutral-600: 140 129 115;
-    --neutral-700: 60 54 48;
-    --neutral-800: 42 37 32;
     --neutral-850: 31 28 24;
     --neutral-900: 23 21 18;
     --neutral-950: 5 5 5;
     --boundary: 110 101 90;
+    /* `boundary` is the 3:1 edge every interactive control needs. `hairline`
+       is the decorative one — card edges and dividers — and `raised` is the
+       fill a control takes when it is selected, hovered or standing in for
+       content. Splitting them is what lets the light surface below give each
+       role its own value instead of bending one step to serve all three. */
+    --hairline: 42 37 32;
+    --raised: 42 37 32;
     --accent-100: 244 221 217;
     --accent-200: 233 170 163;
     --accent-300: 218 109 99;
@@ -79,15 +84,16 @@
     --neutral-400: 91 84 75;
     --neutral-500: 91 84 75;
     --neutral-600: 91 84 75;
-    --neutral-700: 190 190 190;
-    /* Resting control/card boundary: 3.16:1 against the white canvas. */
-    --neutral-800: 138 138 138;
     --neutral-850: 235 235 235;
     /* Elevated panels sit a shade under the page so they stay readable now
        that the canvas itself is pure white. */
     --neutral-900: 247 247 247;
     --neutral-950: 255 255 255;
     --boundary: 138 138 138;
+    /* Matches the marketing route's ink/10 card edge so a panel reads the same
+       weight on both surfaces. */
+    --hairline: 229 229 229;
+    --raised: 232 230 228;
     --accent-100: 126 12 5;
     --accent-200: 126 12 5;
     --accent-300: 126 12 5;

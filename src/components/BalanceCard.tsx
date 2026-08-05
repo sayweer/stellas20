@@ -57,7 +57,7 @@ export function BalanceCard({
   return (
     <section
       aria-labelledby="balance-heading"
-      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6"
+      className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6"
     >
       <div className="flex items-center justify-between">
         <h2 id="balance-heading" className="text-sm font-medium text-neutral-400">
@@ -69,7 +69,7 @@ export function BalanceCard({
           disabled={loading}
           aria-label="Refresh balance"
           aria-busy={loading}
-          className="grid h-11 w-11 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
+          className="grid h-11 w-11 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
         >
           {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
         </button>
@@ -78,7 +78,7 @@ export function BalanceCard({
       <div className="mt-4">
         {loading ? (
           <div role="status" aria-live="polite" aria-label="Loading XLM balance">
-            <div aria-hidden="true" className="h-11 w-52 animate-pulse rounded-lg bg-neutral-800" />
+            <div aria-hidden="true" className="h-11 w-52 animate-pulse rounded-lg bg-raised" />
           </div>
         ) : error ? (
           <div role="alert" className="space-y-3">
@@ -86,7 +86,7 @@ export function BalanceCard({
             <button
               type="button"
               onClick={onRefresh}
-              className="inline-flex min-h-11 items-center rounded-lg border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+              className="inline-flex min-h-11 items-center rounded-lg border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
             >
               Try again
             </button>

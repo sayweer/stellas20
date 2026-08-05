@@ -45,21 +45,21 @@ export function OnboardingSteps({ gotTokens, wrapped, split }: OnboardingStepsPr
   return (
     <section
       aria-label="Getting started"
-      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6"
+      className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6"
     >
       <h2 className="text-sm font-medium text-neutral-300">Your setup progress</h2>
       <ol className="mt-4 grid gap-3 sm:grid-cols-3">
         {steps.map((step) => (
           <li
             key={step.n}
-            className="flex items-start gap-3 rounded-xl border border-neutral-800/80 bg-neutral-950/40 px-3 py-3"
+            className="flex items-start gap-3 rounded-xl border border-hairline/80 bg-neutral-950/40 px-3 py-3"
           >
             <span
               aria-hidden="true"
               className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-semibold ${
                 step.done
                   ? 'bg-positive-400 text-neutral-950'
-                  : 'border border-neutral-700 text-neutral-400'
+                  : 'border border-hairline text-neutral-400'
               }`}
             >
               {step.done ? <CheckIcon className="h-3.5 w-3.5" /> : step.n}

@@ -227,7 +227,7 @@ function AddForm({
       />
 
       {syIn > 0n && (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+        <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review liquidity deposit</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-400">
             Both assets enter the same maturity pool in one transaction.
@@ -238,11 +238,11 @@ function AddForm({
             <Row label="LP shares received">{formatAmount(quote.lpMinted)} LP</Row>
             <Row label="Pool swap fee rate">0.30%</Row>
           </div>
-          <p className="mt-4 border-t border-neutral-800 pt-3 text-xs leading-relaxed text-neutral-400">
+          <p className="mt-4 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
             Future swaps pay a 0.30% fee shared pro-rata among liquidity providers. The value and
             PT/SY mix of your position can change before you withdraw.
           </p>
-          <details className="mt-3 border-t border-neutral-800 pt-3 text-xs">
+          <details className="mt-3 border-t border-hairline pt-3 text-xs">
             <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
               Slippage and fee details
             </summary>
@@ -263,7 +263,7 @@ function AddForm({
           <button
             type="button"
             onClick={onGoAdvanced}
-            className="ml-1 inline-flex min-h-11 items-center rounded-md border border-boundary px-3 font-medium transition-colors hover:bg-neutral-800 hover:text-warning-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+            className="ml-1 inline-flex min-h-11 items-center rounded-md border border-boundary px-3 font-medium transition-colors hover:bg-raised hover:text-warning-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
           >
             prepare PT in Convert
           </button>
@@ -355,14 +355,14 @@ function RemoveForm({
       />
 
       {lp > 0n && (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+        <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review withdrawal</p>
           <div className="mt-4 space-y-2.5">
             <Row label="LP shares burned">{formatAmount(lp)} LP</Row>
             <Row label="PT returned">{formatAmount(quote.ptOut)} PT</Row>
             <Row label="SY returned">{formatAmount(quote.syOut)} SY</Row>
           </div>
-          <details className="mt-3 border-t border-neutral-800 pt-3 text-xs">
+          <details className="mt-3 border-t border-hairline pt-3 text-xs">
             <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
               Slippage and fee details
             </summary>

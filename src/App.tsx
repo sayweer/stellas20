@@ -245,7 +245,7 @@ function MarketContent({
           {/* Wraps rather than shrinks: the market switcher and the wallet control
               are both fixed-width, and on a phone they overlapped when forced
               onto one line. Below sm the switcher drops to its own row. */}
-          <header className="sticky top-0 z-20 -mx-4 flex flex-wrap items-center gap-3 border-b border-neutral-800 bg-neutral-950/90 px-4 py-3 backdrop-blur lg:mx-0 lg:px-0">
+          <header className="sticky top-0 z-20 -mx-4 flex flex-wrap items-center gap-3 border-b border-hairline bg-neutral-950/90 px-4 py-3 backdrop-blur lg:mx-0 lg:px-0">
             <Link
               to="/"
               aria-label="Everspan home"

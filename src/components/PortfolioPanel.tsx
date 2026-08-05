@@ -71,7 +71,7 @@ export function PortfolioPanel({
           disabled={loading}
           aria-label="Refresh portfolio"
           aria-busy={loading}
-          className="grid h-11 w-11 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
+          className="grid h-11 w-11 place-items-center rounded-lg border border-boundary text-neutral-400 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
         >
           {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
         </button>
@@ -83,7 +83,7 @@ export function PortfolioPanel({
           <button
             type="button"
             onClick={onRefresh}
-            className="inline-flex min-h-11 items-center rounded-lg border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+            className="inline-flex min-h-11 items-center rounded-lg border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
           >
             Try again
           </button>
@@ -93,7 +93,7 @@ export function PortfolioPanel({
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="min-w-0 rounded-xl border border-neutral-800/80 bg-neutral-950/40 px-3 py-3"
+              className="min-w-0 rounded-xl border border-hairline/80 bg-neutral-950/40 px-3 py-3"
             >
               <dt className="truncate text-[11px] font-medium uppercase tracking-wide text-neutral-400">
                 {stat.label}
@@ -101,7 +101,7 @@ export function PortfolioPanel({
               {loading && address ? (
                 <div
                   aria-hidden="true"
-                  className="mt-1.5 h-6 w-20 animate-pulse rounded bg-neutral-800"
+                  className="mt-1.5 h-6 w-20 animate-pulse rounded bg-raised"
                 />
               ) : (
                 <dd

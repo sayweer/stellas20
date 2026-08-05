@@ -24,7 +24,7 @@ export function RateTicker({ rateInfo }: RateTickerProps): ReactElement {
   const apy = hasCurve && liveRate !== null ? underlyingApy(rateInfo.slopePerSec, liveRate) : null
 
   return (
-    <div className="border-t border-neutral-800 pt-4">
+    <div className="border-t border-hairline pt-4">
       <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">
         Underlying yield
         {rateInfo && (

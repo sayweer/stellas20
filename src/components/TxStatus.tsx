@@ -242,7 +242,7 @@ function ProgressStep({
             ? 'bg-positive-400'
             : state === 'active'
               ? 'bg-warning-400'
-              : 'bg-neutral-800'
+              : 'bg-raised'
         }`}
       />
       <span className={`text-[11px] ${state === 'next' ? 'text-neutral-500' : 'text-warning-100'}`}>

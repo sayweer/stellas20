@@ -84,7 +84,7 @@ export function WrapCard({
   }
 
   return (
-    <section className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6">
+    <section className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <LayersIcon className="h-4 w-4 text-neutral-400" />
         <h2 className="text-sm font-medium text-neutral-100">Prepare an asset</h2>
@@ -126,7 +126,7 @@ export function WrapCard({
       </div>
 
       {preview !== null && valid.ok && (
-        <div className="mt-4 rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+        <div className="mt-4 rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review conversion</p>
           <div className="mt-3 space-y-2 text-sm">
             <p className="flex items-center justify-between gap-4">
@@ -142,7 +142,7 @@ export function WrapCard({
               </span>
             </p>
           </div>
-          <p className="mt-3 border-t border-neutral-800 pt-3 text-xs leading-relaxed text-neutral-400">
+          <p className="mt-3 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
             This conversion prepares the asset for Everspan. It does not create an additional return
             by itself. Your wallet shows the final network fee before approval.
           </p>

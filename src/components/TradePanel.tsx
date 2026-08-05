@@ -247,7 +247,7 @@ function LockRateForm({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-3">
+      <div className="rounded-xl border border-hairline bg-neutral-900 px-4 py-3">
         <div className="flex items-center gap-2">
           <LockIcon className="h-4 w-4 text-positive-400" />
           <span className="text-sm font-medium text-neutral-100">
@@ -283,7 +283,7 @@ function LockRateForm({
           <button
             type="button"
             onClick={onGoAdvanced}
-            className="ml-1 inline-flex min-h-11 items-center rounded-md border border-boundary px-3 font-medium text-neutral-100 transition-colors hover:bg-neutral-800 hover:text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+            className="ml-1 inline-flex min-h-11 items-center rounded-md border border-boundary px-3 font-medium text-neutral-100 transition-colors hover:bg-raised hover:text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
           >
             Open Convert
           </button>
@@ -291,7 +291,7 @@ function LockRateForm({
       )}
 
       {ptOut > 0n && (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+        <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review fixed return</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-400">
             Check the outcome below before your wallet opens.
@@ -304,11 +304,11 @@ function LockRateForm({
             <SummaryRow label="Fixed APY">{formatPercent(lockedApy)}</SummaryRow>
             <SummaryRow label="Maturity">{formatMaturity(maturity)}</SummaryRow>
           </div>
-          <p className="mt-4 border-t border-neutral-800 pt-3 text-xs leading-relaxed text-neutral-400">
+          <p className="mt-4 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
             Hold PT until maturity for its displayed redemption outcome. Selling earlier may return
             less.
           </p>
-          <details className="mt-3 border-t border-neutral-800 pt-3 text-xs">
+          <details className="mt-3 border-t border-hairline pt-3 text-xs">
             <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
               Price and slippage details
             </summary>
@@ -591,7 +591,7 @@ function LongYieldForm({
       />
 
       {!step2 && projected > 0n && (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+        <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review yield exposure</p>
           <p className="mt-1 text-xs leading-relaxed text-neutral-400">
             This strategy needs two wallet approvals. The progress stays visible below.
@@ -604,11 +604,11 @@ function LongYieldForm({
             <SummaryRow label="PT sold for">≈ {formatAmount(sellBack)} SY</SummaryRow>
             <SummaryRow label="Estimated net cost">≈ {formatAmount(netCost)} SY</SummaryRow>
           </div>
-          <p className="mt-4 border-t border-neutral-800 pt-3 text-xs leading-relaxed text-neutral-400">
+          <p className="mt-4 border-t border-hairline pt-3 text-xs leading-relaxed text-neutral-400">
             YT captures realized yield until maturity. Its remaining opportunity falls as maturity
             approaches, and returns depend on the yield actually earned.
           </p>
-          <details className="mt-3 border-t border-neutral-800 pt-3 text-xs">
+          <details className="mt-3 border-t border-hairline pt-3 text-xs">
             <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
               Slippage and fee details
             </summary>
@@ -624,7 +624,7 @@ function LongYieldForm({
       )}
 
       {step2 && step2Quote > 0n ? (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+        <div className="rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-semibold text-neutral-100">Review remaining transaction</p>
           <div className="mt-4 space-y-2.5">
             <SummaryRow label="PT sold">{formatAmount(ptToSell)} PT</SummaryRow>
@@ -633,7 +633,7 @@ function LongYieldForm({
             </SummaryRow>
             <SummaryRow label="Maximum slippage">{(slippageBps / 100).toFixed(2)}%</SummaryRow>
           </div>
-          <div className="mt-3 border-t border-neutral-800 pt-3">
+          <div className="mt-3 border-t border-hairline pt-3">
             <SlippageControl bps={slippageBps} onChange={setSlippageBps} />
           </div>
         </div>
@@ -656,7 +656,7 @@ function LongYieldForm({
       {/* Stage indicators */}
       <ol className="flex items-center gap-2 text-xs">
         <StageChip n={1} label="Split" done={step2} active={!step2} />
-        <span className="h-px flex-1 bg-neutral-800" />
+        <span className="h-px flex-1 bg-raised" />
         <StageChip n={2} label="Sell PT" done={false} active={step2} />
       </ol>
 
@@ -721,7 +721,7 @@ function StageChip({
         done
           ? 'bg-accent-500/15 text-accent-300'
           : active
-            ? 'bg-neutral-800 text-neutral-100'
+            ? 'bg-raised text-neutral-100'
             : 'text-neutral-500'
       }`}
     >
@@ -730,8 +730,8 @@ function StageChip({
           done
             ? 'bg-accent-500 text-onAccent'
             : active
-              ? 'bg-neutral-700 text-neutral-100'
-              : 'bg-neutral-800 text-neutral-500'
+              ? 'bg-raised text-neutral-100'
+              : 'bg-raised text-neutral-500'
         }`}
       >
         {done ? '✓' : n}

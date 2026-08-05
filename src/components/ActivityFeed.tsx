@@ -110,7 +110,7 @@ export function ActivityFeed({
           )}
         </div>
       ) : visibleEvents.length === 0 ? (
-        <div className="mt-4 rounded-xl border border-neutral-800 bg-neutral-950/40 p-4">
+        <div className="mt-4 rounded-xl border border-hairline bg-neutral-950/40 p-4">
           <p className="text-sm font-medium text-neutral-200">
             {address ? 'No confirmed actions yet' : 'No protocol activity yet'}
           </p>
@@ -134,7 +134,7 @@ export function ActivityFeed({
               return (
                 <li
                   key={event.id}
-                  className="grid min-w-0 gap-2 rounded-lg border border-neutral-800/80 px-3 py-2.5 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3"
+                  className="grid min-w-0 gap-2 rounded-lg border border-hairline/80 px-3 py-2.5 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-3"
                 >
                   <div className="flex min-w-0 items-center gap-2.5">
                     <span

@@ -66,7 +66,7 @@ export function MarketsList({
       ) : (
         <>
           {live.length > 0 ? (
-            <ul className="mt-6 divide-y divide-neutral-800">
+            <ul className="mt-6 divide-y divide-hairline">
               {live.map((mp) => (
                 <MarketRow
                   key={mp.maturity.toString()}
@@ -85,7 +85,7 @@ export function MarketsList({
           )}
 
           {matured.length > 0 && (
-            <div className="mt-6 border-t border-neutral-800 pt-4">
+            <div className="mt-6 border-t border-hairline pt-4">
               <button
                 type="button"
                 onClick={() => {
@@ -97,7 +97,7 @@ export function MarketsList({
                 {showMatured ? 'Hide' : 'Show'} matured ({matured.length})
               </button>
               {showMatured && (
-                <ul className="mt-2 divide-y divide-neutral-800">
+                <ul className="mt-2 divide-y divide-hairline">
                   {matured.map((mp) => (
                     <MarketRow
                       key={mp.maturity.toString()}
@@ -220,7 +220,7 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
                 ? 'This maturity has no liquidity yet'
                 : undefined
           }
-          className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-accent-500 px-4 py-2.5 text-sm font-medium text-onAccent transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-600 sm:w-auto"
+          className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-accent-500 px-4 py-2.5 text-sm font-medium text-onAccent transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed disabled:bg-raised disabled:text-neutral-600 sm:w-auto"
         >
           Lock rate
           <ArrowRightIcon className="h-3.5 w-3.5" />

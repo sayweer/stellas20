@@ -21,7 +21,7 @@ export function ConnectPrompt({ message, tab, embedded = false }: ConnectPromptP
       id={embedded ? undefined : `panel-${tab}`}
       role={embedded ? undefined : 'tabpanel'}
       aria-labelledby={embedded ? undefined : `tab-${tab}`}
-      className="rounded-2xl border border-neutral-800 bg-neutral-900 p-10 text-center"
+      className="rounded-2xl border border-hairline bg-neutral-900 p-10 text-center"
     >
       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-850 text-neutral-400">
         <WalletIcon className="h-6 w-6" />
