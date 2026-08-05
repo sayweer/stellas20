@@ -42,6 +42,23 @@ The Vite + Tailwind project maps these roles through `tailwind.config.js` and `s
 --primary-foreground: oklch(1 0 0);
 ```
 
+### Surface roles
+
+Three tokens sit beside the neutral ramp, each owning one job so no ramp step
+has to serve two surfaces at once:
+
+| Token      | Job                                                       |
+| ---------- | --------------------------------------------------------- |
+| `boundary` | Edge of an interactive control. Carries 3:1 non-text contrast. |
+| `hairline` | Decorative edge — card outlines and dividers. Matches ink/10. |
+| `raised`   | Fill of a control that is selected, hovered, or a skeleton. |
+
+### Radii
+
+Three steps, no others. `rounded-full` for anything you press — text buttons,
+segmented controls, chips, icon buttons. `rounded-xl` for anything holding
+content — inputs, rows, nested boxes, skeletons. `rounded-2xl` for a panel.
+
 ### Contrast check
 
 | Pair                | Ratio                                      |
@@ -90,4 +107,4 @@ Avoid hype, urgency, exclamation marks and claims such as “revolutionary”, �
 
 The neutral ramp is warm from `400` down; `50`–`300` are neutral so pure white never reads as yellowed against the step below it.
 
-_Last updated: 2026-08-03. Palette: Enduring Signal (pure-white base) · Typography: Space Grotesk · Gradients: none._
+_Last updated: 2026-08-05. Palette: Enduring Signal (pure-white base) · Typography: Space Grotesk · Gradients: none._
