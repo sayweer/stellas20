@@ -60,6 +60,14 @@ function App(): ReactElement {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Same escape hatch the marketing route offers: the rail, the market
+          switcher and the wallet control sit ahead of the panel in tab order. */}
+      <a
+        href="#app-main"
+        className="fixed left-4 top-4 z-50 -translate-y-24 rounded-full bg-accent-500 px-4 py-3 text-sm font-medium text-onAccent transition-transform focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-accent-300 focus:ring-offset-2 focus:ring-offset-neutral-950 motion-reduce:transition-none"
+      >
+        Skip to main content
+      </a>
       <NetworkBanner />
       <ConnectionBanner />
       <span role="status" aria-live="polite" className="sr-only">
@@ -274,7 +282,7 @@ function MarketContent({
             </div>
           </header>
 
-          <main className="flex-1 space-y-6 py-6 sm:py-8">
+          <main id="app-main" tabIndex={-1} className="flex-1 space-y-6 py-6 sm:py-8">
             {connected && (
               <WalletBar
                 address={address}

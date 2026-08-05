@@ -131,6 +131,41 @@
     color: var(--brand-paper);
     background: var(--brand-red);
   }
+
+  /* Checkboxes, the text caret and any other control the browser paints itself
+     answer to the brand instead of the OS blue. */
+  :root {
+    accent-color: rgb(var(--accent-500));
+    caret-color: rgb(var(--accent-400));
+  }
+
+  /* The scrollbar is the one piece of chrome that sits on every screen. Left
+     alone it stays a pale OS strip against the black product surface. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--boundary)) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: rgb(var(--boundary));
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--accent-400));
+    background-clip: content-box;
+  }
 }
 
 @layer components {

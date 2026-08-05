@@ -101,7 +101,7 @@ export function PortfolioPanel({
               {loading && address ? (
                 <div
                   aria-hidden="true"
-                  className="mt-1.5 h-6 w-20 animate-pulse rounded bg-raised"
+                  className="mt-1.5 h-6 w-20 animate-pulse rounded-full bg-raised"
                 />
               ) : (
                 <dd

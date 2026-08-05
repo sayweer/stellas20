@@ -101,7 +101,7 @@ function Balance({
     <div className="min-w-0">
       <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{label}</p>
       {loading ? (
-        <div aria-hidden="true" className="mt-1 h-5 w-16 animate-pulse rounded bg-raised" />
+        <div aria-hidden="true" className="mt-1 h-5 w-16 animate-pulse rounded-full bg-raised" />
       ) : (
         <p className="truncate font-mono text-base font-semibold tabular-nums text-neutral-50">
           {formatAmount(value)}

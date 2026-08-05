@@ -134,9 +134,9 @@ export function OverviewPanel({
               aria-label="Loading your next step"
               className="mt-5 space-y-3"
             >
-              <div className="h-9 w-3/4 animate-pulse rounded bg-raised" />
-              <div className="h-4 w-full animate-pulse rounded bg-raised" />
-              <div className="h-4 w-2/3 animate-pulse rounded bg-raised" />
+              <div className="h-9 w-3/4 animate-pulse rounded-full bg-raised" />
+              <div className="h-4 w-full animate-pulse rounded-full bg-raised" />
+              <div className="h-4 w-2/3 animate-pulse rounded-full bg-raised" />
             </div>
           ) : (
             <>

@@ -92,7 +92,7 @@ export function MarketsList({
                   setShowMatured((v) => !v)
                 }}
                 aria-expanded={showMatured}
-                className="inline-flex min-h-11 items-center rounded px-1 text-xs font-medium uppercase tracking-[0.14em] text-neutral-500 transition-colors hover:text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+                className="-ml-3 inline-flex min-h-11 items-center rounded-full px-3 text-xs font-medium uppercase tracking-[0.14em] text-neutral-500 transition-colors hover:bg-raised hover:text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
               >
                 {showMatured ? 'Hide' : 'Show'} matured ({matured.length})
               </button>
