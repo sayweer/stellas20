@@ -1,6 +1,6 @@
 # Everspan — PT/YT Yield Splitting on Stellar
 
-[![Everspan CI](https://github.com/sayweer/stellas20/actions/workflows/ci.yml/badge.svg)](https://github.com/sayweer/stellas20/actions/workflows/ci.yml)
+[![Everspan CI](https://github.com/sayweer/everspan/actions/workflows/ci.yml/badge.svg)](https://github.com/sayweer/everspan/actions/workflows/ci.yml)
 
 **The missing fixed-income primitive for Stellar's RWA boom.** Everspan splits a
 yield-bearing token into two tradable parts — a **Principal Token (PT)**, redeemable 1:1 for the
@@ -15,11 +15,11 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 
 | | |
 |---|---|
-| **Live demo** | [stellas20.vercel.app](https://stellas20.vercel.app/) |
+| **Live demo** | [everspan.vercel.app](https://everspan.vercel.app/) |
 | **Demo video** | [2-minute walkthrough](https://youtu.be/G_06mT7pscw) |
 | **Network** | Stellar Testnet — seven contracts, addresses [below](#deployed-on-testnet) |
 
-[![The Markets tab: three open maturities, each with its implied fixed APY, the underlying yield and its pool depth](screenshots/markets-desktop.png)](https://stellas20.vercel.app/app)
+[![The Markets tab: three open maturities, each with its implied fixed APY, the underlying yield and its pool depth](screenshots/markets-desktop.png)](https://everspan.vercel.app/app)
 
 ## Reviewing this repository — start here
 
@@ -28,19 +28,19 @@ mandatory evidence, so nothing has to be hunted for:
 
 | To verify | Open |
 |---|---|
-| **Smart contract source** (7 crates) | [`contracts/`](https://github.com/sayweer/stellas20/tree/main/contracts) — [splitter](https://github.com/sayweer/stellas20/blob/main/contracts/splitter/src/lib.rs) · [pt-amm](https://github.com/sayweer/stellas20/blob/main/contracts/pt-amm/src/lib.rs) · [sy-vault](https://github.com/sayweer/stellas20/blob/main/contracts/sy-vault/src/lib.rs) · [sy-vault-blend](https://github.com/sayweer/stellas20/blob/main/contracts/sy-vault-blend/src/lib.rs) · [pt-token](https://github.com/sayweer/stellas20/blob/main/contracts/pt-token/src/lib.rs) · [yt-token](https://github.com/sayweer/stellas20/blob/main/contracts/yt-token/src/lib.rs) · [mock-yield-token](https://github.com/sayweer/stellas20/blob/main/contracts/mock-yield-token/src/lib.rs) |
-| **CI/CD workflow** | [`.github/workflows/ci.yml`](https://github.com/sayweer/stellas20/blob/main/.github/workflows/ci.yml) |
-| **Frontend ↔ contract integration** | [`src/lib/contracts/`](https://github.com/sayweer/stellas20/tree/main/src/lib/contracts) — [base.ts](https://github.com/sayweer/stellas20/blob/main/src/lib/contracts/base.ts) (build → simulate → sign → send → poll), [errors.ts](https://github.com/sayweer/stellas20/blob/main/src/lib/contracts/errors.ts) |
-| **Wallet integration** | [`src/lib/wallet.ts`](https://github.com/sayweer/stellas20/blob/main/src/lib/wallet.ts) (StellarWalletsKit adapter) |
-| **Event streaming** | [`src/lib/events.ts`](https://github.com/sayweer/stellas20/blob/main/src/lib/events.ts) (`getEvents` polling) |
-| **Contract tests** | [`contracts/splitter/src/test.rs`](https://github.com/sayweer/stellas20/blob/main/contracts/splitter/src/test.rs) · [`test_lifecycle.rs`](https://github.com/sayweer/stellas20/blob/main/contracts/splitter/src/test_lifecycle.rs) |
+| **Smart contract source** (7 crates) | [`contracts/`](https://github.com/sayweer/everspan/tree/main/contracts) — [splitter](https://github.com/sayweer/everspan/blob/main/contracts/splitter/src/lib.rs) · [pt-amm](https://github.com/sayweer/everspan/blob/main/contracts/pt-amm/src/lib.rs) · [sy-vault](https://github.com/sayweer/everspan/blob/main/contracts/sy-vault/src/lib.rs) · [sy-vault-blend](https://github.com/sayweer/everspan/blob/main/contracts/sy-vault-blend/src/lib.rs) · [pt-token](https://github.com/sayweer/everspan/blob/main/contracts/pt-token/src/lib.rs) · [yt-token](https://github.com/sayweer/everspan/blob/main/contracts/yt-token/src/lib.rs) · [mock-yield-token](https://github.com/sayweer/everspan/blob/main/contracts/mock-yield-token/src/lib.rs) |
+| **CI/CD workflow** | [`.github/workflows/ci.yml`](https://github.com/sayweer/everspan/blob/main/.github/workflows/ci.yml) |
+| **Frontend ↔ contract integration** | [`src/lib/contracts/`](https://github.com/sayweer/everspan/tree/main/src/lib/contracts) — [base.ts](https://github.com/sayweer/everspan/blob/main/src/lib/contracts/base.ts) (build → simulate → sign → send → poll), [errors.ts](https://github.com/sayweer/everspan/blob/main/src/lib/contracts/errors.ts) |
+| **Wallet integration** | [`src/lib/wallet.ts`](https://github.com/sayweer/everspan/blob/main/src/lib/wallet.ts) (StellarWalletsKit adapter) |
+| **Event streaming** | [`src/lib/events.ts`](https://github.com/sayweer/everspan/blob/main/src/lib/events.ts) (`getEvents` polling) |
+| **Contract tests** | [`contracts/splitter/src/test.rs`](https://github.com/sayweer/everspan/blob/main/contracts/splitter/src/test.rs) · [`test_lifecycle.rs`](https://github.com/sayweer/everspan/blob/main/contracts/splitter/src/test_lifecycle.rs) |
 | **On-chain proof** | [transactions below](#deployed-on-testnet) — every one a signed Testnet call |
 
 ## Where each requirement is met
 
 | Requirement | Where | In short |
 |---|---|---|
-| Production deployment | [stellas20.vercel.app](https://stellas20.vercel.app/) | Vercel, auto-deployed from `main`; contracts live on Testnet |
+| Production deployment | [everspan.vercel.app](https://everspan.vercel.app/) | Vercel, auto-deployed from `main`; contracts live on Testnet |
 | Monitoring & analytics | [`docs/USERS_AND_FEEDBACK.md`](docs/USERS_AND_FEEDBACK.md) | Vercel Analytics for traffic, Sentry for unclassified runtime errors |
 | Feedback collection | *Feedback* link in the app header | A Google Form, wired through `VITE_FEEDBACK_FORM_URL` |
 | Real users & feedback summary | [`docs/USERS_AND_FEEDBACK.md`](docs/USERS_AND_FEEDBACK.md) | 32 visitors, 16 form responses, what they asked for, and the six fixes that shipped because of them |
