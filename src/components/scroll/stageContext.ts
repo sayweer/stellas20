@@ -91,6 +91,26 @@ export function trackHeightVh(lengths: Record<number, number>, sceneCount: numbe
 }
 
 /**
+ * The clip-path a pinned scene shows before GSAP has painted anything —
+ * matches what `paintEntrance` computes at progress 0. Scene 0 needs none — it
+ * is meant to be visible by default — but every other scene needs to already
+ * be closed: the alternative (no clip-path at all) leaves every layer fully
+ * opaque, and the highest `zIndex` — the last scene — sits on top of the
+ * stack. That gap used to be invisible while the welcome intro's opaque
+ * overlay covered the page, but the overlay slides away over 600ms while it
+ * exits, and painting only starts once it fully finishes and lifts the
+ * page's `inert`. For that whole 600ms the last scene was exposed first.
+ * Setting this as a plain render-time style closes the gap without touching
+ * the intro at all: it is correct from the very first frame, GSAP overwrites
+ * it with the identical value once it takes over, and nothing changes hands
+ * on that transition.
+ */
+export function initialClipPath(index: number): string | undefined {
+  if (index === 0) return undefined
+  return `inset(100% ${GUTTER_PX}px ${GUTTER_PX}px ${GUTTER_PX}px round ${RADIUS_PX}px)`
+}
+
+/**
  * Paints one layer for a given entrance progress. Called from a scrubbed tween,
  * so it runs on every scroll frame and must only touch compositor-friendly
  * properties (`clip-path`, `transform`, `opacity`).

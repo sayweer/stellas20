@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
-import { useSceneIndex, useStage } from './stageContext'
+import { initialClipPath, useSceneIndex, useStage } from './stageContext'
 
 /**
  * One layer of a `ScrollStage`. While pinned, every scene occupies the same
@@ -51,7 +51,7 @@ export function ScrollScene({
           ? 'absolute inset-0 overflow-hidden'
           : 'relative min-h-[100svh] py-20'
       } ${className}`}
-      style={pinned ? { zIndex: index } : undefined}
+      style={pinned ? { zIndex: index, clipPath: initialClipPath(index) } : undefined}
       onFocusCapture={(event) => {
         // Every scene sits at the same document offset while pinned, so the
         // browser cannot scroll a keyboard focus into view on its own — a Tab

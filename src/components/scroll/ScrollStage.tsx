@@ -15,6 +15,7 @@ import {
   SceneIndexContext,
   StageContext,
   dwellProgress,
+  initialClipPath,
   paintEntrance,
   paintRecede,
   pinningSuits,
@@ -205,7 +206,22 @@ export function ScrollStage({
     return () => {
       cancelled = true
       context?.revert()
-      registry.forEach(resetScene)
+      // This cleanup also fires mid-mount: each scene's registration effect
+      // grows `lengths`, which re-runs this whole effect before the intro (and
+      // therefore GSAP's own paint) has settled. A plain `resetScene` here
+      // would wipe every scene back to its fully-open resting state — undoing
+      // `initialClipPath`'s default and reopening the gap it exists to close
+      // (the last scene, unclipped, sitting on top by z-index while the intro
+      // is still mid-exit). Restore that same default instead; a true reset
+      // to '' belongs only to actually leaving pinned mode, handled above.
+      registry.forEach((scene, index) => {
+        scene.element.style.clipPath = initialClipPath(index) ?? ''
+        scene.element.style.transform = ''
+        scene.content.style.transform = ''
+        scene.content.style.opacity = ''
+        scene.dim.style.opacity = '0'
+        scene.dim.style.visibility = 'hidden'
+      })
     }
   }, [lengths, pinned])
 
