@@ -15,11 +15,11 @@ the backbone of on-chain fixed income; Stellar has no equivalent. This is that p
 
 | | |
 |---|---|
-| **Live demo** | [everspan.vercel.app](https://everspan.vercel.app/) |
+| **Live demo** | [everspanfi.vercel.app](https://everspanfi.vercel.app/) |
 | **Demo video** | [2-minute walkthrough](https://youtu.be/G_06mT7pscw) |
 | **Network** | Stellar Testnet — seven contracts, addresses [below](#deployed-on-testnet) |
 
-[![The Markets tab: three open maturities, each with its implied fixed APY, the underlying yield and its pool depth](screenshots/markets-desktop.png)](https://everspan.vercel.app/app)
+[![The Markets tab: three open maturities, each with its implied fixed APY, the underlying yield and its pool depth](screenshots/markets-desktop.png)](https://everspanfi.vercel.app/app)
 
 ## Reviewing this repository — start here
 
@@ -40,7 +40,7 @@ mandatory evidence, so nothing has to be hunted for:
 
 | Requirement | Where | In short |
 |---|---|---|
-| Production deployment | [everspan.vercel.app](https://everspan.vercel.app/) | Vercel, auto-deployed from `main`; contracts live on Testnet |
+| Production deployment | [everspanfi.vercel.app](https://everspanfi.vercel.app/) | Vercel, auto-deployed from `main`; contracts live on Testnet |
 | Monitoring & analytics | [`docs/USERS_AND_FEEDBACK.md`](docs/USERS_AND_FEEDBACK.md) | Vercel Analytics for traffic, Sentry for unclassified runtime errors |
 | Feedback collection | *Feedback* link in the app header | A Google Form, wired through `VITE_FEEDBACK_FORM_URL` |
 | Real users & feedback summary | [`docs/USERS_AND_FEEDBACK.md`](docs/USERS_AND_FEEDBACK.md) | 32 visitors, 16 form responses, what they asked for, and the six fixes that shipped because of them |
