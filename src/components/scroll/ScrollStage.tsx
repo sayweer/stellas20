@@ -9,7 +9,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react'
-import { gsap, ScrollTrigger, whenIntroSettled } from '../../lib/gsap'
+import { gsap, ScrollTrigger } from '../../lib/gsap'
 import {
   SCENE_LENGTH_VH,
   SceneIndexContext,
@@ -139,81 +139,71 @@ export function ScrollStage({
     const viewport = viewportRef.current
     if (!track || !viewport || registry.size === 0) return
 
-    let context: gsap.Context | undefined
-    let cancelled = false
+    const context = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: track,
+        start: 'top top',
+        end: 'bottom bottom',
+        pin: viewport,
+        pinSpacing: false,
+        anticipatePin: 1,
+      })
 
-    // ScrollTrigger measures the document when a trigger is created, and the
-    // welcome intro holds the page unscrollable while it plays.
-    void whenIntroSettled().then(() => {
-      if (cancelled) return
-
-      context = gsap.context(() => {
-        ScrollTrigger.create({
-          trigger: track,
-          start: 'top top',
-          end: 'bottom bottom',
-          pin: viewport,
-          pinSpacing: false,
-          anticipatePin: 1,
-        })
-
-        registry.forEach((scene, index) => {
-          if (index === 0 && !scene.custom) {
+      registry.forEach((scene, index) => {
+        if (index === 0 && !scene.custom) {
+          scene.element.style.clipPath = 'inset(0px round 0px)'
+          return
+        }
+        const previous = index === 0 ? undefined : registry.get(index - 1)
+        const apply = (progress: number): void => {
+          if (scene.custom) {
+            // The scene owns its own look; it gets raw progress so it can
+            // lay out its phases without the entrance/dwell split.
             scene.element.style.clipPath = 'inset(0px round 0px)'
+            listeners.current.get(index)?.forEach((listener) => listener(progress))
             return
           }
-          const previous = index === 0 ? undefined : registry.get(index - 1)
-          const apply = (progress: number): void => {
-            if (scene.custom) {
-              // The scene owns its own look; it gets raw progress so it can
-              // lay out its phases without the entrance/dwell split.
-              scene.element.style.clipPath = 'inset(0px round 0px)'
-              listeners.current.get(index)?.forEach((listener) => listener(progress))
-              return
-            }
-            paintEntrance(scene, progress)
-            if (previous) paintRecede(previous, progress)
-            const dwell = dwellProgress(scene, progress)
-            listeners.current.get(index)?.forEach((listener) => listener(dwell))
-          }
+          paintEntrance(scene, progress)
+          if (previous) paintRecede(previous, progress)
+          const dwell = dwellProgress(scene, progress)
+          listeners.current.get(index)?.forEach((listener) => listener(dwell))
+        }
 
-          let painted = -1
-          const paint = (value: number): void => {
-            if (value === painted) return
-            painted = value
-            apply(value)
-          }
+        let painted = -1
+        const paint = (value: number): void => {
+          if (value === painted) return
+          painted = value
+          apply(value)
+        }
 
-          ScrollTrigger.create({
-            trigger: track,
-            start: () => `top+=${segmentStartPx(lengths, index)} top`,
-            end: () =>
-              `top+=${segmentStartPx(lengths, index) + segmentLengthPx(lengths, index)} top`,
-            invalidateOnRefresh: true,
-            onUpdate: (self) => paint(self.progress),
-            onRefresh: (self) => paint(self.progress),
-            onLeave: () => paint(1),
-            onLeaveBack: () => paint(0),
-          })
-
-          apply(0)
+        ScrollTrigger.create({
+          trigger: track,
+          start: () => `top+=${segmentStartPx(lengths, index)} top`,
+          end: () =>
+            `top+=${segmentStartPx(lengths, index) + segmentLengthPx(lengths, index)} top`,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => paint(self.progress),
+          onRefresh: (self) => paint(self.progress),
+          onLeave: () => paint(1),
+          onLeaveBack: () => paint(0),
         })
-      }, track)
 
-      ScrollTrigger.refresh()
-    })
+        apply(0)
+      })
+    }, track)
+
+    ScrollTrigger.refresh()
 
     return () => {
-      cancelled = true
-      context?.revert()
+      context.revert()
       // This cleanup also fires mid-mount: each scene's registration effect
-      // grows `lengths`, which re-runs this whole effect before the intro (and
-      // therefore GSAP's own paint) has settled. A plain `resetScene` here
-      // would wipe every scene back to its fully-open resting state — undoing
-      // `initialClipPath`'s default and reopening the gap it exists to close
-      // (the last scene, unclipped, sitting on top by z-index while the intro
-      // is still mid-exit). Restore that same default instead; a true reset
-      // to '' belongs only to actually leaving pinned mode, handled above.
+      // grows `lengths`, which re-runs this whole effect before GSAP's own
+      // paint has settled. A plain `resetScene` here would wipe every scene
+      // back to its fully-open resting state — undoing `initialClipPath`'s
+      // default and reopening the gap it exists to close (the last scene,
+      // unclipped, sitting on top by z-index). Restore that same default
+      // instead; a true reset to '' belongs only to actually leaving pinned
+      // mode, handled above.
       registry.forEach((scene, index) => {
         scene.element.style.clipPath = initialClipPath(index) ?? ''
         scene.element.style.transform = ''

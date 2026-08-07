@@ -2,7 +2,6 @@
 import { useRef, type ReactElement, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
-import { WelcomeIntro } from '../components/WelcomeIntro'
 import { OpeningScene } from '../components/OpeningScene'
 import { YieldJourney } from '../components/YieldJourney'
 import { SceneParallax } from '../components/scroll/SceneParallax'
@@ -21,8 +20,7 @@ import { ArrowRightIcon, ChartBarIcon, DropletIcon, LockIcon, SwapIcon } from '.
 /* ─────────────────────────────────────────────────────────
  * LANDING STORYBOARD
  *
- *    0ms   header and hero actions are available behind intro
- * 2320ms   welcome field clears; the quiet hero is revealed
+ *    0ms   the quiet hero is on screen; header and hero actions are live
  * scroll   each chapter rises over the last one as an inset card,
  *          then expands to full bleed while the layer beneath recedes
  *
@@ -76,7 +74,6 @@ export function Landing(): ReactElement {
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-950">
-      <WelcomeIntro />
       <div id="landing-content">
         <a
           href="#landing-main"
