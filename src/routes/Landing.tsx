@@ -3,6 +3,7 @@ import { useRef, type ReactElement, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
 import { OpeningScene } from '../components/OpeningScene'
+import { PixelText } from '../components/PixelText'
 import { YieldJourney } from '../components/YieldJourney'
 import { SceneParallax } from '../components/scroll/SceneParallax'
 import { ScrollScene } from '../components/scroll/ScrollScene'
@@ -100,11 +101,13 @@ export function Landing(): ReactElement {
                 }
               >
                 <SceneBody className="max-w-[96rem] text-center">
-                  <p className="mt-14 font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
-                    Explore Innovation
+                  <p className="mt-14 text-2xl font-medium tracking-[-0.02em] text-neutral-950 sm:text-3xl">
+                    <PixelText>Explore Innovation</PixelText>
                   </p>
-                  <p className="mx-auto mt-5 max-w-2xl text-xl leading-relaxed text-neutral-600 sm:text-2xl">
-                    Your principal, protected. Your yield, your call.
+                  <p className="mx-auto mt-4 max-w-3xl text-2xl leading-relaxed text-neutral-950 sm:text-3xl">
+                    <PixelText delay={160}>
+                      Your principal, protected. Your yield, your call.
+                    </PixelText>
                   </p>
                   <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                     <PrimaryLink>Launch App</PrimaryLink>
