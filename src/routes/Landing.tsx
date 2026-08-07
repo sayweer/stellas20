@@ -100,9 +100,11 @@ export function Landing(): ReactElement {
                 }
               >
                 <SceneBody className="max-w-[96rem] text-center">
-                  <p className="mx-auto mt-14 max-w-2xl text-xl leading-relaxed text-neutral-600 sm:text-2xl">
-                    Separate principal from yield. Choose the rate exposure you want to hold, then
-                    settle on-chain at maturity.
+                  <p className="mt-14 font-mono text-[11px] uppercase tracking-[0.2em] text-accent-500">
+                    Explore Innovation
+                  </p>
+                  <p className="mx-auto mt-5 max-w-2xl text-xl leading-relaxed text-neutral-600 sm:text-2xl">
+                    Your principal, protected. Your yield, your call.
                   </p>
                   <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                     <PrimaryLink>Launch App</PrimaryLink>
