@@ -43,6 +43,22 @@ const MAX_SCALE = 12
 const HEADLINE_LEAD = 1.6
 /** How far the hero sits above the middle of the frame, in viewport heights. */
 const HERO_LIFT_VH = 7
+/**
+ * The figures do not ride the band open from the first pixel — they start
+ * rising once it is a third of the way there, and land exactly as it reaches
+ * its resting height. Starting together made the band look like a container
+ * being filled; starting late makes the figures look like they are what the
+ * band opened for.
+ */
+const STATS_ENTRY_START = 1 / 3
+/** How far below their resting place the figures begin, in viewport heights. */
+const STATS_RISE_VH = 14
+/** How far they carry on upward as the band grows past them. */
+const STATS_EXIT_VH = 10
+/** Ease-out cubic: fast off the mark, settled well before the band stops. */
+function settle(t: number): number {
+  return 1 - (1 - t) ** 3
+}
 
 type Offset = { x: number; y: number }
 
@@ -61,11 +77,11 @@ export function OpeningScene({
   const headlineRef = useRef<HTMLDivElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const bandRef = useRef<HTMLDivElement>(null)
+  const statsRef = useRef<HTMLDivElement>(null)
   const origin = useRef<Offset | null>(null)
   const gapYPct = useRef(50)
   const [active, setActive] = useState(0)
-  const [statsHidden, setStatsHidden] = useState(true)
-  const painted = useRef({ step: 0, hidden: true })
+  const painted = useRef({ step: 0 })
   const pinned = useStage()?.pinned ?? false
 
   /**
@@ -132,7 +148,18 @@ export function OpeningScene({
     // the resting hero.
     band.style.visibility = height > 0 ? 'visible' : 'hidden'
 
-    // Only touch React state when the value actually changes. Calling these on
+    // The figures rise with the band rather than appearing once it settles, so
+    // the two movements read as one. They keep travelling upward as the band
+    // grows past them, which hands the frame to the next chapter.
+    const figures = statsRef.current
+    if (figures) {
+      const rise = 1 - settle(clamp01((open - STATS_ENTRY_START) / (1 - STATS_ENTRY_START)))
+      const leave = clamp01((expand - 0.02) / 0.28)
+      figures.style.transform = `translateY(${rise * STATS_RISE_VH - leave * STATS_EXIT_VH}vh)`
+      figures.style.opacity = String(1 - leave)
+    }
+
+    // Only touch React state when the value actually changes. Calling this on
     // every scroll frame schedules work that mutates the DOM mid-scroll, which
     // then forces ScrollTrigger's next read to reflow.
     const dwell = clamp01((p - PUNCH_END) / (DWELL_END - PUNCH_END))
@@ -140,11 +167,6 @@ export function OpeningScene({
     if (step !== painted.current.step) {
       painted.current.step = step
       setActive(step)
-    }
-    const hide = open < 0.85 || expand > 0.15
-    if (hide !== painted.current.hidden) {
-      painted.current.hidden = hide
-      setStatsHidden(hide)
     }
   })
 
@@ -194,7 +216,13 @@ export function OpeningScene({
         style={{ clipPath: 'inset(50% 0% 50% 0%)', visibility: 'hidden' }}
       >
         <div className="grid h-full place-items-center px-5">
-          <StatBand stats={stats} active={active} hidden={statsHidden} />
+          <div
+            ref={statsRef}
+            className="will-change-transform"
+            style={{ transform: `translateY(${STATS_RISE_VH}vh)` }}
+          >
+            <StatBand stats={stats} active={active} />
+          </div>
         </div>
       </div>
     </>
