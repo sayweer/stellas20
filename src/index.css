@@ -6,57 +6,61 @@
 
 @layer base {
   :root {
-    --brand-paper: oklch(1 0 0);
-    --brand-paper-elevated: oklch(0.9761 0 0);
-    --brand-ink: oklch(0.1149 0 0);
-    --brand-red: oklch(0.4389 0.1718 29.71);
-    --brand-red-soft: oklch(0.8902 0.0223 35.12);
+    --brand-paper: #f5f3f4;
+    --brand-paper-elevated: #edebf0;
+    --brand-ink: #050505;
+    --brand-navy: #0c0146;
+    --brand-accent: #3e56fd;
+    --brand-accent-soft: #bac3fe;
 
     /* Utility ramps are variables so the app can change theme without making
        the intentionally light marketing route theme-dependent. */
-    /* The light end is neutral so pure white never reads as yellowed next to
-       the step below it. Brand warmth lives from 400 down. */
-    --neutral-50: 255 255 255;
-    --neutral-100: 245 245 245;
-    --neutral-200: 235 235 235;
-    --neutral-300: 214 214 214;
-    --neutral-400: 159 147 131;
-    --neutral-500: 150 139 124;
-    --neutral-600: 140 129 115;
-    --neutral-850: 31 28 24;
-    --neutral-900: 23 21 18;
+    /* The ramp runs from the paper seed down through the navy seed, so every
+       grey is a step on the line between them rather than a neutral that
+       happens to sit nearby. Black is kept at the far end on its own: it is
+       the marketing route's band and the app canvas, and navy panels read as
+       a layer above it. */
+    --neutral-50: 245 243 244;
+    --neutral-100: 237 235 240;
+    --neutral-200: 226 224 234;
+    --neutral-300: 201 198 214;
+    --neutral-400: 139 134 165;
+    --neutral-500: 120 114 150;
+    --neutral-600: 92 86 124;
+    --neutral-850: 26 14 76;
+    --neutral-900: 18 6 68;
     --neutral-950: 5 5 5;
-    --boundary: 110 101 90;
+    --boundary: 122 116 156;
     /* `boundary` is the 3:1 edge every interactive control needs. `hairline`
        is the decorative one — card edges and dividers — and `raised` is the
        fill a control takes when it is selected, hovered or standing in for
        content. Splitting them is what lets the light surface below give each
        role its own value instead of bending one step to serve all three. */
-    --hairline: 42 37 32;
-    --raised: 42 37 32;
-    --accent-100: 244 221 217;
-    --accent-200: 233 170 163;
-    --accent-300: 218 109 99;
-    --accent-400: 185 28 18;
-    --accent-500: 155 15 6;
-    --accent-600: 126 12 5;
+    --hairline: 43 30 92;
+    --raised: 38 24 84;
+    --accent-100: 226 230 255;
+    --accent-200: 186 195 254;
+    --accent-300: 141 155 254;
+    --accent-400: 93 116 253;
+    --accent-500: 62 86 253;
+    --accent-600: 43 62 214;
     /* Status roles stay inside the three-colour identity. Meaning is also
        carried by icons and explicit copy, never by hue alone. */
-    --positive-100: 244 221 217;
-    --positive-200: 233 170 163;
-    --positive-300: 218 109 99;
-    --positive-400: 185 28 18;
-    --positive-500: 155 15 6;
-    --negative-100: 244 221 217;
-    --negative-200: 233 170 163;
-    --negative-300: 218 109 99;
-    --negative-400: 185 28 18;
-    --negative-500: 155 15 6;
-    --warning-100: 244 221 217;
-    --warning-200: 233 170 163;
-    --warning-300: 218 109 99;
-    --warning-400: 185 28 18;
-    --warning-500: 155 15 6;
+    --positive-100: 226 230 255;
+    --positive-200: 186 195 254;
+    --positive-300: 141 155 254;
+    --positive-400: 93 116 253;
+    --positive-500: 62 86 253;
+    --negative-100: 226 230 255;
+    --negative-200: 186 195 254;
+    --negative-300: 141 155 254;
+    --negative-400: 93 116 253;
+    --negative-500: 62 86 253;
+    --warning-100: 226 230 255;
+    --warning-200: 186 195 254;
+    --warning-300: 141 155 254;
+    --warning-400: 93 116 253;
+    --warning-500: 62 86 253;
     --on-accent: 255 255 255;
   }
 
@@ -77,49 +81,49 @@
 
   .surface-app[data-theme='light'] {
     color-scheme: light;
-    --neutral-50: 5 5 5;
-    --neutral-100: 23 21 18;
-    --neutral-200: 42 37 32;
-    --neutral-300: 60 54 48;
-    --neutral-400: 91 84 75;
-    --neutral-500: 91 84 75;
-    --neutral-600: 91 84 75;
-    --neutral-850: 235 235 235;
+    --neutral-50: 12 1 70;
+    --neutral-100: 18 6 68;
+    --neutral-200: 43 30 92;
+    --neutral-300: 66 52 120;
+    --neutral-400: 92 86 124;
+    --neutral-500: 92 86 124;
+    --neutral-600: 92 86 124;
+    --neutral-850: 226 224 234;
     /* Elevated panels sit a shade under the page so they stay readable now
-       that the canvas itself is pure white. */
-    --neutral-900: 247 247 247;
-    --neutral-950: 255 255 255;
-    --boundary: 138 138 138;
+       that the canvas itself is the paper seed. */
+    --neutral-900: 247 246 249;
+    --neutral-950: 245 243 244;
+    --boundary: 139 134 165;
     /* Matches the marketing route's ink/10 card edge so a panel reads the same
        weight on both surfaces. */
-    --hairline: 229 229 229;
-    --raised: 232 230 228;
-    --accent-100: 126 12 5;
-    --accent-200: 126 12 5;
-    --accent-300: 126 12 5;
-    --accent-400: 155 15 6;
-    --positive-100: 126 12 5;
-    --positive-200: 126 12 5;
-    --positive-300: 126 12 5;
-    --positive-400: 155 15 6;
-    --positive-500: 155 15 6;
-    --negative-100: 126 12 5;
-    --negative-200: 126 12 5;
-    --negative-300: 126 12 5;
-    --negative-400: 155 15 6;
-    --negative-500: 155 15 6;
-    --warning-100: 126 12 5;
-    --warning-200: 126 12 5;
-    --warning-300: 126 12 5;
-    --warning-400: 155 15 6;
-    --warning-500: 155 15 6;
+    --hairline: 226 224 234;
+    --raised: 232 230 240;
+    --accent-100: 43 62 214;
+    --accent-200: 43 62 214;
+    --accent-300: 43 62 214;
+    --accent-400: 62 86 253;
+    --positive-100: 43 62 214;
+    --positive-200: 43 62 214;
+    --positive-300: 43 62 214;
+    --positive-400: 62 86 253;
+    --positive-500: 62 86 253;
+    --negative-100: 43 62 214;
+    --negative-200: 43 62 214;
+    --negative-300: 43 62 214;
+    --negative-400: 62 86 253;
+    --negative-500: 62 86 253;
+    --warning-100: 43 62 214;
+    --warning-200: 43 62 214;
+    --warning-300: 43 62 214;
+    --warning-400: 62 86 253;
+    --warning-500: 62 86 253;
   }
 
   .surface-site {
     color-scheme: light;
     /* Marketing copy uses neutral-600 on paper and pale cards. Keep it dark
        enough for AA without weakening the dark app's muted-text ramp. */
-    --neutral-600: 91 84 75;
+    --neutral-600: 84 78 116;
     @apply bg-neutral-50 text-neutral-950;
   }
 
@@ -129,7 +133,7 @@
 
   ::selection {
     color: var(--brand-paper);
-    background: var(--brand-red);
+    background: var(--brand-accent);
   }
 
   /* Checkboxes, the text caret and any other control the browser paints itself
@@ -171,8 +175,8 @@
 @layer components {
   .landing-hero-visual {
     background-image:
-      linear-gradient(rgb(5 5 5 / 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(5 5 5 / 0.08) 1px, transparent 1px);
+      linear-gradient(rgb(12 1 70 / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(12 1 70 / 0.08) 1px, transparent 1px);
     background-size: 3rem 3rem;
   }
 

@@ -105,47 +105,47 @@ StellarWalletsKit.init({
 
 /**
  * The picker is the first surface a visitor interacts with, and the kit's own
- * themes paint it in a blue that appears nowhere else in Everspan. These carry
+ * themes paint it in a blue of their own rather than Everspan's. These carry
  * the same values `src/index.css` gives each surface, spelled as hex because
  * the modal renders in a shadow root that our CSS variables do not reach.
  */
 const PICKER_SHARED = {
   transparent: 'rgba(0, 0, 0, 0)',
-  primary: '#9B0F06',
+  primary: '#3E56FD',
   'primary-foreground': '#FFFFFF',
-  danger: '#B91C12',
+  danger: '#5D74FD',
   'border-radius': '1rem',
   'font-family': "'Space Grotesk Variable', ui-sans-serif, system-ui, sans-serif",
 } as const
 
 const PICKER_DARK: SwkAppTheme = {
   ...PICKER_SHARED,
-  background: '#171512',
+  background: '#120644',
   'background-secondary': '#050505',
   'foreground-strong': '#FFFFFF',
-  foreground: '#F5F5F5',
-  'foreground-secondary': '#9F9383',
-  lighter: '#1F1C18',
-  light: '#171512',
-  'light-gray': '#9F9383',
-  gray: '#6E655A',
+  foreground: '#F5F3F4',
+  'foreground-secondary': '#8B86A5',
+  lighter: '#1A0E4C',
+  light: '#120644',
+  'light-gray': '#8B86A5',
+  gray: '#7A749C',
   border: 'rgba(255, 255, 255, 0.12)',
   shadow: '0 24px 48px -12px rgba(0, 0, 0, 0.6)',
 }
 
 const PICKER_LIGHT: SwkAppTheme = {
   ...PICKER_SHARED,
-  background: '#FFFFFF',
-  'background-secondary': '#F7F7F7',
-  'foreground-strong': '#050505',
-  foreground: '#171512',
-  'foreground-secondary': '#5B544B',
+  background: '#F5F3F4',
+  'background-secondary': '#EDEBF0',
+  'foreground-strong': '#0C0146',
+  foreground: '#120644',
+  'foreground-secondary': '#5C567C',
   lighter: '#FFFFFF',
-  light: '#F7F7F7',
-  'light-gray': '#8A8A8A',
-  gray: '#5B544B',
-  border: 'rgba(5, 5, 5, 0.10)',
-  shadow: '0 24px 48px -12px rgba(5, 5, 5, 0.15)',
+  light: '#EDEBF0',
+  'light-gray': '#8B86A5',
+  gray: '#5C567C',
+  border: 'rgba(12, 1, 70, 0.10)',
+  shadow: '0 24px 48px -12px rgba(12, 1, 70, 0.15)',
 }
 
 /** Keep the wallet picker visually consistent with Everspan's active app theme. */
