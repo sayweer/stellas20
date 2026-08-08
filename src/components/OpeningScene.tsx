@@ -2,7 +2,7 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
+  type CSSProperties,
   type ReactElement,
   type ReactNode,
 } from 'react'
@@ -60,6 +60,28 @@ function settle(t: number): number {
   return 1 - (1 - t) ** 3
 }
 
+/**
+ * A figure holds this share of its stretch of scroll before it starts being
+ * pushed out by the next one. Without the hold the belt is in permanent
+ * motion and nothing can be read; with too much of one the change feels like
+ * a slide show. A little under half leaves each figure a couple of wheel
+ * notches at rest and gives the push about as many again to play out in.
+ */
+const STAT_HOLD = 0.42
+/**
+ * Each strip below the first waits a little longer before it moves, so the
+ * three lines push each other out in sequence rather than as one block. The
+ * belt is scrubbed, so this is a share of scroll, not a delay in time.
+ */
+const STAT_LAG = 0.07
+/** Custom properties the band reads to place each strip. */
+const STAT_POSITION_VARS = ['--stat-note', '--stat-value', '--stat-label'] as const
+
+/** Smoothstep: leaves and arrives gently, linear through the middle. */
+function smooth(t: number): number {
+  return t * t * (3 - 2 * t)
+}
+
 type Offset = { x: number; y: number }
 
 export function OpeningScene({
@@ -80,8 +102,6 @@ export function OpeningScene({
   const statsRef = useRef<HTMLDivElement>(null)
   const origin = useRef<Offset | null>(null)
   const gapYPct = useRef(50)
-  const [active, setActive] = useState(0)
-  const painted = useRef({ step: 0 })
   const pinned = useStage()?.pinned ?? false
 
   /**
@@ -152,22 +172,27 @@ export function OpeningScene({
     // the two movements read as one. They keep travelling upward as the band
     // grows past them, which hands the frame to the next chapter.
     const figures = statsRef.current
-    if (figures) {
-      const rise = 1 - settle(clamp01((open - STATS_ENTRY_START) / (1 - STATS_ENTRY_START)))
-      const leave = clamp01((expand - 0.02) / 0.28)
-      figures.style.transform = `translateY(${rise * STATS_RISE_VH - leave * STATS_EXIT_VH}vh)`
-      figures.style.opacity = String(1 - leave)
-    }
+    if (!figures) return
+    const rise = 1 - settle(clamp01((open - STATS_ENTRY_START) / (1 - STATS_ENTRY_START)))
+    const leave = clamp01((expand - 0.02) / 0.28)
+    figures.style.transform = `translateY(${rise * STATS_RISE_VH - leave * STATS_EXIT_VH}vh)`
+    figures.style.opacity = String(1 - leave)
 
-    // Only touch React state when the value actually changes. Calling this on
-    // every scroll frame schedules work that mutates the DOM mid-scroll, which
-    // then forces ScrollTrigger's next read to reflow.
+    // The belt is scrubbed rather than stepped: each figure gets an equal
+    // stretch of the dwell, holds still through the first part of it, then is
+    // pushed out over the rest. Scrolling drives that push directly, so it
+    // stops where the reader stops. Publishing it as custom properties keeps
+    // this to one DOM write per strip and leaves the band purely declarative —
+    // React state would re-render on every scroll frame.
     const dwell = clamp01((p - PUNCH_END) / (DWELL_END - PUNCH_END))
-    const step = Math.min(stats.length - 1, Math.floor(dwell * stats.length))
-    if (step !== painted.current.step) {
-      painted.current.step = step
-      setActive(step)
-    }
+    const last = stats.length - 1
+    const reached = Math.min(last, Math.floor(dwell * stats.length))
+    const within = dwell * stats.length - reached
+    STAT_POSITION_VARS.forEach((property, strip) => {
+      const hold = STAT_HOLD + strip * STAT_LAG
+      const push = smooth(clamp01((within - hold) / (1 - hold)))
+      figures.style.setProperty(property, Math.min(last, reached + push).toFixed(4))
+    })
   })
 
   // Without the stage there is no progress to paint from, so the zoom and the
@@ -219,9 +244,16 @@ export function OpeningScene({
           <div
             ref={statsRef}
             className="will-change-transform"
-            style={{ transform: `translateY(${STATS_RISE_VH}vh)` }}
+            style={
+              {
+                transform: `translateY(${STATS_RISE_VH}vh)`,
+                '--stat-note': '0',
+                '--stat-value': '0',
+                '--stat-label': '0',
+              } as CSSProperties
+            }
           >
-            <StatBand stats={stats} active={active} />
+            <StatBand stats={stats} />
           </div>
         </div>
       </div>

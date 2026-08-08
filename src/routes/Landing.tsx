@@ -88,7 +88,10 @@ export function Landing(): ReactElement {
           <ScrollStage apiRef={stage}>
             <ScrollScene
               custom
-              length={2.5}
+              /* Long enough that each figure gets a readable pause and a push
+                 that takes real scrolling to complete — the belt is scrubbed,
+                 so this length is the only thing that sets its pace. */
+              length={3.8}
               className="bg-neutral-50 text-neutral-950"
               label="Everspan"
             >
