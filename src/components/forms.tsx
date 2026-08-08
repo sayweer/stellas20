@@ -2,8 +2,14 @@
 import type { ReactElement, ReactNode } from 'react'
 import { Spinner } from './icons'
 
+/*
+ * `text-base sm:text-sm` is not a typographic choice: iOS Safari zooms the
+ * whole page in when a field with a font smaller than 16px takes focus, and
+ * leaves the reader zoomed and scrolled sideways. 16px on phones, the original
+ * 14px from `sm` up.
+ */
 const inputClass =
-  'w-full min-h-12 rounded-xl border border-boundary bg-neutral-950 px-4 py-3 text-sm text-neutral-100 placeholder:text-neutral-500 font-mono tabular-nums transition-[color,background-color,border-color,box-shadow] duration-100 focus:border-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 aria-[invalid=true]:border-negative-300'
+  'w-full min-h-12 rounded-xl border border-boundary bg-neutral-950 px-4 py-3 text-base text-neutral-100 placeholder:text-neutral-500 font-mono tabular-nums transition-[color,background-color,border-color,box-shadow] duration-100 focus:border-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 aria-[invalid=true]:border-negative-300 sm:text-sm'
 
 interface AmountFieldProps {
   id: string
