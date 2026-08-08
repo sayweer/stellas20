@@ -14,33 +14,45 @@ import { clamp01, useSceneProgress, useStage } from './scroll/stageContext'
  *
  * The hero does not slide away — the page falls into the gap between the
  * headline and the copy beneath it. Scrolling drives a punch-in centred on
- * that gap; a dark band opens from the same point, holds while the live
- * protocol figures roll through it, then grows to fill the frame and hand
- * over to the first chapter.
+ * that gap; a dark band opens from the same point and lands full size at the
+ * same instant the zoom does, so the figures arrive into a band framed above
+ * and below by hero type blown up past the edges of the frame.
+ *
+ * The type never fades. It leaves by being pushed apart: the headline keeps
+ * travelling up out of the top of the frame and the copy down out of the
+ * bottom, which is the same movement the zoom already started, carried to its
+ * end. A fade would have said "this is being dismissed"; the split says "you
+ * have moved past it".
  *
  * Phases, in scene progress `p`:
- *   0.00 → 0.30   punch-in; band opens from the gap to BAND_VH
- *   0.30 → 0.84   band holds, figures roll
+ *   0.00 → 0.18   punch-in and band opening, finishing together
+ *   0.18 → 0.50   hero halves part and clear the frame; figures roll on
+ *   0.18 → 0.84   band holds, figures roll
  *   0.84 → 1.00   band grows to full frame (the next chapter is dark too, so
  *                 the seam between them is invisible)
  * ───────────────────────────────────────────────────────── */
 
-const PUNCH_END = 0.3
+/** The zoom and the band finish together — see BAND_OPEN_END. */
+const PUNCH_END = 0.18
 const DWELL_END = 0.84
 /** Resting band height, in viewport heights. */
 const BAND_VH = 38
-/**
- * The band reaches its resting height ahead of the punch-in rather than
- * alongside it, so it arrives as the zoom is still opening up behind it.
- */
 const BAND_OPEN_END = 0.18
 /**
- * Past roughly 10× the headline already covers the frame, and every further
- * step only asks the browser to re-rasterise larger text for no visible gain.
+ * Big enough that a word or two fills the frame edge to edge, small enough
+ * that the type is still type rather than abstract shapes — the reader should
+ * recognise the line they just read, not decode it.
  */
-const MAX_SCALE = 12
+const MAX_SCALE = 4.2
 /** The headline runs ahead of the rest of the hero, which layers the movement. */
-const HEADLINE_LEAD = 1.6
+const HEADLINE_LEAD = 1.35
+/**
+ * Once the band is open the two halves of the hero keep going the way the
+ * zoom sent them, over this share of the scene, until both are off frame.
+ */
+const SPLIT_SPAN = 0.32
+/** How far each half travels while it leaves, in viewport heights. */
+const SPLIT_VH = 62
 /** How far the hero sits above the middle of the frame, in viewport heights. */
 const HERO_LIFT_VH = 7
 /**
@@ -114,15 +126,22 @@ export function OpeningScene({
     const head = headlineRef.current
     const body = bodyRef.current
     if (!zoom || !head || !body) return
-    const previous = zoom.style.transform
-    zoom.style.transform = 'none'
+    // Every transform in the hero has to come off, not just the zoom's: the
+    // split moves the two halves apart, and measuring the gap between them
+    // mid-split would place the origin somewhere neither of them is.
+    const previous = [zoom, head, body].map((element) => element.style.transform)
+    ;[zoom, head, body].forEach((element) => {
+      element.style.transform = 'none'
+    })
     const zoomRect = zoom.getBoundingClientRect()
     const gapY = (head.getBoundingClientRect().bottom + body.getBoundingClientRect().top) / 2
     // Horizontally the punch-in stays dead centre; anchoring it to anything
     // off-centre sweeps the headline sideways instead of opening around it.
     origin.current = { x: zoomRect.width / 2, y: gapY - zoomRect.top }
     gapYPct.current = (gapY / window.innerHeight) * 100
-    zoom.style.transform = previous
+    ;[zoom, head, body].forEach((element, index) => {
+      element.style.transform = previous[index]
+    })
   }, [])
 
   useEffect(() => {
@@ -142,15 +161,27 @@ export function OpeningScene({
       zoom.style.transformOrigin = `${origin.current.x}px ${origin.current.y}px`
     }
     // Exponential, so the last stretch of scroll travels as far as the first.
-    zoom.style.transform = `scale(${Math.exp(punch * Math.log(MAX_SCALE))})`
-    const fade = 1 - clamp01((punch - 0.45) / 0.3)
-    zoom.style.opacity = String(fade)
-    // Once it is invisible, take it out of the frame entirely; otherwise the
-    // browser keeps rasterising hugely scaled text nobody can see.
-    zoom.style.visibility = fade > 0 ? 'visible' : 'hidden'
+    const scale = Math.exp(punch * Math.log(MAX_SCALE))
+    zoom.style.transform = `scale(${scale})`
+
+    // The two halves part along the axis the zoom already pushed them. The
+    // travel is divided by the zoom, so it covers the same distance on screen
+    // however far the punch-in has magnified the type.
+    const split = settle(clamp01((p - PUNCH_END) / SPLIT_SPAN))
+    const travel = (split * SPLIT_VH) / scale
     if (headlineRef.current) {
-      headlineRef.current.style.transform = `scale(${Math.exp(punch * Math.log(HEADLINE_LEAD))})`
+      headlineRef.current.style.transform = `translateY(${-travel}vh) scale(${Math.exp(
+        punch * Math.log(HEADLINE_LEAD),
+      )})`
     }
+    if (bodyRef.current) {
+      bodyRef.current.style.transform = `translateY(${travel}vh)`
+    }
+    // Both halves are off frame well before the split completes; keeping the
+    // layer painted past that point only asks the browser to re-rasterise
+    // hugely scaled type nobody can see. This is not a fade — nothing is
+    // hidden until it has already left the frame.
+    zoom.style.visibility = split < 1 ? 'visible' : 'hidden'
 
     // Opens from the very first pixel of scroll — any head start reads as the
     // page moving before anything happens.
