@@ -58,8 +58,11 @@ function App(): ReactElement {
     })
   }
 
+  // `svh` rather than `vh`: on a phone `100vh` is the viewport with the browser
+  // chrome hidden, so the bottom nav sits below the fold until the reader
+  // scrolls. `svh` is the height that is actually on screen.
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-[100svh] flex-col">
       {/* Same escape hatch the marketing route offers: the rail, the market
           switcher and the wallet control sit ahead of the panel in tab order. */}
       <a
