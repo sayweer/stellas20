@@ -61,8 +61,12 @@ function App(): ReactElement {
   // `svh` rather than `vh`: on a phone `100vh` is the viewport with the browser
   // chrome hidden, so the bottom nav sits below the fold until the reader
   // scrolls. `svh` is the height that is actually on screen.
+  // The insets sit on the shell rather than on each container inside it, so
+  // the banners, the header and the panels all clear the notch together. In
+  // portrait they are 0 and nothing moves; in landscape they are what keeps
+  // the first and last characters of a line off the camera cutout.
   return (
-    <div className="flex min-h-[100svh] flex-col">
+    <div className="flex min-h-[100svh] flex-col pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-[env(safe-area-inset-top)]">
       {/* Same escape hatch the marketing route offers: the rail, the market
           switcher and the wallet control sit ahead of the panel in tab order. */}
       <a
@@ -256,7 +260,11 @@ function MarketContent({
           {/* Wraps rather than shrinks: the market switcher and the wallet control
               are both fixed-width, and on a phone they overlapped when forced
               onto one line. Below sm the switcher drops to its own row. */}
-          <header className="sticky top-0 z-20 -mx-4 flex flex-wrap items-center gap-3 border-b border-hairline bg-neutral-950/90 px-4 py-3 backdrop-blur lg:mx-0 lg:px-0">
+          {/* Pinned below the status bar rather than at the true viewport top:
+              the shell already pays the top inset back as padding, so this is
+              where the header rests, and pinning it anywhere higher would slide
+              its contents under the clock on an installed app. */}
+          <header className="sticky top-[env(safe-area-inset-top)] z-20 -mx-4 flex flex-wrap items-center gap-3 border-b border-hairline bg-neutral-950/90 px-4 py-3 backdrop-blur lg:mx-0 lg:px-0">
             <Link
               to="/"
               aria-label="Everspan home"
