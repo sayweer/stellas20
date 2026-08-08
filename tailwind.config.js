@@ -2,6 +2,16 @@
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   darkMode: 'class',
+  future: {
+    /*
+     * Wraps every `hover:` utility in `@media (hover: hover)`. Without it a
+     * touch device applies `:hover` on tap and leaves it applied until the
+     * next tap somewhere else — so every button the reader has touched stays
+     * visibly lit. There are 60-odd hover utilities in the app, and this is
+     * the only fix that reaches all of them at once.
+     */
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       colors: {
