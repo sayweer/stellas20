@@ -82,7 +82,7 @@ export function EarnPanel({
   }
 
   return (
-    <section id="panel-earn" role="tabpanel" aria-labelledby="tab-earn" className="space-y-8">
+    <section id="panel-earn" role="tabpanel" aria-label="Earn" className="space-y-8">
       <header className="max-w-2xl">
         <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">Earn</p>
         <h1

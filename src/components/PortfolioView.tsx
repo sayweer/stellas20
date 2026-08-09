@@ -41,7 +41,7 @@ export function PortfolioView({
   onRetryActivity,
 }: PortfolioViewProps): ReactElement {
   return (
-    <div id="panel-portfolio" role="tabpanel" aria-labelledby="tab-portfolio" className="space-y-6">
+    <div id="panel-portfolio" role="tabpanel" aria-label="Portfolio" className="space-y-6">
       <PortfolioPanel
         address={address}
         portfolio={portfolio}

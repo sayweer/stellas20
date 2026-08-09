@@ -103,7 +103,7 @@ export function OverviewPanel({
     <section
       id="panel-overview"
       role="tabpanel"
-      aria-labelledby="tab-overview"
+      aria-label="Overview"
       className="space-y-10"
     >
       <header className="max-w-2xl">
