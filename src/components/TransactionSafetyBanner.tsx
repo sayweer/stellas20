@@ -6,6 +6,7 @@ import { checkTransactionStatus } from '../lib/transactionStatus'
 import { truncateAddress } from '../lib/format'
 import { isAppError } from '../types'
 import { AlertTriangleIcon, ExternalLinkIcon, Spinner } from './icons'
+import { Button } from './Button'
 
 interface CheckFeedback {
   transactionKey: string
@@ -144,29 +145,27 @@ export function TransactionSafetyBanner(): ReactElement | null {
               </a>
 
               {!isInFlight ? (
-                <button
-                  type="button"
-                  disabled={checking}
+                <Button
+                  variant="warning"
                   onClick={() => {
                     void recheckStatus()
                   }}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300 disabled:cursor-wait disabled:opacity-60"
+                  pending={checking}
+                  pendingLabel="Checking…"
                 >
-                  {checking ? <Spinner className="h-4 w-4" /> : null}
-                  {checking ? 'Checking…' : 'Recheck status'}
-                </button>
+                  Recheck status
+                </Button>
               ) : null}
               {!isInFlight ? (
-                <button
-                  type="button"
+                <Button
+                  variant="warning"
                   disabled={checking}
                   onClick={() => {
                     void unlockAfterWalletCheck()
                   }}
-                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
                 >
                   I verified the result — unlock actions
-                </button>
+                </Button>
               ) : null}
             </div>
           ) : !isInFlight ? (
@@ -175,16 +174,16 @@ export function TransactionSafetyBanner(): ReactElement | null {
                 Only unlock after checking your wallet activity and balances. Unlocking does not
                 cancel a transaction that may already have been submitted.
               </p>
-              <button
-                type="button"
+              <Button
+                variant="warning"
                 disabled={checking}
                 onClick={() => {
                   void unlockAfterWalletCheck()
                 }}
-                className="mt-2 inline-flex min-h-11 items-center justify-center rounded-full border border-warning-300 px-4 py-2 font-semibold text-warning-100 transition-colors duration-100 hover:bg-warning-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
+                className="mt-2"
               >
                 I checked my wallet — unlock actions
-              </button>
+              </Button>
             </div>
           ) : null}
 

@@ -24,7 +24,7 @@
  * so one string is correct on the canvas, on a panel and inside an inset box.
  */
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'warning'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 export interface ButtonStyleOptions {
@@ -91,6 +91,15 @@ const VARIANTS: Record<ButtonVariant, string> = {
     'text-neutral-400 hover:bg-raised hover:text-neutral-100 active:bg-raised disabled:text-neutral-600',
   danger:
     'border border-negative-300 text-negative-100 hover:bg-negative-500/10 active:bg-negative-500/20 disabled:border-hairline disabled:text-neutral-600',
+  /*
+   * The transaction-safety banner's three controls. `danger` and `warning`
+   * paint identically while both ramps resolve to the same blue, but they are
+   * different decisions — "this failed" versus "this may still be running" —
+   * and keeping the slots apart is what lets the ramps diverge later without
+   * revisiting the call sites.
+   */
+  warning:
+    'border border-warning-300 text-warning-100 hover:bg-warning-500/10 active:bg-warning-500/20 disabled:border-hairline disabled:text-neutral-600',
 }
 
 /**
