@@ -13,6 +13,7 @@ import {
   Spinner,
   XCircleIcon,
 } from './icons'
+import { StellarMark } from './StellarMark'
 
 export type TxOutcome =
   | {
@@ -119,7 +120,15 @@ export function TxStatus({
     return (
       <div role="status" className="rounded-xl border border-warning-500/30 bg-warning-500/10 p-4">
         <div className="flex items-start gap-3">
-          <Spinner className="h-5 w-5 shrink-0 text-warning-400" />
+          {/* Building and signing happen here and in the wallet; the spinner is
+              the honest sign for those. Once the transaction is with the
+              network, the wait genuinely is Stellar settling it — the one place
+              in the app where the network's own mark means something. */}
+          {outcome.phase === 'pending' ? (
+            <StellarMark settling className="h-5 w-5 shrink-0 text-warning-400" />
+          ) : (
+            <Spinner className="h-5 w-5 shrink-0 text-warning-400" />
+          )}
           <div className="min-w-0 flex-1 text-sm">
             <p className="font-semibold text-warning-100">{pendingTitle(outcome.phase)}</p>
             <p className="mt-0.5 text-warning-200/80">{pendingDetail(outcome.phase)}</p>
@@ -238,11 +247,7 @@ function ProgressStep({
       <span
         aria-hidden="true"
         className={`mb-1.5 block h-1 rounded-full ${
-          state === 'done'
-            ? 'bg-positive-400'
-            : state === 'active'
-              ? 'bg-warning-400'
-              : 'bg-raised'
+          state === 'done' ? 'bg-positive-400' : state === 'active' ? 'bg-warning-400' : 'bg-raised'
         }`}
       />
       <span className={`text-[11px] ${state === 'next' ? 'text-neutral-500' : 'text-warning-100'}`}>

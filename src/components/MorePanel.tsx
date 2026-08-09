@@ -10,6 +10,7 @@ import { AdvancedPanel } from './AdvancedPanel'
 import { ConnectPrompt } from './ConnectPrompt'
 import { TabToggle } from './forms'
 import { DataUnavailable } from './DataUnavailable'
+import { StellarMark } from './StellarMark'
 import { ThemeToggle } from './ThemeToggle'
 
 export type MoreView = 'convert' | 'activity'
@@ -126,8 +127,9 @@ export function MorePanel({
             Share feedback
           </a>
         )}
-        <p className="text-[11px] leading-relaxed text-neutral-600">
-          Testnet only. Never share your secret key.
+        <p className="flex items-center gap-1.5 text-[11px] leading-relaxed text-neutral-600">
+          <StellarMark className="h-3 w-3 shrink-0" />
+          Stellar Testnet only. Never share your secret key.
         </p>
       </footer>
     </section>

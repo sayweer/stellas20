@@ -7,6 +7,7 @@ import { useTxRunner } from '../hooks/useTxRunner'
 import { FaucetButton, FAUCET_AMOUNT } from './FaucetButton'
 import { TxStatus } from './TxStatus'
 import { RefreshIcon, Spinner } from './icons'
+import { StellarMark } from './StellarMark'
 
 interface WalletBarProps {
   address: string
@@ -47,7 +48,12 @@ export function WalletBar({
     <div>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-hairline bg-neutral-900 px-4 py-3">
         <div className="flex items-center gap-6">
-          <Balance label={market.underlyingSymbol} value={underlying} loading={loading} />
+          <Balance
+            label={market.underlyingSymbol}
+            value={underlying}
+            loading={loading}
+            network={market.underlyingSymbol === 'XLM'}
+          />
           <Balance label="SY" value={sy} loading={loading} />
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -92,14 +98,20 @@ function Balance({
   label,
   value,
   loading,
+  /** Marks the row that holds the network's own asset. */
+  network = false,
 }: {
   label: string
   value: bigint
   loading: boolean
+  network?: boolean
 }): ReactElement {
   return (
     <div className="min-w-0">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{label}</p>
+      <p className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-neutral-400">
+        {network && <StellarMark className="h-3 w-3 shrink-0" />}
+        {label}
+      </p>
       {loading ? (
         <div aria-hidden="true" className="mt-1 h-5 w-16 animate-pulse rounded-full bg-raised" />
       ) : (
