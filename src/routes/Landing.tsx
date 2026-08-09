@@ -98,26 +98,26 @@ export function Landing(): ReactElement {
               <OpeningScene
                 stats={facts}
                 headline={
-                  <h1 className="mx-auto w-full max-w-[96rem] px-5 text-center text-[clamp(4rem,9.2vw,9rem)] font-normal leading-[0.88] tracking-[-0.065em] sm:px-8 lg:whitespace-nowrap lg:px-10">
+                  <h1 className="mx-auto w-full max-w-[96rem] px-5 text-center text-[clamp(2.75rem,9.2vw,9rem)] font-normal leading-[0.88] tracking-[-0.065em] sm:px-8 lg:whitespace-nowrap lg:px-10">
                     Yield, on your terms<span className="text-accent-500">.</span>
                   </h1>
                 }
               >
                 <SceneBody className="max-w-[96rem] text-center">
-                  <p className="mt-14 text-2xl font-medium tracking-[-0.02em] text-neutral-950 sm:text-3xl">
+                  <p className="mt-12 text-xl font-medium tracking-[-0.02em] text-neutral-950 sm:mt-14 sm:text-3xl">
                     <PixelText>Explore Innovation</PixelText>
                   </p>
-                  <p className="mx-auto mt-4 max-w-3xl text-2xl leading-relaxed text-neutral-950 sm:text-3xl">
+                  <p className="mx-auto mt-4 max-w-3xl text-xl leading-relaxed text-neutral-950 sm:text-3xl">
                     <PixelText delay={160}>
                       Your principal, protected. Your yield, your call.
                     </PixelText>
                   </p>
-                  <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                  <div className="mx-auto mt-10 grid w-full max-w-xs gap-3 sm:flex sm:max-w-none sm:flex-wrap sm:items-center sm:justify-center">
                     <PrimaryLink>Launch App</PrimaryLink>
                     <button
                       type="button"
                       onClick={() => stage.current?.scrollToScene(NAV_SCENES.story)}
-                      className="inline-flex min-h-11 items-center rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-neutral-50 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 motion-reduce:transform-none"
+                      className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-neutral-50 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-transform duration-100 ease-spring hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 motion-safe:active:scale-[0.97] active:duration-75 active:ease-press motion-reduce:transform-none sm:w-auto"
                     >
                       See how it works
                     </button>
@@ -374,8 +374,8 @@ function PrimaryLink({
   return (
     <Link
       to="/app"
-      className={`group inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-500 font-medium text-neutral-50 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 motion-reduce:transform-none ${
-        compact ? 'px-5 py-2 text-sm' : 'px-6 py-3 text-sm'
+      className={`group inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 font-medium text-neutral-50 [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-transform duration-100 ease-spring hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-safe:active:scale-[0.97] active:duration-75 active:ease-press motion-reduce:transform-none ${
+        compact ? 'min-h-11 px-5 py-2 text-sm' : 'min-h-12 w-full px-6 py-3 text-sm sm:w-auto'
       }`}
     >
       {children}
