@@ -62,14 +62,44 @@ describe('app theme contrast', () => {
     )
   })
 
-  it('keeps cream text readable on the Everspan red action', () => {
+  it('keeps cream text readable on the Everspan ember action', () => {
     expect(contrast(rgb(dark, '--on-accent'), rgb(dark, '--accent-500'))).toBeGreaterThanOrEqual(
       4.5,
     )
   })
 
-  it.each(['positive', 'negative', 'warning'])('%s roles remain brand-red derived', (role) => {
-    expect(rgb(dark, `--${role}-500`)).toEqual(rgb(dark, '--accent-500'))
-    expect(rgb(light, `--${role}-100`)).toEqual(rgb(light, '--accent-300'))
+  /*
+   * The status roles used to be required to equal the brand, because the brand
+   * was blue and spending a second hue on meaning would have broken a
+   * single-colour identity. An ember brand inverts that: a failure painted in
+   * the brand red cannot be told apart from a primary button, so success and
+   * warning now carry the olive and the terracotta. These two tests are what
+   * stop them quietly collapsing back onto the accent in a future palette pass.
+   */
+  it.each([
+    ['positive', 'dark'],
+    ['warning', 'dark'],
+    ['negative', 'dark'],
+  ])('%s status text is readable on the %s card', (role) => {
+    expect(contrast(rgb(dark, `--${role}-300`), rgb(dark, '--neutral-900'))).toBeGreaterThanOrEqual(
+      4.5,
+    )
+    expect(
+      contrast(rgb(light, `--${role}-100`), rgb(light, '--neutral-900')),
+    ).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it.each([
+    ['success', 'positive'],
+    ['warning', 'warning'],
+  ])('%s stays distinguishable from the brand ember', (_label, role) => {
+    for (const source of [dark, light]) {
+      expect(rgb(source, `--${role}-400`)).not.toEqual(rgb(source, '--accent-400'))
+      expect(rgb(source, `--${role}-500`)).not.toEqual(rgb(source, '--accent-500'))
+    }
+  })
+
+  it('keeps failure on the ember, where red is also the meaning', () => {
+    expect(rgb(dark, '--negative-500')).toEqual(rgb(dark, '--accent-500'))
   })
 })
