@@ -162,11 +162,11 @@ function MaturityCard({
       </dl>
 
       <div className="mt-3 flex items-center gap-1.5 rounded-xl border border-hairline bg-neutral-950/60 px-3 py-2">
-        <CoinsIcon className="h-4 w-4 text-positive-400" />
+        <CoinsIcon className="h-4 w-4 text-accent-300" />
         <span className="text-xs text-neutral-300">Claimable now</span>
         <span
           title={claimable === null ? undefined : `${formatAmount(claimable, 6)} SY`}
-          className="ml-auto min-w-0 truncate text-right font-mono text-sm font-semibold tabular-nums text-positive-300"
+          className="ml-auto min-w-0 truncate text-right font-mono text-sm font-semibold tabular-nums text-accent-300"
         >
           {claimable === null ? '—' : `${formatAmount(claimable, 6)} SY`}
         </span>

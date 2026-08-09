@@ -101,7 +101,7 @@ export function PortfolioPanel({
                 <dd
                   title={stat.value}
                   className={`mt-1 truncate font-mono text-base font-semibold tabular-nums sm:text-lg ${
-                    stat.accent ? 'text-positive-300' : 'text-neutral-50'
+                    stat.accent ? 'text-accent-300' : 'text-neutral-50'
                   }`}
                 >
                   {stat.value}

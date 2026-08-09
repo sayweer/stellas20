@@ -149,14 +149,14 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
   const hasCurve = rateInfo !== null && rateInfo.slopePerSec > 0n
   const underApy = hasCurve && liveRate ? underlyingApy(rateInfo.slopePerSec, liveRate) : null
 
-  // PT can trade above par, which implies a negative fixed rate — a real market
-  // state, not an error. It must never be painted in the "good" colour.
-  const apyTone =
-    fixedApy === null
-      ? 'text-neutral-600'
-      : fixedApy < 0
-        ? 'text-negative-300'
-        : 'text-positive-300'
+  /*
+   * PT can trade above par, which implies a negative fixed rate — a real market
+   * state, not an error. Direction is carried by the sign glyph below, never by
+   * the status palette: since the Ember repaint `negative` is the failed-
+   * transaction colour, and painting an ordinary rate with it would tell the
+   * reader something had gone wrong. Both directions read in the accent.
+   */
+  const apyTone = fixedApy === null ? 'text-neutral-600' : 'text-accent-300'
 
   const liquidity =
     pool !== null ? (

@@ -169,11 +169,16 @@ function SummaryRow({
   children: ReactNode
   accent?: boolean
 }): ReactElement {
+  /*
+   * `accent` is emphasis, not status. The success tone means "this transaction
+   * worked"; spending it on an ordinary output figure both mislabels the figure
+   * and dilutes the one colour that has to mean confirmation.
+   */
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] items-start gap-3 text-sm">
       <span className="text-neutral-400">{label}</span>
       <span
-        className={`min-w-0 break-all text-right font-mono tabular-nums ${accent ? 'font-medium text-positive-300' : 'text-neutral-200'}`}
+        className={`min-w-0 break-all text-right font-mono tabular-nums ${accent ? 'font-medium text-accent-300' : 'text-neutral-200'}`}
       >
         {children}
       </span>
@@ -249,7 +254,7 @@ function LockRateForm({
     <div className="space-y-4">
       <div className="rounded-xl border border-hairline bg-neutral-900 px-4 py-3">
         <div className="flex items-center gap-2">
-          <LockIcon className="h-4 w-4 text-positive-400" />
+          <LockIcon className="h-4 w-4 text-accent-300" />
           <span className="text-sm font-medium text-neutral-100">
             {lockedApy === null ? 'Lock a fixed rate' : `Lock ${formatPercent(lockedApy)} APY`}
           </span>
