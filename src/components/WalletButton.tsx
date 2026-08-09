@@ -5,7 +5,10 @@ import { useWallet } from '../context/WalletContext'
 import { useTransactionSafety } from '../context/TransactionSafetyContext'
 import { hasMobileWalletSupport, isMobileBrowser } from '../lib/wallet'
 import { useToast } from '../hooks/useToast'
-import { CheckIcon, CopyIcon, Spinner, XIcon } from './icons'
+import { buttonClasses } from '../lib/buttonStyles'
+import { BottomSheet } from './BottomSheet'
+import { Button } from './Button'
+import { CheckIcon, ChevronDownIcon, CopyIcon } from './icons'
 
 function truncate(address: string): string {
   return `${address.slice(0, 4)}…${address.slice(-4)}`
@@ -17,6 +20,7 @@ export function WalletButton(): ReactElement {
   const { notify } = useToast()
   const [notFound, setNotFound] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [walletSheetOpen, setWalletSheetOpen] = useState(false)
 
   const connecting = status === 'connecting'
 
@@ -48,67 +52,123 @@ export function WalletButton(): ReactElement {
 
   if (isConnected && address) {
     return (
-      <div className="flex shrink-0 items-center gap-2">
+      <>
+        {/*
+         * On a phone the connected wallet is one chip that opens a sheet. As
+         * three separate controls — address, copy, disconnect — it was 194px of
+         * a 288px header, which is what pushed everything else onto a second
+         * and third line.
+         */}
         <button
+          id="wallet-trigger"
           type="button"
+          aria-haspopup="dialog"
+          aria-expanded={walletSheetOpen}
           onClick={() => {
-            void handleCopy()
+            setWalletSheetOpen(true)
           }}
-          aria-label={copied ? 'Address copied' : `Copy address ${address}`}
-          className="inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-boundary bg-neutral-900 px-3 py-2 font-mono text-sm text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+          className={`${buttonClasses({ variant: 'secondary' })} min-w-0 font-mono lg:hidden`}
         >
           <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-positive-400" />
-          <span className="tabular-nums">{truncate(address)}</span>
-          {copied ? (
-            <CheckIcon className="h-4 w-4 text-positive-400" />
-          ) : (
-            <CopyIcon className="h-4 w-4 text-neutral-500" />
-          )}
+          <span className="truncate tabular-nums">{truncate(address)}</span>
+          <ChevronDownIcon className="h-4 w-4 shrink-0 text-neutral-400" />
         </button>
+
+        <BottomSheet
+          open={walletSheetOpen}
+          onClose={() => {
+            setWalletSheetOpen(false)
+          }}
+          title="Wallet"
+        >
+          <div className="space-y-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.14em] text-neutral-400">Address</p>
+              <p className="mt-2 break-all font-mono text-sm text-neutral-100">{address}</p>
+            </div>
+            <Button
+              variant="secondary"
+              full
+              onClick={() => {
+                void handleCopy()
+              }}
+            >
+              {copied ? (
+                <CheckIcon className="h-4 w-4 text-positive-400" />
+              ) : (
+                <CopyIcon className="h-4 w-4" />
+              )}
+              {copied ? 'Copied' : 'Copy address'}
+            </Button>
+            <Button
+              variant="danger"
+              full
+              onClick={() => {
+                setWalletSheetOpen(false)
+                disconnect()
+              }}
+              disabled={trackedTransaction?.state === 'in_flight'}
+              title={
+                trackedTransaction?.state === 'in_flight'
+                  ? 'Wait for the active transaction to finish'
+                  : undefined
+              }
+            >
+              Disconnect
+            </Button>
+          </div>
+        </BottomSheet>
+
+        <div className="hidden shrink-0 items-center gap-2 lg:flex">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              void handleCopy()
+            }}
+            aria-label={copied ? 'Address copied' : `Copy address ${address}`}
+            className="font-mono"
+          >
+            <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-positive-400" />
+            <span className="tabular-nums">{truncate(address)}</span>
+            {copied ? (
+              <CheckIcon className="h-4 w-4 text-positive-400" />
+            ) : (
+              <CopyIcon className="h-4 w-4 text-neutral-500" />
+            )}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={disconnect}
+            disabled={trackedTransaction?.state === 'in_flight'}
+            title={
+              trackedTransaction?.state === 'in_flight'
+                ? 'Wait for the active transaction to finish'
+                : undefined
+            }
+          >
+            Disconnect
+          </Button>
+        </div>
+
         <span role="status" aria-live="polite" className="sr-only">
           {copied ? 'Address copied.' : ''}
         </span>
-        <button
-          type="button"
-          onClick={disconnect}
-          disabled={trackedTransaction?.state === 'in_flight'}
-          aria-label="Disconnect wallet"
-          title={
-            trackedTransaction?.state === 'in_flight'
-              ? 'Wait for the active transaction to finish'
-              : undefined
-          }
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-boundary text-neutral-400 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-auto sm:px-3 sm:py-2 sm:text-sm sm:font-medium"
-        >
-          <span className="sm:hidden">
-            <XIcon className="h-4 w-4" />
-          </span>
-          <span className="hidden sm:inline">Disconnect</span>
-        </button>
-      </div>
+      </>
     )
   }
 
   return (
     <div className="flex flex-col items-end gap-1.5">
-      <button
-        type="button"
+      <Button
+        variant="primary"
         onClick={() => {
           void handleConnect()
         }}
-        disabled={connecting}
-        aria-busy={connecting}
-        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-500 px-4 py-2.5 text-sm font-semibold text-onAccent transition-colors duration-100 hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
+        pending={connecting}
+        pendingLabel="Connecting…"
       >
-        {connecting ? (
-          <>
-            <Spinner className="h-4 w-4" />
-            Connecting…
-          </>
-        ) : (
-          'Connect Wallet'
-        )}
-      </button>
+        Connect Wallet
+      </Button>
       {notFound &&
         (isMobileBrowser() && !hasMobileWalletSupport() ? (
           /* "Install Freighter" is wrong advice on a phone: extensions cannot

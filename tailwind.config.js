@@ -97,9 +97,25 @@ export default {
           from: { opacity: '0', transform: 'translateY(6px) scale(0.98)' },
           to: { opacity: '1', transform: 'translateY(0) scale(1)' },
         },
+        'sheet-in': {
+          from: { transform: 'translateY(100%)' },
+          to: { transform: 'translateY(0)' },
+        },
+        /*
+         * Written as an animation rather than a transition off a starting
+         * class: the global reduced-motion rule zeroes durations, which lands
+         * an animation on its final frame but would leave a transition-based
+         * reveal stuck on its starting `opacity: 0` forever.
+         */
+        'rise-in': {
+          from: { opacity: '0', transform: 'translateY(10px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'toast-in': 'toast-in 200ms cubic-bezier(0, 0, 0.2, 1)',
+        'sheet-in': 'sheet-in 240ms cubic-bezier(0.2, 0, 0, 1)',
+        'rise-in': 'rise-in 320ms cubic-bezier(0, 0, 0.2, 1) both',
       },
     },
   },

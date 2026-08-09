@@ -1,12 +1,16 @@
 import type { ReactElement } from 'react'
+import { Link } from 'react-router-dom'
 import type { Portfolio } from '../hooks/usePortfolio'
 import type { ProtocolEvent } from '../lib/events'
 import type { AppError } from '../types'
+import { config } from '../config'
+import { buttonClasses } from '../lib/buttonStyles'
 import { ActivityFeed } from './ActivityFeed'
 import { AdvancedPanel } from './AdvancedPanel'
 import { ConnectPrompt } from './ConnectPrompt'
 import { TabToggle } from './forms'
 import { DataUnavailable } from './DataUnavailable'
+import { ThemeToggle } from './ThemeToggle'
 
 export type MoreView = 'convert' | 'activity'
 
@@ -45,7 +49,7 @@ export function MorePanel({
   onRetryData,
 }: MorePanelProps): ReactElement {
   return (
-    <section id="panel-more" role="tabpanel" aria-labelledby="tab-more" className="space-y-8">
+    <section id="panel-more" role="tabpanel" aria-label="More" className="space-y-8">
       <header className="max-w-2xl">
         <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">More</p>
         <h1
@@ -96,6 +100,36 @@ export function MorePanel({
           onRetry={onRetryActivity}
         />
       )}
+
+      {/* The desktop sidebar has always carried these two. A phone has no
+          sidebar, and the header is not the place for a link a reader follows
+          once — with a wallet connected it used to hide itself there entirely
+          and became unreachable. */}
+      <footer className="space-y-3 border-t border-hairline pt-6 lg:hidden">
+        <div className="flex items-center justify-between gap-3 sm:hidden">
+          <span className="text-sm text-neutral-300">Appearance</span>
+          <ThemeToggle />
+        </div>
+        <Link
+          to="/"
+          className={`${buttonClasses({ variant: 'secondary', full: true })} min-[375px]:hidden`}
+        >
+          Everspan home
+        </Link>
+        {config.feedbackFormUrl && (
+          <a
+            href={config.feedbackFormUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonClasses({ variant: 'secondary', full: true })}
+          >
+            Share feedback
+          </a>
+        )}
+        <p className="text-[11px] leading-relaxed text-neutral-600">
+          Testnet only. Never share your secret key.
+        </p>
+      </footer>
     </section>
   )
 }

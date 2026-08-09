@@ -81,8 +81,7 @@ interface IconButtonOwnProps extends Omit<ButtonStyleOptions, 'full'> {
   pending?: boolean
 }
 
-export type IconButtonProps = IconButtonOwnProps &
-  Omit<NativeButtonProps, 'aria-label' | 'title'>
+export type IconButtonProps = IconButtonOwnProps & Omit<NativeButtonProps, 'aria-label' | 'title'>
 
 /** A square icon-only control with a 44px target. */
 export function IconButton({

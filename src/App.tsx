@@ -16,17 +16,15 @@ import { NetworkBanner } from './components/NetworkBanner'
 import { BalanceCard } from './components/BalanceCard'
 import { RateTicker } from './components/RateTicker'
 import { WalletBar } from './components/WalletBar'
-import { WalletButton } from './components/WalletButton'
 import { BrandMark } from './components/BrandMark'
-import { MarketSwitcher } from './components/MarketSwitcher'
 import { BottomNav, SideNav, type TabId } from './components/SideNav'
 import { PortfolioView } from './components/PortfolioView'
 import { ConnectPrompt } from './components/ConnectPrompt'
-import { ThemeToggle } from './components/ThemeToggle'
 import { OverviewPanel, type EarnStrategy } from './components/OverviewPanel'
 import { EarnPanel } from './components/EarnPanel'
 import { MorePanel, type MoreView } from './components/MorePanel'
 import { ConnectionBanner } from './components/ConnectionBanner'
+import { AppHeader } from './components/AppHeader'
 import { AlertTriangleIcon } from './components/icons'
 import { DataUnavailable } from './components/DataUnavailable'
 
@@ -54,17 +52,25 @@ function App(): ReactElement {
     setActiveMarket(key)
     setMarketKey(key)
     window.requestAnimationFrame(() => {
-      document.getElementById(`market-${key}`)?.focus()
+      // The desktop radiogroup stays in the DOM below `lg`, just hidden, so
+      // finding it is not the same as being able to focus it — a `display:none`
+      // element accepts the call and does nothing, which is how focus ended up
+      // on `<body>`. `offsetParent` is the cheap test for painted-or-not. On a
+      // phone the radio the reader pressed lived in a sheet that has since
+      // closed, so the chip that opened it is the honest destination.
+      const chosen = document.getElementById(`market-${key}`)
+      const target = chosen?.offsetParent ? chosen : document.getElementById('market-trigger')
+      target?.focus()
     })
   }
 
-  // `svh` rather than `vh`: on a phone `100vh` is the viewport with the browser
-  // chrome hidden, so the bottom nav sits below the fold until the reader
-  // scrolls. `svh` is the height that is actually on screen.
-  // The insets sit on the shell rather than on each container inside it, so
-  // the banners, the header and the panels all clear the notch together. In
-  // portrait they are 0 and nothing moves; in landscape they are what keeps
-  // the first and last characters of a line off the camera cutout.
+  // Two mobile measurements live on the shell element. `svh` is the viewport
+  // that is actually on screen, where `vh` is the taller one the browser shows
+  // with its chrome hidden — measured against `vh` the bottom nav starts below
+  // the fold. The safe-area insets sit here rather than on each container
+  // inside, so the banners, the header and the panels clear the notch together:
+  // 0 in portrait, and in landscape the reason the first character of a line
+  // is not under the camera.
   return (
     <div className="flex min-h-[100svh] flex-col pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-[env(safe-area-inset-top)]">
       {/* Same escape hatch the marketing route offers: the rail, the market
@@ -260,38 +266,7 @@ function MarketContent({
           {/* Wraps rather than shrinks: the market switcher and the wallet control
               are both fixed-width, and on a phone they overlapped when forced
               onto one line. Below sm the switcher drops to its own row. */}
-          {/* Pinned below the status bar rather than at the true viewport top:
-              the shell already pays the top inset back as padding, so this is
-              where the header rests, and pinning it anywhere higher would slide
-              its contents under the clock on an installed app. */}
-          <header className="sticky top-[env(safe-area-inset-top)] z-20 -mx-4 flex flex-wrap items-center gap-3 border-b border-hairline bg-neutral-950/90 px-4 py-3 backdrop-blur lg:mx-0 lg:px-0">
-            <Link
-              to="/"
-              aria-label="Everspan home"
-              className="order-1 -ml-2 grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 lg:hidden"
-            >
-              <BrandMark className="h-6 w-6 text-neutral-50" />
-            </Link>
-            <div className="order-2 ml-auto flex max-w-full flex-wrap items-center justify-end gap-2 sm:order-3">
-              {/* The sidebar owns this link on desktop; the compact header is
-                  the stable, non-overlapping home for it below lg. */}
-              {config.feedbackFormUrl && (
-                <a
-                  href={config.feedbackFormUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${connected ? 'hidden sm:inline-flex' : 'inline-flex'} min-h-11 items-center whitespace-nowrap rounded-full border border-boundary bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 lg:hidden`}
-                >
-                  Feedback
-                </a>
-              )}
-              <ThemeToggle />
-              <WalletButton />
-            </div>
-            <div className="order-3 w-full sm:order-2 sm:ml-0 sm:w-auto">
-              <MarketSwitcher active={marketKey} onChange={onSwitchMarket} />
-            </div>
-          </header>
+          <AppHeader marketKey={marketKey} onSwitchMarket={onSwitchMarket} />
 
           <main id="app-main" tabIndex={-1} className="flex-1 space-y-6 py-6 sm:py-8">
             {connected && (

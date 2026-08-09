@@ -262,3 +262,11 @@ export function ArrowRightIcon({ className }: IconProps): ReactElement {
     </Icon>
   )
 }
+
+export function ChevronDownIcon({ className }: IconProps): ReactElement {
+  return (
+    <Icon className={className}>
+      <path d="m6 9 6 6 6-6" />
+    </Icon>
+  )
+}
