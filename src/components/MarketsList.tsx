@@ -7,6 +7,7 @@ import { formatAmount, formatMaturity } from '../lib/format'
 import { maturityCountdown } from '../lib/yield'
 import { formatPercent, impliedFixedApy, underlyingApy } from '../lib/amm'
 import type { RateInfo } from '../lib/contracts/underlying'
+import { Button } from './Button'
 import { ArrowRightIcon, ClockIcon } from './icons'
 
 interface MarketsListProps {
@@ -66,7 +67,7 @@ export function MarketsList({
       ) : (
         <>
           {live.length > 0 ? (
-            <ul className="mt-6 divide-y divide-hairline">
+            <ul className="mt-6 space-y-3 sm:space-y-0 sm:divide-y sm:divide-hairline">
               {live.map((mp) => (
                 <MarketRow
                   key={mp.maturity.toString()}
@@ -97,7 +98,7 @@ export function MarketsList({
                 {showMatured ? 'Hide' : 'Show'} matured ({matured.length})
               </button>
               {showMatured && (
-                <ul className="mt-2 divide-y divide-hairline">
+                <ul className="mt-2 space-y-3 sm:space-y-0 sm:divide-y sm:divide-hairline">
                   {matured.map((mp) => (
                     <MarketRow
                       key={mp.maturity.toString()}
@@ -156,57 +157,73 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
         ? 'text-negative-300'
         : 'text-positive-300'
 
+  const liquidity =
+    pool !== null ? (
+      `${formatAmount(pool.syReserve)} SY`
+    ) : unavailable ? (
+      <span className="text-warning-300">Unavailable</span>
+    ) : (
+      'No pool'
+    )
+
   return (
-    // Wrapping a flex row on a phone put the four figures at ragged offsets. A
-    // two-column grid below sm keeps the labels aligned; from sm it goes back to
-    // a single row.
-    <li className="grid grid-cols-2 gap-x-6 gap-y-5 py-5 sm:flex sm:flex-wrap sm:items-center sm:gap-x-8 sm:gap-y-4">
-      <div className="col-span-2 sm:col-span-1 sm:min-w-[8rem]">
-        <Label>Maturity</Label>
-        <p className="mt-1 text-sm font-medium text-neutral-100">{formatMaturity(maturity)}</p>
-        {countdown.matured ? (
-          <span className="mt-1 inline-block text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">
-            Matured
-          </span>
-        ) : (
-          <span className="mt-1 inline-flex items-center gap-1 text-xs tabular-nums text-neutral-400">
-            <ClockIcon className="h-3.5 w-3.5" />
-            {countdown.days > 0 && `${countdown.days.toString()}d `}
-            {String(countdown.hours).padStart(2, '0')}:{String(countdown.minutes).padStart(2, '0')}
-          </span>
-        )}
-      </div>
-
-      <div className="sm:min-w-[6.5rem]">
-        <Label>Fixed APY</Label>
-        <p className={`mt-1 text-2xl font-medium tabular-nums tracking-[-0.03em] ${apyTone}`}>
-          {fixedApy === null ? '—' : formatPercent(fixedApy)}
-        </p>
-      </div>
-
-      <div className="sm:min-w-[5.5rem]">
-        <Label>Underlying</Label>
-        <p className="mt-1 text-sm tabular-nums text-neutral-300">
-          {underApy === null ? '—' : formatPercent(underApy)}
-        </p>
-      </div>
-
-      <div className="sm:min-w-[6rem]">
-        <Label>Liquidity</Label>
-        <p className="mt-1 text-sm tabular-nums text-neutral-300">
-          {pool !== null ? (
-            `${formatAmount(pool.syReserve)} SY`
-          ) : unavailable ? (
-            <span className="text-warning-300">Unavailable</span>
+    /*
+     * A card on a phone, a row from `sm` up. Stacked label/value pairs on a
+     * dividing line read as a spreadsheet dump: everything shouts at the same
+     * volume and the reader has to assemble the offer themselves. The card puts
+     * the rate first at the size it deserves, the date under it as context, and
+     * the two supporting figures in a quiet strip — which is the order someone
+     * actually chooses a maturity in.
+     */
+    <li className="rounded-2xl border border-hairline bg-neutral-900 p-4 sm:flex sm:flex-wrap sm:items-center sm:gap-x-8 sm:gap-y-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:py-5">
+      <div className="flex items-start justify-between gap-4 sm:contents">
+        <div className="min-w-0 sm:min-w-[8rem]">
+          <Label>Maturity</Label>
+          <p className="mt-1 text-sm font-medium text-neutral-100">{formatMaturity(maturity)}</p>
+          {countdown.matured ? (
+            <span className="mt-1 inline-block text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">
+              Matured
+            </span>
           ) : (
-            'No pool'
+            <span className="mt-1 inline-flex items-center gap-1 text-xs tabular-nums text-neutral-400">
+              <ClockIcon className="h-3.5 w-3.5" />
+              {countdown.days > 0 && `${countdown.days.toString()}d `}
+              {String(countdown.hours).padStart(2, '0')}:
+              {String(countdown.minutes).padStart(2, '0')}
+            </span>
           )}
-        </p>
+        </div>
+
+        <div className="shrink-0 text-right sm:min-w-[6.5rem] sm:text-left">
+          <Label>Fixed APY</Label>
+          {/* The positive and negative ramps resolve to the same blue, so the
+              sign is carried by a glyph. A rate below zero is a real market
+              state — PT trading above par — and must never read as a gain. */}
+          <p className={`mt-1 text-2xl font-medium tabular-nums tracking-[-0.03em] ${apyTone}`}>
+            {fixedApy === null
+              ? '—'
+              : `${fixedApy < 0 ? '−' : '+'}${formatPercent(Math.abs(fixedApy))}`}
+          </p>
+        </div>
       </div>
 
-      <div className="col-span-2 sm:col-span-1 sm:ml-auto">
-        <button
-          type="button"
+      <div className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-hairline pt-3 sm:contents sm:border-0">
+        <div className="min-w-0 sm:min-w-[5.5rem]">
+          <Label>Underlying</Label>
+          <p className="mt-1 text-sm tabular-nums text-neutral-300">
+            {underApy === null ? '—' : formatPercent(underApy)}
+          </p>
+        </div>
+        <div className="min-w-0 sm:min-w-[6rem]">
+          <Label>Liquidity</Label>
+          <p className="mt-1 truncate text-sm tabular-nums text-neutral-300">{liquidity}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 sm:ml-auto sm:mt-0">
+        <Button
+          variant="primary"
+          full
           onClick={() => {
             onTrade(maturity)
           }}
@@ -220,11 +237,11 @@ function MarketRow({ mp, nowMs, rateInfo, liveRate, onTrade }: MarketRowProps): 
                 ? 'This maturity has no liquidity yet'
                 : undefined
           }
-          className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-accent-500 px-4 py-2.5 text-sm font-medium text-onAccent transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 disabled:cursor-not-allowed disabled:bg-raised disabled:text-neutral-600 sm:w-auto"
+          className="sm:w-auto"
         >
           Lock rate
           <ArrowRightIcon className="h-3.5 w-3.5" />
-        </button>
+        </Button>
       </div>
     </li>
   )
