@@ -283,7 +283,7 @@ export function Landing(): ReactElement {
                 <div className="mt-10 flex flex-wrap items-center gap-4">
                   <Link
                     to="/app"
-                    className="group inline-flex min-h-12 items-center gap-2 rounded-full bg-neutral-50 px-7 py-3 text-sm font-medium text-neutral-950 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-50 focus-visible:ring-offset-2 focus-visible:ring-offset-accent-500 motion-reduce:transform-none"
+                    className="group inline-flex min-h-12 items-center gap-2 rounded-full bg-neutral-50 px-7 py-3 text-sm font-medium text-neutral-950 transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-50 motion-reduce:transform-none"
                   >
                     Launch App
                     <ArrowRightIcon className="h-4 w-4 transition-transform duration-100 group-hover:translate-x-1 motion-reduce:transform-none" />
@@ -330,7 +330,7 @@ function SiteHeader({ onNavigate }: { onNavigate: (scene: number) => void }): Re
       <div className="mx-auto flex h-[4.5rem] w-full max-w-[96rem] items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
         <Link
           to="/"
-          className="flex min-h-11 items-center gap-2.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-4 focus-visible:ring-offset-neutral-50"
+          className="flex min-h-11 items-center gap-2.5 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 focus-visible:ring-offset-4 focus-visible:ring-offset-neutral-50"
         >
           <BrandMark className="h-6 w-6 text-accent-500" />
           <span className="text-base font-medium tracking-[-0.025em]">Everspan</span>
@@ -351,7 +351,7 @@ function SiteHeader({ onNavigate }: { onNavigate: (scene: number) => void }): Re
               key={label}
               type="button"
               onClick={() => onNavigate(scene)}
-              className="inline-flex min-h-11 items-center rounded-sm px-1 text-sm text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              className="inline-flex min-h-11 items-center rounded-sm px-1 text-sm text-neutral-600 transition-colors duration-100 hover:text-neutral-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
             >
               {label}
             </button>

@@ -138,7 +138,7 @@ export function TransactionSafetyBanner(): ReactElement | null {
                 href={explorerTxUrl(trackedTransaction.hash)}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 font-semibold text-warning-100 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 font-semibold text-warning-100 underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-warning-300"
               >
                 View on Stellar Expert
                 <ExternalLinkIcon className="h-3.5 w-3.5" />

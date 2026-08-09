@@ -349,7 +349,7 @@ function LockRateForm({
               onChange={(e) => {
                 setAcceptsLoss(e.target.checked)
               }}
-              className="h-6 w-6 shrink-0 rounded border-warning-300 bg-transparent accent-warning-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
+              className="h-6 w-6 shrink-0 rounded border-warning-300 bg-transparent accent-warning-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-warning-300"
             />
             I understand this locks a negative rate
           </label>

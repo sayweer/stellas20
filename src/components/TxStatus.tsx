@@ -13,7 +13,7 @@ import {
   Spinner,
   XCircleIcon,
 } from './icons'
-import { Button } from './Button'
+import { Button, IconButton } from './Button'
 import { StellarMark } from './StellarMark'
 
 export type TxOutcome =
@@ -96,7 +96,7 @@ export function TxStatus({
                   href={explorerTxUrl(outcome.hash)}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded font-medium text-warning-100 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-300"
+                  className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded font-medium text-warning-100 underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-warning-300"
                 >
                   Check on Stellar Expert
                   <ExternalLinkIcon className="h-3.5 w-3.5" />
@@ -189,16 +189,15 @@ export function TxStatus({
                   >
                     {hash}
                   </code>
-                  <button
-                    type="button"
+                  <IconButton
+                    label={copied ? 'Hash copied' : 'Copy transaction hash'}
+                    icon={
+                      copied ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />
+                    }
                     onClick={() => {
                       void copyHash()
                     }}
-                    aria-label={copied ? 'Hash copied' : 'Copy transaction hash'}
-                    className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-positive-300 text-positive-300 transition-colors hover:bg-positive-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-300"
-                  >
-                    {copied ? <CheckIcon className="h-4 w-4" /> : <CopyIcon className="h-4 w-4" />}
-                  </button>
+                  />
                   <span role="status" aria-live="polite" className="sr-only">
                     {copied ? 'Transaction hash copied.' : ''}
                   </span>
@@ -209,7 +208,7 @@ export function TxStatus({
                 href={explorerUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded font-medium text-positive-300 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-positive-300"
+                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded font-medium text-positive-300 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-positive-300"
               >
                 View on Stellar Expert
                 <ExternalLinkIcon className="h-3.5 w-3.5" />

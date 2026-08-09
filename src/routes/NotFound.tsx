@@ -24,13 +24,13 @@ export function NotFound(): ReactElement {
       <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
         <Link
           to="/"
-          className="inline-flex items-center rounded-full bg-accent-500 px-6 py-3.5 text-sm font-medium text-neutral-50 transition-colors hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
+          className="inline-flex items-center rounded-full bg-accent-500 px-6 py-3.5 text-sm font-medium text-neutral-50 transition-colors hover:bg-accent-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
         >
           Back home
         </Link>
         <Link
           to="/app"
-          className="inline-flex items-center rounded-full border border-boundary px-6 py-3.5 text-sm font-medium transition-colors hover:bg-neutral-950/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
+          className="inline-flex items-center rounded-full border border-boundary px-6 py-3.5 text-sm font-medium transition-colors hover:bg-neutral-950/[0.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50"
         >
           Launch App
         </Link>
