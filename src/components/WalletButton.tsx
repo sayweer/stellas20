@@ -187,7 +187,7 @@ export function WalletButton(): ReactElement {
               href="https://www.freighter.app/"
               target="_blank"
               rel="noreferrer"
-              className="rounded font-medium text-accent-300 underline underline-offset-2 hover:text-accent-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+              className="rounded font-medium text-accent-300 underline underline-offset-2 hover:text-accent-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
             >
               Freighter
             </a>{' '}

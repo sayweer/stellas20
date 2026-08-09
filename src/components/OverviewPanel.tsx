@@ -6,6 +6,7 @@ import type { AppError } from '../types'
 import { activeMarket } from '../lib/market'
 import { MarketsList } from './MarketsList'
 import { ArrowRightIcon, ChartBarIcon, DropletIcon, LayersIcon, LockIcon } from './icons'
+import { Button } from './Button'
 
 export type EarnStrategy = 'fixed' | 'yield' | 'liquidity'
 
@@ -142,14 +143,15 @@ export function OverviewPanel({
                 {recommendation.body}
               </p>
               {recommendation.action && recommendation.actionLabel && (
-                <button
-                  type="button"
+                <Button
+                  variant="primary"
+                  size="lg"
                   onClick={recommendation.action}
-                  className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-500 px-5 py-2.5 text-sm font-semibold text-onAccent transition-[transform,background-color] duration-100 ease-out hover:-translate-y-0.5 hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 active:translate-y-px motion-reduce:transform-none"
+                  className="mt-6"
                 >
                   {recommendation.actionLabel}
                   <ArrowRightIcon className="h-4 w-4" />
-                </button>
+                </Button>
               )}
             </>
           )}
@@ -209,7 +211,7 @@ function GoalRow({
     <button
       type="button"
       onClick={onClick}
-      className="group flex min-h-24 w-full items-center gap-4 border-b border-hairline px-5 py-4 text-left transition-colors duration-100 ease-out last:border-b-0 hover:bg-neutral-850 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-300 sm:px-6"
+      className="group flex min-h-24 w-full items-center gap-4 border-b border-hairline px-5 py-4 text-left transition-colors duration-100 ease-out last:border-b-0 hover:bg-neutral-850 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-300 sm:px-6"
     >
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-neutral-850 text-neutral-300">
         {icon}

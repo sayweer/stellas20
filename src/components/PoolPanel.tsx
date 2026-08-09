@@ -243,7 +243,7 @@ function AddForm({
             PT/SY mix of your position can change before you withdraw.
           </p>
           <details className="mt-3 border-t border-hairline pt-3 text-xs">
-            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
+            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">
               Slippage and fee details
             </summary>
             <div className="mt-2 space-y-2.5 pb-1">
@@ -263,7 +263,7 @@ function AddForm({
           <button
             type="button"
             onClick={onGoAdvanced}
-            className="ml-1 inline-flex min-h-11 items-center rounded-full border border-boundary px-3 font-medium transition-colors hover:bg-raised hover:text-warning-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+            className="ml-1 inline-flex min-h-11 items-center rounded-full border border-boundary px-3 font-medium transition-colors hover:bg-raised hover:text-warning-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
           >
             prepare PT in Convert
           </button>
@@ -363,7 +363,7 @@ function RemoveForm({
             <Row label="SY returned">{formatAmount(quote.syOut)} SY</Row>
           </div>
           <details className="mt-3 border-t border-hairline pt-3 text-xs">
-            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
+            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">
               Slippage and fee details
             </summary>
             <div className="mt-2 space-y-2.5 pb-1">

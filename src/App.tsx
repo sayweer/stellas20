@@ -232,7 +232,7 @@ function MarketContent({
         <aside className="hidden w-52 shrink-0 flex-col py-6 lg:flex">
           <Link
             to="/"
-            className="flex min-h-11 items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+            className="flex min-h-11 items-center gap-2.5 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
           >
             <BrandMark className="h-6 w-6 text-neutral-50" />
             <span className="text-base font-medium tracking-[-0.02em] text-neutral-50">
@@ -251,7 +251,7 @@ function MarketContent({
                 href={config.feedbackFormUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-boundary bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-boundary bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
               >
                 Share feedback
               </a>

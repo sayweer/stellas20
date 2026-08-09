@@ -283,7 +283,7 @@ function LockRateForm({
           <button
             type="button"
             onClick={onGoAdvanced}
-            className="ml-1 inline-flex min-h-11 items-center rounded-full border border-boundary px-3 font-medium text-neutral-100 transition-colors hover:bg-raised hover:text-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+            className="ml-1 inline-flex min-h-11 items-center rounded-full border border-boundary px-3 font-medium text-neutral-100 transition-colors hover:bg-raised hover:text-accent-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
           >
             Open Convert
           </button>
@@ -309,7 +309,7 @@ function LockRateForm({
             less.
           </p>
           <details className="mt-3 border-t border-hairline pt-3 text-xs">
-            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
+            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">
               Price and slippage details
             </summary>
             <div className="mt-2 space-y-2.5 pb-1">
@@ -609,7 +609,7 @@ function LongYieldForm({
             approaches, and returns depend on the yield actually earned.
           </p>
           <details className="mt-3 border-t border-hairline pt-3 text-xs">
-            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
+            <summary className="flex min-h-11 cursor-pointer items-center rounded py-2 font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">
               Slippage and fee details
             </summary>
             <div className="mt-2 space-y-2.5 pb-1">

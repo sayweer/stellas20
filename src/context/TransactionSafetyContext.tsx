@@ -401,8 +401,7 @@ export function TransactionSafetyProvider({ children }: { children: ReactNode })
     [clearOwned],
   )
   const completeTrackedTransaction = useCallback(
-    (transactionId: string, onOwned?: () => void) =>
-      clearOwned(transactionId, 'complete', onOwned),
+    (transactionId: string, onOwned?: () => void) => clearOwned(transactionId, 'complete', onOwned),
     [clearOwned],
   )
   const resolveTrackedTransaction = useCallback(

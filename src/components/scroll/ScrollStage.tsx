@@ -179,8 +179,7 @@ export function ScrollStage({
         ScrollTrigger.create({
           trigger: track,
           start: () => `top+=${segmentStartPx(lengths, index)} top`,
-          end: () =>
-            `top+=${segmentStartPx(lengths, index) + segmentLengthPx(lengths, index)} top`,
+          end: () => `top+=${segmentStartPx(lengths, index) + segmentLengthPx(lengths, index)} top`,
           invalidateOnRefresh: true,
           onUpdate: (self) => paint(self.progress),
           onRefresh: (self) => paint(self.progress),

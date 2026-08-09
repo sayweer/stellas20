@@ -158,8 +158,8 @@ export function Landing(): ReactElement {
                     Know what comes back.
                   </h2>
                   <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-50/80">
-                    PT trades below its maturity value. The difference between what you pay and
-                    what you redeem defines the implied rate for your position.
+                    PT trades below its maturity value. The difference between what you pay and what
+                    you redeem defines the implied rate for your position.
                   </p>
                 </div>
                 <SceneParallax>
@@ -218,8 +218,8 @@ export function Landing(): ReactElement {
                     One standard interface.
                   </h2>
                   <p className="mt-8 max-w-xl text-lg leading-relaxed text-neutral-300">
-                    Start with deterministic mUSDY or use a live Blend-backed XLM position. The
-                    same split, settlement and market mechanics run across both.
+                    Start with deterministic mUSDY or use a live Blend-backed XLM position. The same
+                    split, settlement and market mechanics run across both.
                   </p>
                 </div>
                 <div className="grid gap-px overflow-hidden rounded-2xl bg-neutral-50/15 sm:grid-cols-2">

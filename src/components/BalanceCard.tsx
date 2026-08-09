@@ -5,8 +5,8 @@ import { fundTestnetAccount } from '../lib/friendbot'
 import { isAppError, type AppError } from '../types'
 import { useToast } from '../hooks/useToast'
 import { useTransactionSafety } from '../context/TransactionSafetyContext'
-import { IconButton } from './Button'
-import { RefreshIcon, Spinner } from './icons'
+import { Button, IconButton } from './Button'
+import { RefreshIcon } from './icons'
 
 interface BalanceCardProps {
   address: string
@@ -80,13 +80,9 @@ export function BalanceCard({
         ) : error ? (
           <div role="alert" className="space-y-3">
             <p className="text-sm text-neutral-300">{error.message}</p>
-            <button
-              type="button"
-              onClick={onRefresh}
-              className="inline-flex min-h-11 items-center rounded-full border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
-            >
+            <Button variant="secondary" onClick={onRefresh}>
               Try again
-            </button>
+            </Button>
           </div>
         ) : funded ? (
           <div className="flex min-w-0 items-baseline gap-2">
@@ -103,24 +99,17 @@ export function BalanceCard({
               This account isn’t funded yet. On Testnet you can fund it instantly with Friendbot to
               receive 10,000 test XLM.
             </p>
-            <button
-              type="button"
+            <Button
+              variant="primary"
               onClick={() => {
                 void handleFund()
               }}
-              disabled={funding || fundingBlocked}
-              aria-busy={funding}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-500 px-4 py-2.5 text-sm font-semibold text-onAccent transition-colors duration-100 hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={fundingBlocked}
+              pending={funding}
+              pendingLabel="Funding…"
             >
-              {funding ? (
-                <>
-                  <Spinner className="h-4 w-4" />
-                  Funding…
-                </>
-              ) : (
-                'Fund with Friendbot'
-              )}
-            </button>
+              Fund with Friendbot
+            </Button>
             {fundingBlocked ? (
               <p className="text-xs text-neutral-400">
                 {online

@@ -7,6 +7,7 @@ import { chainNowMs } from '../lib/chainTime'
 import type { AppError } from '../types'
 import { IconButton } from './Button'
 import { RefreshIcon } from './icons'
+import { Button } from './Button'
 
 interface PortfolioPanelProps {
   address: string | null
@@ -77,13 +78,9 @@ export function PortfolioPanel({
       {error ? (
         <div role="alert" className="mt-4 space-y-3">
           <p className="text-sm text-neutral-300">{error.message}</p>
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="inline-flex min-h-11 items-center rounded-full border border-boundary px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
-          >
+          <Button variant="secondary" onClick={onRefresh}>
             Try again
-          </button>
+          </Button>
         </div>
       ) : (
         <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">

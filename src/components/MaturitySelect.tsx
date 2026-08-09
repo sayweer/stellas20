@@ -19,7 +19,7 @@ interface MaturitySelectProps {
  * zooms the page in when a control with a font under 16px takes focus.
  */
 const selectClass =
-  'min-h-12 w-full rounded-xl border border-boundary bg-neutral-950 px-3 py-2.5 text-base text-neutral-100 transition-colors focus:border-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 sm:text-sm'
+  'min-h-12 w-full rounded-xl border border-boundary bg-neutral-950 px-3 py-2.5 text-base text-neutral-100 transition-colors focus:border-accent-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300 sm:text-sm'
 
 export function MaturitySelect({ options, value, onChange }: MaturitySelectProps): ReactElement {
   return (

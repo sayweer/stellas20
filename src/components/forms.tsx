@@ -10,7 +10,7 @@ import { segmentClasses, segmentTrackClass } from '../lib/buttonStyles'
  * 14px from `sm` up.
  */
 const inputClass =
-  'w-full min-h-12 rounded-xl border border-boundary bg-neutral-950 px-4 py-3 text-base text-neutral-100 placeholder:text-neutral-500 font-mono tabular-nums transition-[color,background-color,border-color,box-shadow] duration-100 focus:border-accent-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 aria-[invalid=true]:border-negative-300 sm:text-sm'
+  'w-full min-h-12 rounded-xl border border-boundary bg-neutral-950 px-4 py-3 text-base text-neutral-100 placeholder:text-neutral-500 font-mono tabular-nums transition-[color,background-color,border-color,box-shadow] duration-100 focus:border-accent-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300 aria-[invalid=true]:border-negative-300 sm:text-sm'
 
 interface AmountFieldProps {
   id: string

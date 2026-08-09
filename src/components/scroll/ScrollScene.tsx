@@ -47,9 +47,7 @@ export function ScrollScene({
       id={id}
       aria-label={label}
       className={`flex flex-col justify-center ${
-        pinned
-          ? 'absolute inset-0 overflow-hidden'
-          : 'relative min-h-[100svh] py-20'
+        pinned ? 'absolute inset-0 overflow-hidden' : 'relative min-h-[100svh] py-20'
       } ${className}`}
       style={pinned ? { zIndex: index, clipPath: initialClipPath(index) } : undefined}
       onFocusCapture={(event) => {
@@ -67,7 +65,9 @@ export function ScrollScene({
       <div
         ref={dimRef}
         aria-hidden="true"
-        className={pinned ? 'pointer-events-none absolute inset-0 bg-neutral-950 opacity-0' : 'hidden'}
+        className={
+          pinned ? 'pointer-events-none absolute inset-0 bg-neutral-950 opacity-0' : 'hidden'
+        }
       />
     </section>
   )

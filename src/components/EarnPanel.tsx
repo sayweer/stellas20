@@ -113,7 +113,7 @@ export function EarnPanel({
                 tabIndex={selected ? 0 : -1}
                 onClick={() => onStrategyChange(id)}
                 onKeyDown={(event) => moveStrategyFocus(index, event)}
-                className={`min-h-28 rounded-2xl border p-4 text-left transition-[color,background-color,border-color] duration-100 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 ${
+                className={`min-h-28 rounded-2xl border p-4 text-left transition-[color,background-color,border-color] duration-100 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300 ${
                   selected
                     ? 'border-accent-500 bg-accent-500 text-onAccent'
                     : 'border-boundary bg-neutral-900 text-neutral-100 hover:bg-neutral-850'
@@ -141,7 +141,7 @@ export function EarnPanel({
       </fieldset>
 
       <details className="max-w-2xl rounded-xl border border-hairline bg-neutral-900 px-4 py-2 text-sm">
-        <summary className="flex min-h-11 cursor-pointer items-center rounded font-medium text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300">
+        <summary className="flex min-h-11 cursor-pointer items-center rounded font-medium text-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300">
           What do SY, PT, and YT mean?
         </summary>
         <dl className="grid gap-4 border-t border-hairline py-4 text-xs leading-relaxed text-neutral-400 sm:grid-cols-3">
