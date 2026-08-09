@@ -4,6 +4,7 @@ import type { MaturityPool } from '../hooks/usePools'
 import { formatAmount, formatMaturity } from '../lib/format'
 import { quoteRemoveLiquidity } from '../lib/amm'
 import { ArrowRightIcon, LayersIcon } from './icons'
+import { Button } from './Button'
 
 interface LpPositionsProps {
   pools: MaturityPool[]
@@ -81,16 +82,17 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
                   </dd>
                 </div>
               </dl>
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   onManage(mp.maturity)
                 }}
-                className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-full border border-boundary px-3 py-2 text-xs font-medium text-neutral-200 transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+                className="mt-3"
               >
                 Manage in Pool
                 <ArrowRightIcon className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             </li>
           )
         })}

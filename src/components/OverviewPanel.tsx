@@ -100,12 +100,7 @@ export function OverviewPanel({
               }
 
   return (
-    <section
-      id="panel-overview"
-      role="tabpanel"
-      aria-label="Overview"
-      className="space-y-10"
-    >
+    <section id="panel-overview" role="tabpanel" aria-label="Overview" className="space-y-10">
       <header className="max-w-2xl">
         <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-accent-300">
           Overview

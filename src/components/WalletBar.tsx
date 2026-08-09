@@ -6,7 +6,8 @@ import { requestFaucet } from '../lib/contracts/underlying'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { FaucetButton, FAUCET_AMOUNT } from './FaucetButton'
 import { TxStatus } from './TxStatus'
-import { RefreshIcon, Spinner } from './icons'
+import { IconButton } from './Button'
+import { RefreshIcon } from './icons'
 import { StellarMark } from './StellarMark'
 
 interface WalletBarProps {
@@ -68,16 +69,12 @@ export function WalletBar({
               <p className="max-w-xs text-xs text-neutral-400">{market.fundingHint}</p>
             )
           )}
-          <button
-            type="button"
+          <IconButton
+            label="Refresh balances"
+            icon={<RefreshIcon className="h-4 w-4" />}
             onClick={onRefresh}
-            disabled={loading}
-            aria-label="Refresh balances"
-            aria-busy={loading}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-boundary text-neutral-400 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
-          >
-            {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
-          </button>
+            pending={loading}
+          />
         </div>
       </div>
       {faucet.outcome && (

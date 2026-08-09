@@ -8,6 +8,8 @@ import { activeMarket } from '../lib/market'
 import type { ProtocolEvent, ProtocolEventType } from '../lib/events'
 import type { AppError } from '../types'
 import { ExternalLinkIcon } from './icons'
+import { iconButtonClasses } from '../lib/buttonStyles'
+import { Button } from './Button'
 
 /**
  * Display label, dot colour, and default amount unit per event type. A null
@@ -100,13 +102,9 @@ export function ActivityFeed({
           <p className="text-sm font-medium text-negative-100">Couldn’t load activity</p>
           <p className="mt-1 text-xs leading-relaxed text-negative-200/80">{error.message}</p>
           {onRetry && (
-            <button
-              type="button"
-              onClick={onRetry}
-              className="mt-3 inline-flex min-h-11 items-center rounded-full border border-negative-300 px-3 py-2 text-xs font-semibold text-negative-100 transition-colors duration-100 hover:bg-negative-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-negative-300"
-            >
+            <Button variant="danger" size="sm" onClick={onRetry} className="mt-3">
               Try again
-            </button>
+            </Button>
           )}
         </div>
       ) : visibleEvents.length === 0 ? (
@@ -163,7 +161,7 @@ export function ActivityFeed({
                       target="_blank"
                       rel="noreferrer"
                       aria-label="View transaction on Stellar Expert"
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-neutral-400 transition-colors hover:text-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+                      className={iconButtonClasses({ variant: 'ghost' })}
                     >
                       <ExternalLinkIcon className="h-3.5 w-3.5" />
                     </a>

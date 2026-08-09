@@ -2,6 +2,7 @@
 import type { ReactElement } from 'react'
 import { useToast } from '../hooks/useToast'
 import type { ToastVariant } from '../context/ToastContext'
+import { IconButton } from './Button'
 import { AlertTriangleIcon, CheckCircleIcon, InfoIcon, XIcon } from './icons'
 
 interface VariantStyle {
@@ -57,16 +58,14 @@ export function Toast(): ReactElement | null {
           >
             <Icon className={`h-5 w-5 shrink-0 ${variant.icon}`} />
             <p className="flex-1 pt-0.5 text-sm text-neutral-200">{toast.message}</p>
-            <button
-              type="button"
+            <IconButton
+              variant="ghost"
+              label="Dismiss notification"
+              icon={<XIcon className="h-4 w-4" />}
               onClick={() => {
                 dismiss(toast.id)
               }}
-              aria-label="Dismiss notification"
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-neutral-500 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
-            >
-              <XIcon className="h-4 w-4" />
-            </button>
+            />
           </div>
         )
       })}

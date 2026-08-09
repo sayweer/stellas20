@@ -15,7 +15,11 @@ interface ConnectPromptProps {
   embedded?: boolean
 }
 
-export function ConnectPrompt({ message, tab, embedded = false }: ConnectPromptProps): ReactElement {
+export function ConnectPrompt({
+  message,
+  tab,
+  embedded = false,
+}: ConnectPromptProps): ReactElement {
   return (
     <section
       id={embedded ? undefined : `panel-${tab}`}

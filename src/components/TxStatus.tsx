@@ -13,6 +13,7 @@ import {
   Spinner,
   XCircleIcon,
 } from './icons'
+import { Button } from './Button'
 import { StellarMark } from './StellarMark'
 
 export type TxOutcome =
@@ -102,13 +103,9 @@ export function TxStatus({
                 </a>
               </div>
             ) : !submissionUncertain && onRetry ? (
-              <button
-                type="button"
-                onClick={onRetry}
-                className="mt-3 inline-flex min-h-11 items-center rounded-full border border-negative-300 px-3 py-2 text-xs font-semibold text-negative-100 transition-colors duration-100 hover:bg-negative-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-negative-300"
-              >
+              <Button variant="danger" size="sm" onClick={onRetry} className="mt-3">
                 Try again
-              </button>
+              </Button>
             ) : null}
           </div>
         </div>

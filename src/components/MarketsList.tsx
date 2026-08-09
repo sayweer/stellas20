@@ -87,16 +87,17 @@ export function MarketsList({
 
           {matured.length > 0 && (
             <div className="mt-6 border-t border-hairline pt-4">
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setShowMatured((v) => !v)
                 }}
                 aria-expanded={showMatured}
-                className="-ml-3 inline-flex min-h-11 items-center rounded-full px-3 text-xs font-medium uppercase tracking-[0.14em] text-neutral-500 transition-colors hover:bg-raised hover:text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300"
+                className="-ml-3 uppercase tracking-[0.14em]"
               >
                 {showMatured ? 'Hide' : 'Show'} matured ({matured.length})
-              </button>
+              </Button>
               {showMatured && (
                 <ul className="mt-2 space-y-3 sm:space-y-0 sm:divide-y sm:divide-hairline">
                   {matured.map((mp) => (

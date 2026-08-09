@@ -5,6 +5,7 @@ import { fundTestnetAccount } from '../lib/friendbot'
 import { isAppError, type AppError } from '../types'
 import { useToast } from '../hooks/useToast'
 import { useTransactionSafety } from '../context/TransactionSafetyContext'
+import { IconButton } from './Button'
 import { RefreshIcon, Spinner } from './icons'
 
 interface BalanceCardProps {
@@ -63,16 +64,12 @@ export function BalanceCard({
         <h2 id="balance-heading" className="text-sm font-medium text-neutral-400">
           XLM balance <span className="font-normal text-neutral-400">· for network fees</span>
         </h2>
-        <button
-          type="button"
+        <IconButton
+          label="Refresh balance"
+          icon={<RefreshIcon className="h-4 w-4" />}
           onClick={onRefresh}
-          disabled={loading}
-          aria-label="Refresh balance"
-          aria-busy={loading}
-          className="grid h-11 w-11 place-items-center rounded-full border border-boundary text-neutral-400 transition-colors hover:bg-raised hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
-        >
-          {loading ? <Spinner className="h-4 w-4" /> : <RefreshIcon className="h-4 w-4" />}
-        </button>
+          pending={loading}
+        />
       </div>
 
       <div className="mt-4">

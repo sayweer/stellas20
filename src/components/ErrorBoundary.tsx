@@ -5,6 +5,7 @@ import type { ErrorInfo, ReactNode } from 'react'
 import * as Sentry from '@sentry/react'
 import { config } from '../config'
 import { AlertTriangleIcon } from './icons'
+import { Button } from './Button'
 
 interface Props {
   children: ReactNode
@@ -44,15 +45,15 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="mt-2 text-sm text-neutral-400">
               An unexpected error occurred. Reloading usually fixes it.
             </p>
-            <button
-              type="button"
+            <Button
+              variant="primary"
               onClick={() => {
                 window.location.reload()
               }}
-              className="mt-5 min-h-11 rounded-full bg-accent-500 px-4 py-2.5 text-sm font-semibold text-onAccent transition-colors duration-100 hover:bg-accent-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="mt-5"
             >
               Reload
-            </button>
+            </Button>
           </div>
         </div>
       )
