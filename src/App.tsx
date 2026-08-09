@@ -268,7 +268,16 @@ function MarketContent({
               onto one line. Below sm the switcher drops to its own row. */}
           <AppHeader marketKey={marketKey} onSwitchMarket={onSwitchMarket} />
 
-          <main id="app-main" tabIndex={-1} className="flex-1 space-y-6 py-6 sm:py-8">
+          {/* Keyed by the tab so the panel plays its entrance when the reader
+              changes destination — and only then. Keying it on mount instead
+              would replay it after every resolved transaction, because that is
+              what remounts this whole subtree. */}
+          <main
+            key={tab}
+            id="app-main"
+            tabIndex={-1}
+            className="flex-1 space-y-6 py-6 motion-safe:animate-rise-in sm:py-8"
+          >
             {connected && (
               <WalletBar
                 address={address}
