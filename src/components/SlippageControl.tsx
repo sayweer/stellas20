@@ -1,5 +1,12 @@
-/** Preset slippage-tolerance selector (basis points). */
+/**
+ * Preset slippage-tolerance selector (basis points).
+ *
+ * Trackless and compact: the presets sit inline after their label rather than
+ * inside a segmented track, so they take the shared segment paint at the small
+ * size instead of carrying their own.
+ */
 import type { ReactElement } from 'react'
+import { segmentClasses } from '../lib/buttonStyles'
 
 const PRESETS: { bps: number; label: string }[] = [
   { bps: 50, label: '0.5%' },
@@ -25,11 +32,7 @@ export function SlippageControl({ bps, onChange }: SlippageControlProps): ReactE
             onClick={() => {
               onChange(p.bps)
             }}
-            className={`min-h-11 rounded-full px-3 py-2 text-xs font-medium tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 ${
-              bps === p.bps
-                ? 'bg-raised text-neutral-100'
-                : 'text-neutral-400 hover:text-neutral-200'
-            }`}
+            className={`${segmentClasses(bps === p.bps, 'sm')} tabular-nums`}
           >
             {p.label}
           </button>

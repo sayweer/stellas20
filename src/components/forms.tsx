@@ -1,6 +1,7 @@
 /** Small reusable form primitives shared across the action cards. */
 import type { ReactElement, ReactNode } from 'react'
-import { Spinner } from './icons'
+import { Button } from './Button'
+import { segmentClasses, segmentTrackClass } from '../lib/buttonStyles'
 
 /*
  * `text-base sm:text-sm` is not a typographic choice: iOS Safari zooms the
@@ -63,14 +64,18 @@ export function AmountField({
         />
         <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center gap-2">
           {onMax && (
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={onMax}
               disabled={disabled}
-              className="pointer-events-auto inline-flex min-h-11 items-center rounded-full border border-boundary px-3 text-[11px] font-semibold text-accent-300 transition-colors duration-100 hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 disabled:opacity-50"
+              className="pointer-events-auto"
             >
-              MAX
-            </button>
+              {/* The accent tint lives on the label, not on the button: a
+                  `text-*` utility passed alongside the variant would be settled
+                  by Tailwind's output order rather than by intent. */}
+              <span className="text-accent-300">MAX</span>
+            </Button>
           )}
           <span className="text-sm font-medium text-neutral-400">{unit}</span>
         </div>
@@ -109,7 +114,7 @@ export function TabToggle({
     <div
       role="group"
       aria-label={label}
-      className={`grid w-full rounded-full border border-boundary bg-neutral-950 p-1 sm:inline-flex sm:w-auto ${className}`}
+      className={`grid w-full rounded-2xl bg-neutral-950 sm:inline-flex sm:w-auto sm:rounded-full ${segmentTrackClass} ${className}`}
     >
       {options.map((opt) => (
         <button
@@ -119,11 +124,7 @@ export function TabToggle({
             onChange(opt.id)
           }}
           aria-pressed={active === opt.id}
-          className={`min-h-11 whitespace-normal rounded-full px-4 py-2 text-sm font-medium leading-snug transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 ${
-            active === opt.id
-              ? 'bg-raised text-neutral-100'
-              : 'text-neutral-400 hover:text-neutral-200'
-          }`}
+          className={segmentClasses(active === opt.id)}
         >
           {opt.label}
         </button>
@@ -142,7 +143,13 @@ interface ActionButtonProps {
   className?: string
 }
 
-/** The primary/secondary submit button used by the action cards. */
+/**
+ * The submit button used by the action cards.
+ *
+ * Kept as its own name so the twelve call sites do not have to churn, but it
+ * is now only a shape: `Button` owns the paint, the press behaviour and the
+ * pending semantics.
+ */
 export function ActionButton({
   onClick,
   disabled,
@@ -152,28 +159,18 @@ export function ActionButton({
   variant = 'primary',
   className = '',
 }: ActionButtonProps): ReactElement {
-  const base =
-    'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-[color,background-color,border-color,transform] duration-100 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 active:translate-y-px disabled:cursor-not-allowed disabled:transform-none'
-  const styles =
-    variant === 'primary'
-      ? 'bg-accent-500 text-onAccent hover:bg-accent-400 focus-visible:ring-accent-300 active:bg-accent-600 disabled:bg-raised disabled:text-neutral-600'
-      : 'border border-boundary text-neutral-200 hover:bg-raised focus-visible:ring-accent-300 disabled:border-hairline disabled:text-neutral-600'
   return (
-    <button
-      type="button"
+    <Button
+      variant={variant}
+      size="lg"
+      full
       onClick={onClick}
-      disabled={disabled || pending}
-      aria-busy={pending}
-      className={`${base} ${styles} ${className}`}
+      disabled={disabled}
+      pending={pending}
+      pendingLabel={pendingLabel}
+      className={className}
     >
-      {pending ? (
-        <>
-          <Spinner className="h-4 w-4" />
-          {pendingLabel}
-        </>
-      ) : (
-        children
-      )}
-    </button>
+      {children}
+    </Button>
   )
 }

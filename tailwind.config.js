@@ -81,6 +81,17 @@ export default {
         ],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
       },
+      transitionTimingFunction: {
+        /*
+         * A press and its release are not the same gesture, so they do not
+         * share a curve. `press` is front-loaded and decisive — the control is
+         * already down by the time the finger registers it. `spring` overshoots
+         * slightly on the way back, which is what reads as a physical release
+         * rather than a CSS transition running backwards.
+         */
+        press: 'cubic-bezier(0.2, 0, 0, 1)',
+        spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      },
       keyframes: {
         'toast-in': {
           from: { opacity: '0', transform: 'translateY(6px) scale(0.98)' },
