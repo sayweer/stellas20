@@ -1,5 +1,6 @@
 /** Primary product navigation — a vertical rail on desktop, a bottom bar on mobile. */
-import type { ReactElement } from 'react'
+import type { CSSProperties, ReactElement } from 'react'
+import { focusRing } from '../lib/buttonStyles'
 import { ChartBarIcon, SlidersIcon, SwapIcon, WalletIcon } from './icons'
 
 export type TabId = 'overview' | 'earn' | 'portfolio' | 'more'
@@ -66,33 +67,52 @@ export function SideNav({ active, onChange }: SideNavProps): ReactElement {
   )
 }
 
-/** The same tablist, pinned to the bottom edge on small screens. */
+/**
+ * The same tablist, pinned to the bottom edge on small screens.
+ *
+ * The indicator is a single element outside the list rather than a border on
+ * the active item: sliding one box between four positions is a transform the
+ * compositor can carry on its own, and it keeps the marker out of the
+ * `tablist → listitem → tab` structure that assistive tech walks. It is
+ * placed from a custom property, so switching tabs writes one number.
+ */
 export function BottomNav({ active, onChange }: SideNavProps): ReactElement {
+  const activeIndex = TABS.findIndex((tab) => tab.id === active)
+
   return (
     <nav
       role="tablist"
       aria-label="Product sections"
-      className="sticky bottom-0 z-30 border-t border-hairline bg-neutral-950/95 backdrop-blur lg:hidden"
+      className="sticky bottom-0 z-30 border-t border-hairline bg-neutral-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
-      <ul className="grid grid-cols-4 pb-[env(safe-area-inset-bottom)]">
-        {TABS.map((tab, i) => (
-          <li key={tab.id}>
-            <TabButton
-              tab={tab}
-              index={i}
-              active={active}
-              onChange={onChange}
-              idPrefix="tab-mobile-"
-              className={`flex min-h-14 w-full flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium transition-colors ${
-                tab.id === active ? 'text-accent-300' : 'text-neutral-500 hover:text-neutral-200'
-              }`}
-            >
-              <tab.Icon className="h-[18px] w-[18px] shrink-0" />
-              <span className="truncate">{tab.label}</span>
-            </TabButton>
-          </li>
-        ))}
-      </ul>
+      <div className="relative">
+        <span
+          aria-hidden="true"
+          style={{ '--active-index': Math.max(activeIndex, 0) } as CSSProperties}
+          className="pointer-events-none absolute inset-y-1 left-0 w-1/4 translate-x-[calc(100%*var(--active-index))] px-2 transition-transform duration-300 ease-spring motion-reduce:transition-none"
+        >
+          <span className="block h-full rounded-2xl bg-raised" />
+        </span>
+        <ul className="relative grid grid-cols-4">
+          {TABS.map((tab, i) => (
+            <li key={tab.id}>
+              <TabButton
+                tab={tab}
+                index={i}
+                active={active}
+                onChange={onChange}
+                idPrefix="tab-mobile-"
+                className={`flex min-h-14 w-full select-none flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium [touch-action:manipulation] [-webkit-tap-highlight-color:transparent] transition-colors duration-100 motion-safe:active:scale-[0.94] ${
+                  tab.id === active ? 'text-accent-300' : 'text-neutral-500 hover:text-neutral-200'
+                }`}
+              >
+                <tab.Icon className="h-[18px] w-[18px] shrink-0" />
+                <span className="truncate">{tab.label}</span>
+              </TabButton>
+            </li>
+          ))}
+        </ul>
+      </div>
     </nav>
   )
 }
@@ -103,8 +123,11 @@ interface TabButtonProps {
   active: TabId
   onChange: (id: TabId) => void
   /**
-   * Both rails render the same tabs, so their ids have to differ. The desktop
-   * rail keeps the bare `tab-` prefix because the panels point back at it.
+   * Both rails render the same tabs, so their ids have to differ. The panels
+   * name themselves with `aria-label` rather than pointing back at one of
+   * these: whichever rail is hidden is out of the accessibility tree, and a
+   * panel labelled by a `display: none` element has no name at all — which is
+   * what every panel on a phone used to be.
    */
   idPrefix: string
   className: string
@@ -150,7 +173,7 @@ function TabButton({
         onChange(tab.id)
       }}
       onKeyDown={onKeyDown}
-      className={`${className} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300`}
+      className={`${className} ${focusRing}`}
     >
       {children}
     </button>
