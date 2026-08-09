@@ -92,8 +92,10 @@ export function BalanceCard({
             </button>
           </div>
         ) : funded ? (
-          <div className="flex items-baseline gap-2">
-            <span className="font-mono text-4xl font-semibold tracking-tight tabular-nums text-neutral-50 sm:text-5xl">
+          <div className="flex min-w-0 items-baseline gap-2">
+            {/* A grouped balance has no spaces to wrap at, so without a floor on
+                the box and a ceiling on the size it ran off the card. */}
+            <span className="min-w-0 truncate font-mono text-[clamp(2rem,9vw,3rem)] font-semibold tracking-tight tabular-nums text-neutral-50">
               {balance ? formatXlm(balance) : '0.00'}
             </span>
             <span className="text-base font-medium text-neutral-400">XLM</span>

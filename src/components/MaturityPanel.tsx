@@ -178,7 +178,9 @@ function MaturityCard({
         </p>
       ) : (
         <>
-          <div className="mt-3 flex gap-2">
+          {/* Side by side these two had ~79px of label each inside the card.
+              They stack until there is room for both. */}
+          <div className="mt-3 flex flex-col gap-2 md:flex-row">
             <ActionButton
               onClick={claim}
               disabled={isWrongNetwork || pending || blocked || !canClaim}

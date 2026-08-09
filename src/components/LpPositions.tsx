@@ -49,7 +49,10 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
                   {share.toFixed(2)}% of pool
                 </span>
               </div>
-              <dl className="mt-3 grid grid-cols-1 gap-2 text-sm min-[360px]:grid-cols-3">
+              {/* Three columns of grouped digits inside a card leaves ~85px each on a
+                  phone, which truncated all three. They get the width back until the
+                  card itself is wide enough. */}
+              <dl className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
                 <div className="min-w-0">
                   <dt className="text-[11px] uppercase tracking-wide text-neutral-500">Shares</dt>
                   <dd
