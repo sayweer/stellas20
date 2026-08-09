@@ -47,7 +47,7 @@ export function ThemeProvider({ children }: { children: ReactNode }): ReactEleme
     setWalletTheme(theme)
 
     const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    if (themeColor) themeColor.content = theme === 'dark' ? '#050505' : '#F5F3F4'
+    if (themeColor) themeColor.content = theme === 'dark' ? '#140304' : '#F6EDDD'
   }, [theme])
 
   const value = useMemo<ThemeContextValue>(
