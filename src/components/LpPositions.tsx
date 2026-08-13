@@ -4,6 +4,7 @@ import type { MaturityPool } from '../hooks/usePools'
 import { formatAmount, formatMaturity } from '../lib/format'
 import { quoteRemoveLiquidity } from '../lib/amm'
 import { ArrowRightIcon, LayersIcon } from './icons'
+import { FIGURE_TONE, figureText } from '../lib/figures'
 import { Button } from './Button'
 
 interface LpPositionsProps {
@@ -21,7 +22,7 @@ export function LpPositions({ pools, onManage }: LpPositionsProps): ReactElement
       className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6"
     >
       <div className="flex items-center gap-2">
-        <LayersIcon className="h-4 w-4 text-neutral-400" />
+        <LayersIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.markets)}`} />
         <h2 id="lp-heading" className="text-sm font-medium text-neutral-400">
           Liquidity positions
         </h2>

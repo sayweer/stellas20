@@ -4,6 +4,7 @@
 import type { ReactElement } from 'react'
 import { activeMarket } from '../lib/market'
 import { DropletIcon } from './icons'
+import { FIGURE_TONE, figureText } from '../lib/figures'
 import { Button } from './Button'
 
 /** Faucet amount per click: 1,000 tokens (7 decimals). */
@@ -24,7 +25,7 @@ export function FaucetButton({ pending, disabled, onClick }: FaucetButtonProps):
       pending={pending}
       pendingLabel={`Sending 1,000 ${activeMarket().underlyingSymbol}…`}
     >
-      <DropletIcon className="h-4 w-4 text-accent-400" />
+      <DropletIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.liquidity)}`} />
       Get 1,000 {activeMarket().underlyingSymbol}
     </Button>
   )

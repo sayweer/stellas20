@@ -1,6 +1,8 @@
 /** Placeholder shown in a connection-gated tab while the wallet is disconnected. */
 import type { ReactElement } from 'react'
 import { WalletIcon } from './icons'
+import { IconTile } from './IconTile'
+import { FIGURE_TONE } from '../lib/figures'
 import { WalletButton } from './WalletButton'
 
 interface ConnectPromptProps {
@@ -27,9 +29,9 @@ export function ConnectPrompt({
       aria-labelledby={embedded ? undefined : `tab-${tab}`}
       className="rounded-2xl border border-hairline bg-neutral-900 p-10 text-center"
     >
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-850 text-neutral-400">
+      <IconTile tone={FIGURE_TONE.balance} size="lg" className="mx-auto">
         <WalletIcon className="h-6 w-6" />
-      </div>
+      </IconTile>
       <h2
         data-panel-heading
         tabIndex={-1}

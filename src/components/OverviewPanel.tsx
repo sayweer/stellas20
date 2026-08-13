@@ -6,6 +6,8 @@ import type { AppError } from '../types'
 import { activeMarket } from '../lib/market'
 import { MarketsList } from './MarketsList'
 import { ArrowRightIcon, ChartBarIcon, DropletIcon, LayersIcon, LockIcon } from './icons'
+import { IconTile } from './IconTile'
+import { FIGURE_TONE, figureText, type FigureTone } from '../lib/figures'
 import { Button } from './Button'
 
 export type EarnStrategy = 'fixed' | 'yield' | 'liquidity'
@@ -160,18 +162,21 @@ export function OverviewPanel({
         <div className="border-t border-hairline lg:border-l lg:border-t-0">
           <GoalRow
             icon={<LockIcon className="h-5 w-5" />}
+            tone={FIGURE_TONE.fixed}
             title="Lock a fixed return"
             detail="Know the maturity and implied rate before signing."
             onClick={() => onEarn('fixed')}
           />
           <GoalRow
             icon={<ChartBarIcon className="h-5 w-5" />}
+            tone={FIGURE_TONE.yield}
             title="Increase yield exposure"
             detail="Hold the variable yield released before maturity."
             onClick={() => onEarn('yield')}
           />
           <GoalRow
             icon={<DropletIcon className="h-5 w-5" />}
+            tone={FIGURE_TONE.liquidity}
             title="Earn trading fees"
             detail="Provide liquidity and earn the 0.30% swap fee."
             onClick={() => onEarn('liquidity')}
@@ -181,7 +186,7 @@ export function OverviewPanel({
 
       <div className="border-t border-hairline pt-8">
         <div className="mb-2 flex items-center gap-2 text-neutral-500">
-          <LayersIcon className="h-4 w-4" />
+          <LayersIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.markets)}`} />
           <p className="font-mono text-[11px] uppercase tracking-[0.16em]">Live opportunities</p>
         </div>
         <MarketsList
@@ -198,11 +203,13 @@ export function OverviewPanel({
 
 function GoalRow({
   icon,
+  tone,
   title,
   detail,
   onClick,
 }: {
   icon: ReactElement
+  tone: FigureTone
   title: string
   detail: string
   onClick: () => void
@@ -213,9 +220,7 @@ function GoalRow({
       onClick={onClick}
       className="group flex min-h-24 w-full items-center gap-4 border-b border-hairline px-5 py-4 text-left transition-colors duration-100 ease-out last:border-b-0 hover:bg-neutral-850 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-300 sm:px-6"
     >
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-neutral-850 text-neutral-300">
-        {icon}
-      </span>
+      <IconTile tone={tone}>{icon}</IconTile>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium text-neutral-100">{title}</span>
         <span className="mt-1 block text-xs leading-relaxed text-neutral-400">{detail}</span>

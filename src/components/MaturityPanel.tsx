@@ -9,6 +9,7 @@ import { formatMaturity } from '../lib/format'
 import { chainNowMs } from '../lib/chainTime'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { ClockIcon, CoinsIcon } from './icons'
+import { FIGURE_TONE, figureText } from '../lib/figures'
 import { TxStatus } from './TxStatus'
 import { ActionButton } from './forms'
 
@@ -162,7 +163,7 @@ function MaturityCard({
       </dl>
 
       <div className="mt-3 flex items-center gap-1.5 rounded-xl border border-hairline bg-neutral-950/60 px-3 py-2">
-        <CoinsIcon className="h-4 w-4 text-accent-300" />
+        <CoinsIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.value)}`} />
         <span className="text-xs text-neutral-300">Claimable now</span>
         <span
           title={claimable === null ? undefined : `${formatAmount(claimable, 6)} SY`}

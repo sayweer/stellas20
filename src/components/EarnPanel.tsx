@@ -5,6 +5,8 @@ import { PoolPanel } from './PoolPanel'
 import { TradePanel } from './TradePanel'
 import type { EarnStrategy } from './OverviewPanel'
 import { ChartBarIcon, DropletIcon, LockIcon } from './icons'
+import { IconTile } from './IconTile'
+import { FIGURE_TONE } from '../lib/figures'
 
 interface EarnPanelProps {
   strategy: EarnStrategy
@@ -29,18 +31,21 @@ const STRATEGIES = [
     title: 'Fixed return',
     detail: 'Buy PT below its maturity value.',
     Icon: LockIcon,
+    tone: FIGURE_TONE.fixed,
   },
   {
     id: 'yield',
     title: 'Yield exposure',
     detail: 'Keep the variable yield with YT.',
     Icon: ChartBarIcon,
+    tone: FIGURE_TONE.yield,
   },
   {
     id: 'liquidity',
     title: 'Trading fees',
     detail: 'Provide PT + SY and earn swap fees.',
     Icon: DropletIcon,
+    tone: FIGURE_TONE.liquidity,
   },
 ] as const
 
@@ -101,7 +106,7 @@ export function EarnPanel({
       <fieldset>
         <legend className="sr-only">Earning strategy</legend>
         <div role="radiogroup" className="grid gap-2 sm:grid-cols-3">
-          {STRATEGIES.map(({ id, title, detail, Icon }, index) => {
+          {STRATEGIES.map(({ id, title, detail, Icon, tone }, index) => {
             const selected = strategy === id
             return (
               <button
@@ -120,7 +125,9 @@ export function EarnPanel({
                 }`}
               >
                 <span className="flex items-center justify-between gap-3">
-                  <Icon className="h-5 w-5" />
+                  <IconTile tone={tone} size="sm" inverted={selected}>
+                    <Icon className="h-5 w-5" />
+                  </IconTile>
                   <span
                     aria-hidden="true"
                     className={`h-2.5 w-2.5 rounded-full border ${
@@ -128,7 +135,7 @@ export function EarnPanel({
                     }`}
                   />
                 </span>
-                <span className="mt-5 block text-sm font-semibold">{title}</span>
+                <span className="mt-4 block text-sm font-semibold">{title}</span>
                 <span
                   className={`mt-1 block text-xs leading-relaxed ${selected ? 'text-onAccent/75' : 'text-neutral-400'}`}
                 >

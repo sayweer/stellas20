@@ -17,6 +17,7 @@ import { usePortfolio } from '../hooks/usePortfolio'
 import { maturityCountdown } from '../lib/yield'
 import { formatAmount } from '../lib/format'
 import { ArrowRightIcon, ChartBarIcon, DropletIcon, LockIcon, SwapIcon } from '../components/icons'
+import { FIGURE_TONE, figureText } from '../lib/figures'
 
 /* ─────────────────────────────────────────────────────────
  * LANDING STORYBOARD
@@ -141,7 +142,7 @@ export function Landing(): ReactElement {
             </ScrollScene>
 
             <ScrollScene
-              className="bg-neutral-950 text-neutral-50"
+              className="surface-ink bg-neutral-950 text-neutral-50"
               label="How a position is built"
               length={2.5}
             >
@@ -391,7 +392,7 @@ function FixedRateVisual(): ReactElement {
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600">
           Illustrative PT position
         </p>
-        <LockIcon className="h-5 w-5 text-accent-500" />
+        <LockIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.fixed)}`} />
       </div>
       <div className="grid gap-8 py-10 sm:grid-cols-2">
         <Metric label="Cost today" value="958 SY" />
@@ -412,12 +413,12 @@ function FixedRateVisual(): ReactElement {
 
 function YieldVisual(): ReactElement {
   return (
-    <div className="order-2 rounded-3xl bg-neutral-950 p-6 text-neutral-50 shadow-2xl shadow-neutral-950/15 sm:p-8 lg:order-1">
+    <div className="surface-ink order-2 rounded-3xl bg-neutral-950 p-6 text-neutral-50 shadow-2xl shadow-neutral-950/15 sm:p-8 lg:order-1">
       <div className="flex items-center justify-between gap-4 border-b border-neutral-50/15 pb-6">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-400">
           Yield accrual
         </p>
-        <ChartBarIcon className="h-5 w-5 text-accent-400" />
+        <ChartBarIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.yield)}`} />
       </div>
       <div className="py-10">
         <p className="text-[clamp(4rem,9vw,7rem)] font-medium leading-none tracking-[-0.06em] text-accent-400">
@@ -443,7 +444,7 @@ function LiquidityVisual(): ReactElement {
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-neutral-600">
           Constant product pool
         </p>
-        <DropletIcon className="h-5 w-5 text-accent-500" />
+        <DropletIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.liquidity)}`} />
       </div>
       <div className="grid gap-3 py-8 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
         <TokenTile label="PT" value="Principal" />

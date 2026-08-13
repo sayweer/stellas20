@@ -25,6 +25,44 @@ function Icon({
   )
 }
 
+/*
+ * A concept icon carries a second layer: the solid mass of the object it draws,
+ * filled at a low alpha under the outline. One colour, two flat fields — the
+ * same way the brand spends its gradient as sampled steps rather than a wash,
+ * so this stays inside `brand.md`'s rule against decorative gradients.
+ *
+ * The mass is what makes a lock read as a lock at 20px instead of as four
+ * strokes, and it is the surface the figure tone actually shows on: a hairline
+ * outline alone gives a colour almost no area to be seen in.
+ *
+ * The stroke is lighter than the UI icons' 2. These render at 20–24px where a
+ * 2px stroke closes up the counters; the small chrome icons render at 14–16px
+ * where it does not.
+ */
+function FigureIcon({
+  className = 'h-5 w-5',
+  mass,
+  children,
+}: IconProps & { mass: ReactNode; children: ReactNode }): ReactElement {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <g fill="currentColor" stroke="none" opacity={0.22}>
+        {mass}
+      </g>
+      {children}
+    </svg>
+  )
+}
+
 export function CopyIcon({ className }: IconProps): ReactElement {
   return (
     <Icon className={className}>
@@ -113,59 +151,88 @@ export function XIcon({ className }: IconProps): ReactElement {
 
 export function WalletIcon({ className }: IconProps): ReactElement {
   return (
-    <Icon className={className}>
-      <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3" />
-      <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
-    </Icon>
+    <FigureIcon
+      className={className}
+      mass={<rect x="2.75" y="5.75" width="18.5" height="14.5" rx="2.75" />}
+    >
+      <rect x="2.75" y="5.75" width="18.5" height="14.5" rx="2.75" />
+      <path d="M16.5 11.75h4.75v4.5H16.5a2.25 2.25 0 0 1 0-4.5Z" />
+    </FigureIcon>
   )
 }
 
 export function DropletIcon({ className }: IconProps): ReactElement {
   return (
-    <Icon className={className}>
-      <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
-    </Icon>
+    <FigureIcon
+      className={className}
+      mass={
+        <path d="M12 21.25c3.45 0 6.25-2.72 6.25-6.08 0-3.6-3.2-6.42-6.25-11.42-3.05 5-6.25 7.82-6.25 11.42 0 3.36 2.8 6.08 6.25 6.08Z" />
+      }
+    >
+      <path d="M12 21.25c3.45 0 6.25-2.72 6.25-6.08 0-3.6-3.2-6.42-6.25-11.42-3.05 5-6.25 7.82-6.25 11.42 0 3.36 2.8 6.08 6.25 6.08Z" />
+      <path d="M9.25 15.4a2.85 2.85 0 0 0 2.35 2.7" />
+    </FigureIcon>
   )
 }
 
 export function LayersIcon({ className }: IconProps): ReactElement {
   return (
-    <Icon className={className}>
-      <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
-      <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
-      <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
-    </Icon>
+    <FigureIcon className={className} mass={<path d="M12 2.5 21.25 7 12 11.5 2.75 7Z" />}>
+      <path d="M12 2.5 21.25 7 12 11.5 2.75 7Z" />
+      <path d="m2.75 12 9.25 4.5 9.25-4.5" />
+      <path d="m2.75 16.75 9.25 4.5 9.25-4.5" />
+    </FigureIcon>
   )
 }
 
+/*
+ * Not lucide's branch glyph, which reads as a merge as readily as a split. One
+ * stream arrives and two leave it — the shape of the only thing this protocol
+ * does to a position.
+ */
 export function SplitIcon({ className }: IconProps): ReactElement {
   return (
-    <Icon className={className}>
-      <path d="M16 3h5v5" />
-      <path d="M8 3H3v5" />
-      <path d="M12 22v-8.3a4 4 0 0 0-1.17-2.83L3 3" />
-      <path d="m15 9 6-6" />
-    </Icon>
+    <FigureIcon
+      className={className}
+      mass={
+        <>
+          <circle cx="17.75" cy="7.5" r="3.25" />
+          <circle cx="17.75" cy="16.5" r="3.25" />
+        </>
+      }
+    >
+      <path d="M2.75 12H6.5l3.75-4.5h4.25" />
+      <path d="m6.5 12 3.75 4.5h4.25" />
+      <circle cx="17.75" cy="7.5" r="3.25" />
+      <circle cx="17.75" cy="16.5" r="3.25" />
+    </FigureIcon>
   )
 }
 
 export function CoinsIcon({ className }: IconProps): ReactElement {
   return (
-    <Icon className={className}>
-      <circle cx="8" cy="8" r="6" />
-      <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
-      <path d="M7 6h1v4" />
-      <path d="m16.71 13.88.7.71-2.82 2.82" />
-    </Icon>
+    <FigureIcon
+      className={className}
+      mass={
+        <>
+          <circle cx="9" cy="8.75" r="5.75" />
+          <circle cx="15.25" cy="15.25" r="5.75" />
+        </>
+      }
+    >
+      <circle cx="9" cy="8.75" r="5.75" />
+      <circle cx="15.25" cy="15.25" r="5.75" />
+      <path d="M9 6.5v2.25h1.75" />
+    </FigureIcon>
   )
 }
 
 export function ClockIcon({ className }: IconProps): ReactElement {
   return (
-    <Icon className={className}>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 6v6l4 2" />
-    </Icon>
+    <FigureIcon className={className} mass={<circle cx="12" cy="12" r="8.75" />}>
+      <circle cx="12" cy="12" r="8.75" />
+      <path d="M12 6.75V12l3.5 2" />
+    </FigureIcon>
   )
 }
 
@@ -209,32 +276,55 @@ export function Spinner({ className = 'h-4 w-4' }: IconProps): ReactElement {
 
 export function LockIcon({ className }: IconProps): ReactElement {
   return (
-    <Icon className={className}>
-      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </Icon>
+    <FigureIcon
+      className={className}
+      mass={<rect x="3.25" y="10.75" width="17.5" height="10.25" rx="2.5" />}
+    >
+      <rect x="3.25" y="10.75" width="17.5" height="10.25" rx="2.5" />
+      <path d="M7.75 10.75V7.5a4.25 4.25 0 0 1 8.5 0v3.25" />
+      <path d="M12 14.75v2.5" />
+    </FigureIcon>
   )
 }
 
+/* The mass here is the track each arrow travels, not the arrow — a stroke-only
+   glyph gives the figure tone no area to be read in. */
 export function SwapIcon({ className }: IconProps): ReactElement {
   return (
-    <Icon className={className}>
-      <path d="M8 3 4 7l4 4" />
-      <path d="M4 7h16" />
-      <path d="m16 21 4-4-4-4" />
-      <path d="M20 17H4" />
-    </Icon>
+    <FigureIcon
+      className={className}
+      mass={
+        <>
+          <rect x="3.5" y="6.75" width="16" height="2.5" rx="1.25" />
+          <rect x="4.5" y="14.75" width="16" height="2.5" rx="1.25" />
+        </>
+      }
+    >
+      <path d="M8 3.75 3.75 8l4.25 4.25" />
+      <path d="M3.75 8h15.75" />
+      <path d="m16 11.75 4.25 4.25L16 20.25" />
+      <path d="M20.25 16H4.5" />
+    </FigureIcon>
   )
 }
 
 export function ChartBarIcon({ className }: IconProps): ReactElement {
   return (
-    <Icon className={className}>
-      <path d="M3 3v18h18" />
-      <rect x="7" y="12" width="3" height="6" rx="0.5" />
-      <rect x="12" y="8" width="3" height="10" rx="0.5" />
-      <rect x="17" y="4" width="3" height="14" rx="0.5" />
-    </Icon>
+    <FigureIcon
+      className={className}
+      mass={
+        <>
+          <rect x="6.5" y="13" width="3.5" height="6.25" rx="1" />
+          <rect x="11.75" y="9.5" width="3.5" height="9.75" rx="1" />
+          <rect x="17" y="6" width="3.5" height="13.25" rx="1" />
+        </>
+      }
+    >
+      <path d="M3.5 3.25v14.75a1.25 1.25 0 0 0 1.25 1.25H20.75" />
+      <rect x="6.5" y="13" width="3.5" height="6.25" rx="1" />
+      <rect x="11.75" y="9.5" width="3.5" height="9.75" rx="1" />
+      <rect x="17" y="6" width="3.5" height="13.25" rx="1" />
+    </FigureIcon>
   )
 }
 

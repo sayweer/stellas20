@@ -31,6 +31,7 @@ import { MaturitySelect } from './MaturitySelect'
 import { SlippageControl } from './SlippageControl'
 import { TxStatus } from './TxStatus'
 import { AlertTriangleIcon, LockIcon } from './icons'
+import { FIGURE_TONE, figureText } from '../lib/figures'
 
 interface TradePanelProps {
   mode: 'lock' | 'long'
@@ -254,7 +255,7 @@ function LockRateForm({
     <div className="space-y-4">
       <div className="rounded-xl border border-hairline bg-neutral-900 px-4 py-3">
         <div className="flex items-center gap-2">
-          <LockIcon className="h-4 w-4 text-accent-300" />
+          <LockIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.fixed)}`} />
           <span className="text-sm font-medium text-neutral-100">
             {lockedApy === null ? 'Lock a fixed rate' : `Lock ${formatPercent(lockedApy)} APY`}
           </span>

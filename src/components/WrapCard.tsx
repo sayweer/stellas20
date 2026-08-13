@@ -17,6 +17,7 @@ import { unwrapTokens, wrapTokens } from '../lib/contracts/syVault'
 import { isValidTokenAmount } from '../lib/validation'
 import { useTxRunner } from '../hooks/useTxRunner'
 import { LayersIcon } from './icons'
+import { FIGURE_TONE, figureText } from '../lib/figures'
 import { TxStatus } from './TxStatus'
 import { AmountField, TabToggle, ActionButton } from './forms'
 
@@ -86,7 +87,7 @@ export function WrapCard({
   return (
     <section className="rounded-2xl border border-hairline bg-neutral-900 p-5 sm:p-6">
       <div className="flex items-center gap-2">
-        <LayersIcon className="h-4 w-4 text-neutral-400" />
+        <LayersIcon className={`h-4 w-4 ${figureText(FIGURE_TONE.markets)}`} />
         <h2 className="text-sm font-medium text-neutral-100">Prepare an asset</h2>
       </div>
 

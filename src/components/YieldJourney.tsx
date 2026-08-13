@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 import { ChartBarIcon, LockIcon, SplitIcon } from './icons'
+import { FIGURE_TONE, figureText } from '../lib/figures'
 import { useSceneStep, useStage } from './scroll/stageContext'
 
 const JOURNEY_STEPS = [
@@ -7,19 +8,19 @@ const JOURNEY_STEPS = [
     eyebrow: '01 · STANDARDIZE',
     title: 'Start with yield.',
     body: 'A yield-bearing asset enters Everspan as Standardized Yield. One interface keeps the rate readable across every maturity.',
-    icon: <ChartBarIcon className="h-5 w-5" />,
+    icon: <ChartBarIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.yield)}`} />,
   },
   {
     eyebrow: '02 · SEPARATE',
     title: 'Split one position into two.',
     body: 'Every SY creates equal amounts of PT and YT. Principal and yield become independent, transferable positions.',
-    icon: <SplitIcon className="h-5 w-5" />,
+    icon: <SplitIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.split)}`} />,
   },
   {
     eyebrow: '03 · CHOOSE',
     title: 'Hold the exposure you want.',
     body: 'Buy discounted PT for a maturity-based rate. Hold YT for the yield released before maturity. Trade or provide liquidity at any time.',
-    icon: <LockIcon className="h-5 w-5" />,
+    icon: <LockIcon className={`h-5 w-5 ${figureText(FIGURE_TONE.fixed)}`} />,
   },
 ] as const
 
@@ -106,7 +107,7 @@ function JourneyVisual({ activeStep }: { activeStep: number }): ReactElement {
               <p className="text-xl font-medium">SY</p>
               <p className="mt-1 text-xs text-neutral-400">Standardized Yield</p>
             </div>
-            <ChartBarIcon className="h-8 w-8 text-accent-400" />
+            <ChartBarIcon className={`h-8 w-8 ${figureText(FIGURE_TONE.yield)}`} />
           </div>
         </div>
 
