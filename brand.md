@@ -58,6 +58,38 @@ be told apart from a primary button. So:
 `src/lib/theme.test.ts` holds this: it asserts each role stays readable on its
 own surface *and* that success and caution never equal the accent again.
 
+### Figure tones
+
+Concept icons carry an identity colour. Every figurative mark used to be the
+same muted brown, so a lock, a chart and a droplet arrived as one texture rather
+than three signs.
+
+| Token              | Canvas    | Parchment | Hue  | Concepts                        |
+| ------------------ | --------- | --------- | ---- | ------------------------------- |
+| `figure-ember`     | `#DE7349` | `#9B0F06` | 41°  | The split — the protocol's act. |
+| `figure-ochre`     | `#D6A24A` | `#7A5A12` | 78°  | Yield, redeemable value, balance. |
+| `figure-verdigris` | `#4FA8A4` | `#14625E` | 191° | Liquidity, pools, markets.       |
+| `figure-mulberry`  | `#C97CA6` | `#6E2A57` | 347° | A fixed, settled position.       |
+
+These are their own family rather than borrowed status tones, and the
+distinction is the whole point. A lock painted in the olive turns an ordinary
+navigation row into a confirmation — the failure this document is warning about
+two sections above. Every tone but the ember sits 31° or further from all three
+status hues, and the four sit 0.10 OKLab apart from each other, so they are
+tellable apart at 20px without any of them claiming a meaning that is not theirs.
+
+**Where they are allowed:** inside a concept icon's own mark, and on the tinted
+tile that icon sits on. Nowhere else — not as text, a fill, a border, or a
+status. A mark that annotates a number (a countdown clock), one that already
+carries state some other way (a nav icon), or one that sits beside a surface
+already spending the ember stays on the neutral it inherits.
+
+The mark itself is drawn in two flat fields: the solid mass of the object at low
+alpha under a `1.75` outline. Two sampled steps, not a wash — the same argument
+as the gradient section below. `src/lib/figures.ts` holds the concept-to-tone
+map so a colour is decided once rather than per component, and
+`src/lib/theme.test.ts` pins both separations.
+
 ### Semantic tokens
 
 The Vite + Tailwind project maps these roles through `tailwind.config.js` and `src/index.css`.
@@ -152,10 +184,10 @@ Avoid hype, urgency, exclamation marks and claims such as “revolutionary”, �
 
 - Hardcode brand colors in component files; use Tailwind tokens or CSS variables.
 - Use the brand ember for market *direction*. Ember means Everspan and, in the one case of a failed transaction, failure — it never means "up" or "down". A rate below zero is marked with a sign glyph, not a colour.
-- Reach for olive or terracotta as decoration. They are the success and caution tones, and spending them elsewhere makes a status card mean nothing.
+- Reach for olive or terracotta as decoration. They are the success and caution tones, and spending them elsewhere makes a status card mean nothing. A concept icon that needs a colour takes a figure tone, which is a separate family for exactly this reason.
 - Add decorative gradients, glassmorphism or excessive shadows.
 - Copy Paribu assets, text or exact layouts; translate the visual principles into Everspan’s product story.
 
 The ramp runs along the line from the cream seed to the ember-black one, so there is no neutral grey in the system at all. On the light surface it inverts: the canvas becomes parchment and cards separate by moving toward white rather than away from it.
 
-_Last updated: 2026-08-09. Palette: Ember (`#5E0006 → #9B0F06 → #D53E0F → #EED9B9` over parchment `#F6EDDD`; olive and terracotta carry status) · Typography: Space Grotesk · Gradients: the brand gradient is sampled into the accent ramp, never painted as a fill._
+_Last updated: 2026-08-13. Palette: Ember (`#5E0006 → #9B0F06 → #D53E0F → #EED9B9` over parchment `#F6EDDD`; olive and terracotta carry status; four figure tones carry concept-icon identity) · Typography: Space Grotesk · Gradients: the brand gradient is sampled into the accent ramp, never painted as a fill._
