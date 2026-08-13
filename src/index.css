@@ -69,6 +69,26 @@
     --negative-400: 213 62 15;
     --negative-500: 155 15 6;
     --on-accent: 246 237 221;
+    /*
+     * Figure tones: the identity colour of a *concept* icon, and nothing else.
+     * Every figurative mark used to be the same muted brown, so a lock, a chart
+     * and a droplet arrived as one texture rather than three signs.
+     *
+     * These are deliberately their own family rather than borrowed status
+     * tones. Painting a lock in `positive` would make an ordinary navigation
+     * row read as a confirmation, which is the exact failure `brand.md` warns
+     * about when it says not to spend olive and terracotta as decoration. The
+     * four sit on earth-pigment hues (41° / 78° / 191° / 347°) so they are
+     * tellable apart at 20px, and `theme.test.ts` pins both that separation and
+     * their distance from the three status roles.
+     *
+     * They appear only inside an icon's own mark or tile — never as text, a
+     * fill, or a border anywhere a status colour could be expected.
+     */
+    --figure-ember: 222 115 73;
+    --figure-ochre: 214 162 74;
+    --figure-verdigris: 79 168 164;
+    --figure-mulberry: 201 124 166;
   }
 
   html {
@@ -127,6 +147,12 @@
     --warning-300: 138 69 48;
     --warning-400: 186 106 76;
     --warning-500: 160 85 58;
+    /* The figure tones darken on parchment for the same reason the ramps do —
+       the values that carry a mark on the ember canvas vanish on paper. */
+    --figure-ember: 155 15 6;
+    --figure-ochre: 122 90 18;
+    --figure-verdigris: 20 98 94;
+    --figure-mulberry: 110 42 87;
   }
 
   .surface-site {
@@ -142,7 +168,23 @@
     --neutral-600: 111 78 61;
     --neutral-900: 58 22 20;
     --neutral-950: 42 14 14;
+    --figure-ember: 155 15 6;
+    --figure-ochre: 122 90 18;
+    --figure-verdigris: 20 98 94;
+    --figure-mulberry: 110 42 87;
     @apply bg-neutral-50 text-neutral-950;
+  }
+
+  /* A dark chapter *inside* the parchment route. The route as a whole is light,
+     so it carries the paper-tuned figure tones — a card that inverts to
+     ember-night has to take the canvas-tuned ones back or its mark goes black
+     on black. Scoped to the card, not the section, so surrounding copy keeps
+     the route's own values. */
+  .surface-ink {
+    --figure-ember: 222 115 73;
+    --figure-ochre: 214 162 74;
+    --figure-verdigris: 79 168 164;
+    --figure-mulberry: 201 124 166;
   }
 
   body {

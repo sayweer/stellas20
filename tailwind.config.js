@@ -59,6 +59,16 @@ export default {
           400: 'rgb(var(--warning-400) / <alpha-value>)',
           500: 'rgb(var(--warning-500) / <alpha-value>)',
         },
+        /**
+         * Identity tones for concept icons. Not status, not decoration — see
+         * the note in `src/index.css` for the rule that keeps them apart.
+         */
+        figure: {
+          ember: 'rgb(var(--figure-ember) / <alpha-value>)',
+          ochre: 'rgb(var(--figure-ochre) / <alpha-value>)',
+          verdigris: 'rgb(var(--figure-verdigris) / <alpha-value>)',
+          mulberry: 'rgb(var(--figure-mulberry) / <alpha-value>)',
+        },
         onAccent: 'rgb(var(--on-accent) / <alpha-value>)',
         /** Edge of an interactive control — carries the 3:1 non-text contrast. */
         boundary: 'rgb(var(--boundary) / <alpha-value>)',
