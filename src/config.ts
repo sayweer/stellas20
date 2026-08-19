@@ -113,8 +113,12 @@ const blendMarket: MarketConfig = {
   key: 'blend',
   label: 'XLM · Blend',
   underlyingSymbol: 'XLM',
+  // `||`, not `??` — see the same guard on musdyMarket's fields above: a
+  // variable declared-but-blank in a hosting dashboard is an empty string, not
+  // undefined, and `??` would let it through to point every Blend read/write
+  // at an empty contract id.
   underlyingContractId:
-    import.meta.env.VITE_BLEND_ASSET_ID ??
+    import.meta.env.VITE_BLEND_ASSET_ID ||
     'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC',
   syVaultContractId: blendSyVault || 'CAWXCCBE7RY26LVVWN5QWWOARGDABGQKJMWAYPCM52TT5QZM2UCOGA7J',
   splitterContractId: blendSplitter || 'CDRDDE3NQAY5RPQ4KN7MRAOUTJTWITWLSZQWAFP4XRIN23VG7UHE6YOU',
