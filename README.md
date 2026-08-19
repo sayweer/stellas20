@@ -54,7 +54,7 @@ mandatory evidence, so nothing has to be hunted for:
 | Deployment workflow | [`scripts/`](scripts/), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | One script deploys in dependency order with constructor init; a second seeds a pool at a target APY |
 | Mobile responsive | [screenshot](#screenshots) | Responsive to 390px; the left rail becomes a bottom bar, market rows re-flow to a two-column grid |
 | Error handling & loading states | [table below](#error-handling) | Every contract's `#[contracterror]` mapped to a specific message; one of loading / error+retry / empty / content, never two at once |
-| Tests, contracts and frontend | [`docs/TESTING.md`](docs/TESTING.md) | 130 Rust tests including randomized invariant harnesses, 81 Vitest tests |
+| Tests, contracts and frontend | [`docs/TESTING.md`](docs/TESTING.md) | 130 Rust tests including randomized invariant harnesses, 144 Vitest tests |
 | Production-ready architecture | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Threat model, two adversarial audit rounds with findings closed, no upgrade key or pause switch by design |
 | Documentation & demo | this file, [video](https://youtu.be/G_06mT7pscw) | Architecture diagrams, verifiable on-chain transactions, a recorded walkthrough |
 
@@ -133,7 +133,7 @@ the *XLM · Blend* toggle at the top of the app):
   `/rpc` `getEvents` for the live activity feed.
 - **Tests:** Rust unit + integration + a randomized invariant harness (130 passing, plus 3
   `#[ignore]` slow-tier runs, over *both* yield sources), [Vitest](https://vitest.dev/) for the
-  frontend (81). Detail in [`docs/TESTING.md`](docs/TESTING.md).
+  frontend (144). Detail in [`docs/TESTING.md`](docs/TESTING.md).
 - **CI:** GitHub Actions (`.github/workflows/ci.yml`), on a pinned Rust toolchain.
 
 ## Setup / run locally
@@ -250,7 +250,7 @@ Operational procedures are in **[`docs/RUNBOOKS.md`](docs/RUNBOOKS.md)**.
 | Document | Contents |
 |---|---|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | The contracts, diagrams, the 14-call inter-contract inventory, both yield sources, user-index accounting, rounding law, invariants |
-| [`docs/TESTING.md`](docs/TESTING.md) | All 211 tests, per crate, plus the slow adversarial invariant tier |
+| [`docs/TESTING.md`](docs/TESTING.md) | All 274 tests, per crate, plus the slow adversarial invariant tier |
 | [`docs/USERS_AND_FEEDBACK.md`](docs/USERS_AND_FEEDBACK.md) | Monitoring/analytics/feedback wiring, real user results, and every submitted wallet verified against Horizon |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Deploy scripts end to end, and reaching a wallet from a phone |
 | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Assets, actors, trust boundaries, admin powers, failure modes |

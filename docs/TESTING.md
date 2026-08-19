@@ -1,12 +1,12 @@
 # Testing
 
-211 tests: 130 Rust contract tests (plus a 3-test slow invariant tier) and 81 Vitest
+274 tests: 130 Rust contract tests (plus a 3-test slow invariant tier) and 144 Vitest
 tests on the frontend. Both suites run in [CI](../.github/workflows/ci.yml) on every push.
 
 ```bash
 stellar contract build      # required first: the factory tests import the real PT/YT WASM
 cargo test --workspace      # 130 Rust tests
-npm run test                # 81 Vitest tests
+npm run test                # 144 Vitest tests
 ```
 
 ## Contracts — 130 Rust tests
@@ -51,11 +51,42 @@ Failures print the seed and op index so a red run replays directly. Release is d
 (`cargo` prints a harmless warning that the workspace's `panic = "abort"` does not apply to test
 profiles.)
 
-## Frontend — 81 Vitest tests
+## Frontend — 144 Vitest tests
 
-`npm run test` — the AMM quote/APY math (the swap fixture matches the Rust one byte-for-byte;
-a p=0.988/90d → ~5% APY sanity check), amount parsing/validation in `bigint`, the client-side
-yield math mirroring the contract, chain-time anchoring, per-contract error mapping (including
-the Blend liquidity error and the market-specific wrap message), event parsing for both vaults'
-wrap shapes and both swap directions, and the market switch itself (no contract address may leak
-across it).
+`npm run test`, 15 files:
+
+- `src/lib/theme.test.ts` (32): figure-tone distinguishability and WCAG contrast ratios for
+  every status/text/border color pair, light and dark.
+- `src/lib/amm.test.ts` (19): the AMM quote/APY math — the swap fixture matches the Rust one
+  byte-for-byte, a p=0.988/90d → ~5% APY sanity check, add/remove-liquidity quoting, price
+  impact, slippage clamping.
+- `src/lib/contracts/errors.test.ts` (16): per-contract error tables cover every
+  `#[contracterror]` variant, plus `classifyContractError` mapping RPC/network failures
+  (unfunded account, user-rejected signature, unreachable RPC across browsers) distinctly from
+  contract error codes.
+- `src/lib/amounts.test.ts` (12): stroop ↔ XLM conversion and `parseTokenAmount`, exact in
+  `bigint` past `2^53`, including the leading/trailing-dot shorthand regression.
+- `src/lib/yield.test.ts` (10): claimable-yield math mirroring the contract's rounding, rate
+  interpolation before/after the maturity freeze, maturity countdown formatting.
+- `src/context/TransactionSafetyContext.test.ts` (10): restoring an in-flight transaction's
+  safety record as "uncertain" after a reload, and that only the owning tab can mutate or clear
+  a record.
+- `src/lib/format.test.ts` (7): `formatAmount` grouping/precision/exact-above-2^53,
+  `formatRelativeTime`, `truncateAddress`.
+- `src/lib/txSafety.test.ts` (7): the write lock that blocks a second submission while a prior
+  one's outcome is still uncertain (built without a callback, after a hash, or mid-signing).
+- `src/lib/longYieldProgress.test.ts` (7): the two-step split-then-sell flow's resumable
+  progress record — restores only exact, bigint-safe entries and drops malformed ones instead
+  of inventing a sell amount.
+- `src/lib/validation.test.ts` (7): `isValidTokenAmount` against balance headroom, decimal
+  limits, and malformed input.
+- `src/lib/events.test.ts` (6): event parsing for both vaults' wrap shapes, both swap
+  directions, and liquidity events.
+- `src/lib/transactionStatus.test.ts` (4): maps Soroban RPC transaction states to UI status,
+  failing closed on any unrecognized state.
+- `src/lib/market.test.ts` (3): the market switch swaps every contract address at once — no
+  address may leak across markets.
+- `src/lib/chainTime.test.ts` (2): anchoring wall-clock estimates to the last sampled ledger
+  close time.
+- `src/lib/contracts/base.test.ts` (2): the write-phase safety guard refuses to build or open
+  the wallet when the durable building record can't be claimed or persisted.
