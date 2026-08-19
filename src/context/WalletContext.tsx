@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components --
    The provider and its useWallet hook are intentionally colocated in this module;
    the Fast Refresh boundary tradeoff is acceptable for a stable context. */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import { config } from '../config'
 import {
@@ -42,6 +42,11 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
   // Whether the network read has resolved for the current address (so the
   // "network unknown" warning doesn't flicker during the async fetch).
   const [networkChecked, setNetworkChecked] = useState(false)
+  // Tracks which address the most recent network check belongs to, so a slow
+  // check for a since-replaced address can't mark the *new* address's check
+  // as done — that would flip `networkUnknown` true for a beat before the
+  // new address's own check actually resolves.
+  const latestAddressRef = useRef<string | null>(null)
 
   // The kit fires this immediately with its persisted address (restoring a
   // session across reloads with no popup), then again on every
@@ -49,6 +54,7 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
   // for `address`.
   useEffect(() => {
     const unsubscribe = onWalletAddressChange((address) => {
+      latestAddressRef.current = address
       if (!address) {
         setState(INITIAL_STATE)
         setNetworkChecked(false)
@@ -72,7 +78,7 @@ export function WalletProvider({ children }: { children: ReactNode }): ReactElem
               }
             : prev,
         )
-        setNetworkChecked(true)
+        if (latestAddressRef.current === address) setNetworkChecked(true)
       })
     })
     return unsubscribe
