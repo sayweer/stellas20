@@ -277,7 +277,7 @@ function LockRateForm({
         onMax={
           syBalance > 0n && !blocked
             ? () => {
-                setAmount(stroopsToXlm(syBalance))
+                changeAmount(stroopsToXlm(syBalance))
               }
             : undefined
         }
