@@ -47,7 +47,13 @@ export function PoolPanel({
   const now = useNow()
   const [mode, setMode] = useState<Mode>('add')
 
-  const withPool = pools.filter((p) => p.pool !== null)
+  // Only pools with actual reserves can be added to or removed from — a pool
+  // that was created but never seeded has no ratio for AddForm to quote
+  // against (the first deposit is a script-driven step, not a UI flow; see
+  // TradePanel's identical guard).
+  const withPool = pools.filter(
+    (p) => p.pool !== null && p.pool.ptReserve > 0n && p.pool.syReserve > 0n,
+  )
   const firstActive = withPool.find((p) => Number(p.maturity) * 1000 > now)?.maturity
   const preselect =
     (initialMaturity !== null && withPool.some((p) => p.maturity === initialMaturity)
