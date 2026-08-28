@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react'
 import { initialClipPath, useSceneIndex, useStage } from './stageContext'
 
 /**
@@ -30,6 +30,19 @@ export function ScrollScene({
   const sceneRef = useRef<HTMLElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const dimRef = useRef<HTMLDivElement>(null)
+  const pinned = stage?.pinned ?? false
+  // The hero is on screen at first paint — waiting on the observer would flash
+  // it blank for a frame, so only scenes below the fold hold for entrance.
+  // Reduced motion is read here too, in the initializer, rather than set from
+  // inside the effect below — setting state synchronously from an effect body
+  // triggers a needless extra render.
+  const [revealed, setRevealed] = useState(
+    () =>
+      pinned ||
+      index === 0 ||
+      (typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches),
+  )
 
   useEffect(() => {
     const element = sceneRef.current
@@ -39,7 +52,25 @@ export function ScrollScene({
     return stage.register(index, { element, content, dim, length, custom })
   }, [custom, index, length, stage])
 
-  const pinned = stage?.pinned ?? false
+  // Pinned mode owns its entrance via the scroll-jacked stage; below `md` (or
+  // under reduced motion) scenes stack as ordinary sections instead, so each
+  // one gets a plain fade-and-rise the first time it crosses into view —
+  // without it the fallback pops every block in at once, unrelated to scroll.
+  useEffect(() => {
+    if (pinned || revealed) return
+    const element = sceneRef.current
+    if (!element) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        setRevealed(true)
+        observer.disconnect()
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
+    )
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [pinned, revealed])
 
   return (
     <section
@@ -59,7 +90,19 @@ export function ScrollScene({
         stage?.scrollToScene(index)
       }}
     >
-      <div ref={contentRef} className={pinned ? 'w-full' : undefined}>
+      <div
+        ref={contentRef}
+        className={pinned ? 'w-full' : undefined}
+        style={
+          pinned
+            ? undefined
+            : {
+                opacity: revealed ? 1 : 0,
+                transform: revealed ? 'none' : 'translateY(24px)',
+                transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
+              }
+        }
+      >
         {children}
       </div>
       <div
